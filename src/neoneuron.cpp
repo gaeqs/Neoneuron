@@ -7,5 +7,6 @@
 int main() {
     auto logger = neon::Logger(true, true, true);
     logger.debug("Hello world!");
+
     return 0;
 }
