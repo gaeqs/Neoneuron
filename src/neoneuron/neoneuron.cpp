@@ -31,7 +31,7 @@ int main() {
 
     for (auto& segment: neuron.getSegments()) {
         logger.debug(neon::MessageBuilder().print("Segment: ").print(segment.getId()));
-        logger.debug(neon::MessageBuilder().print(" - Type: ").print((uint8_t)segment.getType()));
+        logger.debug(neon::MessageBuilder().print(" - Type: ").print(static_cast<uint8_t>(segment.getType())));
         logger.debug(neon::MessageBuilder().print(" - Start: ").print(segment.getStart()));
         logger.debug(neon::MessageBuilder().print(" - End: ").print(segment.getEnd()));
         logger.debug(neon::MessageBuilder().print(" - Radius: ").print(segment.getRadius()));
