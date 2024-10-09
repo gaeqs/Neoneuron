@@ -10,13 +10,15 @@ namespace neoneuron {
         SegmentType type,
         const rush::Vec3f& start,
         const rush::Vec3f& end,
-        float radius,
+        float startRadius,
+        float endRadius,
         const std::optional<UID>& parentId
     ): Identifiable(id),
        _type(type),
        _start(start),
        _end(end),
-       _radius(radius),
+       _startRadius(startRadius),
+       _endRadius(endRadius),
        _parentID(parentId) {}
 
     SegmentType NeuronSegment::getType() const {
@@ -31,8 +33,12 @@ namespace neoneuron {
         return _end;
     }
 
-    float NeuronSegment::getRadius() const {
-        return _radius;
+    float NeuronSegment::getStartRadius() const {
+        return _startRadius;
+    }
+
+    float NeuronSegment::getEndRadius() const {
+        return _endRadius;
     }
 
     std::optional<UID> NeuronSegment::getParentId() const {

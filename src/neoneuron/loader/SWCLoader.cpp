@@ -65,12 +65,14 @@ namespace neoneuron {
             }
 
             rush::Vec3f start = parent == nullptr ? prototype.end : parent->end;
+            float startRadius = parent == nullptr ? prototype.radius : parent->radius;
 
             segments.emplace_back(
                 prototype.id,
                 static_cast<SegmentType>(prototype.type),
                 start,
                 prototype.end,
+                startRadius,
                 prototype.radius,
                 parent == nullptr ? std::optional<UID>() : parent->id
             );

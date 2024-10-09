@@ -5,9 +5,7 @@
 #include <cmrc/cmrc.hpp>
 #include <neon/logging/Logger.h>
 
-#include "loader/SWCLoader.h"
-#include "structure/Neuron.h"
-#include "structure/NeuronSegment.h"
+#include <neoneuron/ui/NeoneuronRender.h>
 
 CMRC_DECLARE(resources);
 
@@ -15,28 +13,10 @@ int main() {
     auto logger = neon::Logger(true, true, true);
     logger.debug("Hello world!");
 
-    auto file = cmrc::resources::get_filesystem().open("data.swc");
-    std::string fileData(file.begin(), file.end());
-    std::stringstream ss(fileData);
-    neoneuron::SWCLoader loader(ss);
+    neon::vulkan::VKApplicationCreateInfo info;
+    info.name = "Neoneuron";
 
-    auto result = loader.build(1);
+    neoneuron::NeoneuronRender render(info);
 
-    if (!result.isOk()) {
-        logger.error(result.getError());
-        return 0;
-    }
-
-    neoneuron::Neuron neuron = std::move(result.getResult());
-
-    for (auto& segment: neuron.getSegments()) {
-        logger.debug(neon::MessageBuilder().print("Segment: ").print(segment.getId()));
-        logger.debug(neon::MessageBuilder().print(" - Type: ").print(static_cast<uint8_t>(segment.getType())));
-        logger.debug(neon::MessageBuilder().print(" - Start: ").print(segment.getStart()));
-        logger.debug(neon::MessageBuilder().print(" - End: ").print(segment.getEnd()));
-        logger.debug(neon::MessageBuilder().print(" - Radius: ").print(segment.getRadius()));
-        logger.debug(neon::MessageBuilder().print(" - Parent: ").print(segment.getParentId().value_or(-1)));
-    }
-
-    return 0;
+    return render.renderLoop() ? 0 : 1;
 }
