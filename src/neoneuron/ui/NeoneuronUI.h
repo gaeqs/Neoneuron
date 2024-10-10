@@ -12,9 +12,13 @@ namespace neoneuron {
         neon::IdentifiableWrapper<neon::GameObject> _gameObject;
 
     public:
+        NeoneuronUI() = default;
+
         explicit NeoneuronUI(neon::Room* room);
 
         ~NeoneuronUI();
+
+        NeoneuronUI& operator=(NeoneuronUI&& other) noexcept;
     };
 }
 

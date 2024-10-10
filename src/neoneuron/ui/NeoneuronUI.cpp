@@ -4,6 +4,7 @@
 
 #include "NeoneuronUI.h"
 
+#include <neon/util/component/DebugOverlayComponent.h>
 #include <neon/util/component/DockSpaceComponent.h>
 #include <neon/util/component/ViewportComponent.h>
 
@@ -12,9 +13,18 @@ namespace neoneuron {
         _gameObject = room->newGameObject();
         _gameObject->newComponent<neon::DockSpaceComponent>();
         _gameObject->newComponent<neon::ViewportComponent>();
+        _gameObject->newComponent<neon::DebugOverlayComponent>(false, 100);
     }
 
     NeoneuronUI::~NeoneuronUI() {
-        _gameObject->destroy();
+        if (_gameObject.isValid()) {
+            _gameObject->destroy();
+        }
+    }
+
+    NeoneuronUI& NeoneuronUI::operator=(NeoneuronUI&& other) noexcept {
+        _gameObject = other._gameObject;
+        other._gameObject = nullptr;
+        return *this;
     }
 }

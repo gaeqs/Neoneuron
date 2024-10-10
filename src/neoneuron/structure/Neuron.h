@@ -6,13 +6,15 @@
 #define NEURON_H
 
 #include <vector>
-#include <neoneuron/structure/Identifiable.h>
+#include <unordered_map>
 
+#include <neoneuron/structure/Identifiable.h>
 #include <neoneuron/structure/NeuronSegment.h>
 
 namespace neoneuron {
     class Neuron : public Identifiable {
         std::vector<NeuronSegment> _segments;
+        std::unordered_map<UID, size_t> _segmentsByUID;
 
     public:
         Neuron();
@@ -22,6 +24,12 @@ namespace neoneuron {
         Neuron(UID uid, std::vector<NeuronSegment>&& segments);
 
         [[nodiscard]] const std::vector<NeuronSegment>& getSegments() const;
+
+        std::optional<const NeuronSegment*> findSegment(UID uid) const;
+
+        std::optional<NeuronSegment*> findSegment(UID uid);
+
+        std::optional<size_t> findSegmentIndex(UID uid) const;
     };
 }
 
