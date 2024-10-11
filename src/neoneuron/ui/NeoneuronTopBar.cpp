@@ -4,7 +4,7 @@
 
 #include "NeoneuronTopBar.h"
 
-#include <nfd.h>
+#include <nfd.hpp>
 #include <neoneuron/loader/SWCLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
@@ -12,12 +12,11 @@
 
 namespace neoneuron {
     void NeoneuronTopBar::openFile() const {
-        nfdchar_t* outPath = NULL;
-        nfdresult_t result = NFD_OpenDialog(NULL, NULL, &outPath);
+        NFD::UniquePath outPath = NULL;
+        nfdresult_t result = NFD::OpenDialog(outPath);
         std::string file;
         if (result == NFD_OKAY) {
-            file = std::string(outPath);
-            free(outPath);
+            file = std::string(outPath.get());
         } else if (result == NFD_CANCEL) {
             return;
         } else {

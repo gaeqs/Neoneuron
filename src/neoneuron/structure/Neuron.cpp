@@ -14,8 +14,8 @@ namespace neoneuron {
         rush::Vec3f max = _segments[0].getEnd();
 
         for (size_t i = 1; i < _segments.size(); i++) {
-            min = std::min(min, _segments[i].getEnd());
-            max = std::max(max, _segments[i].getEnd());
+            min = rush::min(min, _segments[i].getEnd());
+            max = rush::max(max, _segments[i].getEnd());
         }
 
         _boundingBox = rush::AABB<3, float>::fromEdges(min, max);

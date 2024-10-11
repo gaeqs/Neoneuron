@@ -3,6 +3,7 @@
 //
 
 
+#include <nfd.hpp>
 #include <cmrc/cmrc.hpp>
 #include <neon/logging/Logger.h>
 
@@ -13,6 +14,8 @@
 CMRC_DECLARE(resources);
 
 int main() {
+    NFD::Init();
+
     using MeshFeature = VkPhysicalDeviceMeshShaderFeaturesEXT;
     constexpr VkStructureType MESH_FEATURE = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT;
 
