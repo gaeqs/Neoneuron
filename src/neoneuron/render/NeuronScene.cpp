@@ -11,13 +11,17 @@ CMRC_DECLARE(resources);
 neoneuron::NeuronScene::NeuronScene(NeuronScene&& other) noexcept
     : _neuronModel(std::move(other._neuronModel)),
       _neurons(std::move(other._neurons)),
-      _gpuNeurons(std::move(other._gpuNeurons)) {}
+      _gpuNeurons(std::move(other._gpuNeurons)),
+      _sceneBoundingBox(other._sceneBoundingBox),
+      _sceneSphereBoundingBox(other._sceneSphereBoundingBox) {}
 
 neoneuron::NeuronScene& neoneuron::NeuronScene::operator=(NeuronScene&& other) noexcept {
     if (this == &other) return *this;
     _neuronModel = std::move(other._neuronModel);
     _neurons = std::move(other._neurons);
     _gpuNeurons = std::move(other._gpuNeurons);
+    _sceneBoundingBox = other._sceneBoundingBox;
+    _sceneSphereBoundingBox = other._sceneSphereBoundingBox;
     return *this;
 }
 

@@ -19,6 +19,9 @@ namespace neoneuron {
         std::vector<Neuron> _neurons;
         std::vector<GPUNeuron> _gpuNeurons;
 
+        rush::AABB<3, float> _sceneBoundingBox;
+        rush::Sphere<3, float> _sceneSphereBoundingBox;
+
     public:
         NeuronScene() = default;
 

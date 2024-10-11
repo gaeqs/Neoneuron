@@ -15,6 +15,9 @@ namespace neoneuron {
     class Neuron : public Identifiable {
         std::vector<NeuronSegment> _segments;
         std::unordered_map<UID, size_t> _segmentsByUID;
+        rush::AABB<3, float> _boundingBox;
+
+        void calculateBoundingBox();
 
     public:
         Neuron();
@@ -22,6 +25,8 @@ namespace neoneuron {
         Neuron(UID uid, const std::vector<NeuronSegment>& segments);
 
         Neuron(UID uid, std::vector<NeuronSegment>&& segments);
+
+        [[nodiscard]] rush::AABB<3, float> boundingBox() const;
 
         [[nodiscard]] const std::vector<NeuronSegment>& getSegments() const;
 
