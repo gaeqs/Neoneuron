@@ -32,6 +32,8 @@ else ()
     set(VULKAN_LIB_LIST "vulkan")
 endif ()
 
+find_package(glfw3 CONFIG REQUIRED)
+list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
 list(APPEND LIBRARIES neon nfd)
 

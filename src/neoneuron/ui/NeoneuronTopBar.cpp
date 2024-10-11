@@ -4,7 +4,12 @@
 
 #include "NeoneuronTopBar.h"
 
+#ifdef WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#endif
+
 #include <nfd.hpp>
+#include <nfd_glfw3.h>
 #include <neoneuron/loader/SWCLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
@@ -12,8 +17,20 @@
 
 namespace neoneuron {
     void NeoneuronTopBar::openFile() const {
+        auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
+
+        nfdwindowhandle_t handle;
+        NFD_GetNativeWindowFromGLFWWindow(app->getWindow(), &handle);
+
+
         NFD::UniquePath outPath = NULL;
-        nfdresult_t result = NFD::OpenDialog(outPath);
+        nfdresult_t result = NFD::OpenDialog(
+            outPath,
+            nullptr,
+            0,
+            nullptr,
+            handle
+        );
         std::string file;
         if (result == NFD_OKAY) {
             file = std::string(outPath.get());
