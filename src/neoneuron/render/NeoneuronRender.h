@@ -16,15 +16,19 @@ namespace neoneuron {
         neon::Application _application;
         std::shared_ptr<neon::FrameBuffer> _renderFrameBuffer;
         std::shared_ptr<neon::Room> _room;
-        NeoneuronUI _ui;
         NeuronScene _neuronScene;
+        NeoneuronUI _ui;
 
         std::shared_ptr<neon::Render> initRender();
+
+        void initGameObjects() const;
 
     public:
         NeoneuronRender(const NeoneuronRender& other) = delete;
 
         explicit NeoneuronRender(const neon::vulkan::VKApplicationCreateInfo& createInfo);
+
+        ~NeoneuronRender();
 
         [[nodiscard]] neon::Application& getApplication();
 

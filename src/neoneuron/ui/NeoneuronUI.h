@@ -8,13 +8,16 @@
 #include <neon/Neon.h>
 
 namespace neoneuron {
+
+    class NeoneuronRender;
+
     class NeoneuronUI {
         neon::IdentifiableWrapper<neon::GameObject> _gameObject;
 
     public:
         NeoneuronUI() = default;
 
-        explicit NeoneuronUI(neon::Room* room);
+        explicit NeoneuronUI(NeoneuronRender& render);
 
         ~NeoneuronUI();
 

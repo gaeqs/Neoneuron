@@ -73,7 +73,7 @@ neoneuron::NeuronScene::NeuronScene(NeoneuronRender* render) : _render(render) {
 
 neoneuron::NeuronScene::~NeuronScene() {
     if (_neuronModel != nullptr) {
-        _render->getRoom()->markUsingModel(_neuronModel.get());
+        _render->getRoom()->unmarkUsingModel(_neuronModel.get());
     }
 }
 

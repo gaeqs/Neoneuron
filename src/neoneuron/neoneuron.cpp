@@ -2,12 +2,13 @@
 // Created by gaeqs on 8/10/24.
 //
 
+
 #include <cmrc/cmrc.hpp>
 #include <neon/logging/Logger.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/loader/SWCLoader.h>
 
-#include "loader/SWCLoader.h"
 
 CMRC_DECLARE(resources);
 
@@ -39,21 +40,6 @@ int main() {
     };
 
     neoneuron::NeoneuronRender render(info);
-
-    auto file = cmrc::resources::get_filesystem().open("data.swc");
-    std::string fileData(file.begin(), file.end());
-    std::stringstream ss(fileData);
-    neoneuron::SWCLoader loader(ss);
-
-    auto result = loader.build(1);
-
-    if (!result.isOk()) {
-        logger.error(result.getError());
-        return 0;
-    }
-
-    neoneuron::Neuron neuron = std::move(result.getResult());
-    render.getNeuronScene().addNeuron(std::move(neuron));
 
     return render.renderLoop() ? 0 : 1;
 }

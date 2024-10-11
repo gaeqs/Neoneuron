@@ -37,6 +37,20 @@ namespace neoneuron {
         return render;
     }
 
+    void NeoneuronRender::initGameObjects() const {
+        auto parameterUpdaterGO = _room->newGameObject();
+        parameterUpdaterGO->setName("Parameter updater");
+        parameterUpdaterGO->newComponent<GlobalParametersUpdaterComponent>();
+
+        auto cameraGO = _room->newGameObject();
+        cameraGO->setName("Camera controller");
+
+        auto movement = cameraGO->newComponent<neon::CameraMovementComponent>();
+        movement->setSpeed(10.0f);
+        cameraGO->newComponent<LockMouseComponent>(movement);
+
+    }
+
     NeoneuronRender::NeoneuronRender(const neon::vulkan::VKApplicationCreateInfo& createInfo)
         : _application(std::make_unique<neon::vulkan::VKApplication>(createInfo)) {
         _application.init();
@@ -44,15 +58,14 @@ namespace neoneuron {
 
         _room = std::make_shared<neon::Room>(&_application);
         _application.setRoom(_room);
-        _ui = NeoneuronUI(_room.get());
         _neuronScene = NeuronScene(this);
+        _ui = NeoneuronUI(*this);
 
-        auto parameterUpdater = _room->newGameObject();
-        parameterUpdater->newComponent<GlobalParametersUpdaterComponent>();
-        auto movement =
-            parameterUpdater->newComponent<neon::CameraMovementComponent>();
-        movement->setSpeed(10.0f);
-        parameterUpdater->newComponent<LockMouseComponent>(movement);
+        initGameObjects();
+    }
+
+    NeoneuronRender::~NeoneuronRender() {
+        _neuronScene = NeuronScene();
     }
 
     neon::Application& NeoneuronRender::getApplication() {

@@ -1,3 +1,6 @@
 [submodule "lib/neon"]
 	path = lib/neon
 	url = https://github.com/gaeqs/Neon
+[submodule "lib/nativefiledialog"]
+	path = lib/nativefiledialog
+	url = https://github.com/mlabbe/nativefiledialog
