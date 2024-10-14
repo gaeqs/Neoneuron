@@ -41,7 +41,7 @@ namespace neoneuron {
         calculateBoundingBox();
     }
 
-    rush::AABB<3, float> Neuron::boundingBox() const {
+    rush::AABB<3, float> Neuron::getBoundingBox() const {
         return _boundingBox;
     }
 

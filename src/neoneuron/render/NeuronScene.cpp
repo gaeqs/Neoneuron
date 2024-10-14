@@ -8,20 +8,45 @@
 
 CMRC_DECLARE(resources);
 
+void neoneuron::NeuronScene::combineBoundingBoxes(const rush::AABB<3, float>& aabb) {
+    auto min = rush::min(aabb.center - aabb.radius, _sceneBoundingBox.center - _sceneBoundingBox.radius);
+    auto max = rush::max(aabb.center + aabb.radius, _sceneBoundingBox.center + _sceneBoundingBox.radius);
+    _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
+}
+
+void neoneuron::NeuronScene::recalculateBoundingBox() {
+    if (_neurons.empty()) {
+        _sceneBoundingBox = {};
+        return;
+    }
+
+    auto bb = _neurons[0].getBoundingBox();
+    auto min = bb.center - bb.radius;
+    auto max = bb.center + bb.radius;
+
+    for (size_t i = 1; i < _neurons.size(); i++) {
+        bb = _neurons[i].getBoundingBox();
+        min = rush::min(min, bb.center - bb.radius);
+        max = rush::max(max, bb.center + bb.radius);
+    }
+
+    _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
+}
+
 neoneuron::NeuronScene::NeuronScene(NeuronScene&& other) noexcept
-    : _neuronModel(std::move(other._neuronModel)),
+    : _render(other._render),
+      _neuronModel(std::move(other._neuronModel)),
       _neurons(std::move(other._neurons)),
       _gpuNeurons(std::move(other._gpuNeurons)),
-      _sceneBoundingBox(other._sceneBoundingBox),
-      _sceneSphereBoundingBox(other._sceneSphereBoundingBox) {}
+      _sceneBoundingBox(other._sceneBoundingBox) {}
 
 neoneuron::NeuronScene& neoneuron::NeuronScene::operator=(NeuronScene&& other) noexcept {
     if (this == &other) return *this;
+    _render = other._render;
     _neuronModel = std::move(other._neuronModel);
     _neurons = std::move(other._neurons);
     _gpuNeurons = std::move(other._gpuNeurons);
     _sceneBoundingBox = other._sceneBoundingBox;
-    _sceneSphereBoundingBox = other._sceneSphereBoundingBox;
     return *this;
 }
 
@@ -84,11 +109,15 @@ neoneuron::NeuronScene::~NeuronScene() {
 void neoneuron::NeuronScene::addNeuron(const Neuron& neuron) {
     _neurons.push_back(neuron);
     _gpuNeurons.emplace_back(_neuronModel->getInstanceData(0), &_neurons.back());
+
+    combineBoundingBoxes(neuron.getBoundingBox());
 }
 
 void neoneuron::NeuronScene::addNeuron(Neuron&& neuron) {
     _neurons.push_back(std::move(neuron));
     _gpuNeurons.emplace_back(_neuronModel->getInstanceData(0), &_neurons.back());
+
+    combineBoundingBoxes(neuron.getBoundingBox());
 }
 
 void neoneuron::NeuronScene::removeNeuron(UID neuronId) {
@@ -99,6 +128,7 @@ void neoneuron::NeuronScene::removeNeuron(UID neuronId) {
             return neuron.getId() == neuronId;
         }
     );
+
     if (it == _neurons.end()) return;
     ptrdiff_t index = it - _neurons.begin();
     _neurons.erase(_neurons.begin() + index);
@@ -106,4 +136,10 @@ void neoneuron::NeuronScene::removeNeuron(UID neuronId) {
     for (auto& gpuNeuron: _gpuNeurons) {
         gpuNeuron.refreshGPUData();
     }
+
+    recalculateBoundingBox();
+}
+
+rush::AABB<3, float> neoneuron::NeuronScene::getSceneBoundingBox() const {
+    return _sceneBoundingBox;
 }

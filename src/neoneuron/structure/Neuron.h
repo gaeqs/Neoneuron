@@ -26,7 +26,7 @@ namespace neoneuron {
 
         Neuron(UID uid, std::vector<NeuronSegment>&& segments);
 
-        [[nodiscard]] rush::AABB<3, float> boundingBox() const;
+        [[nodiscard]] rush::AABB<3, float> getBoundingBox() const;
 
         [[nodiscard]] const std::vector<NeuronSegment>& getSegments() const;
 

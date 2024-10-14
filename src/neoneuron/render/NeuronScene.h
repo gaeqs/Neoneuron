@@ -20,7 +20,10 @@ namespace neoneuron {
         std::vector<GPUNeuron> _gpuNeurons;
 
         rush::AABB<3, float> _sceneBoundingBox;
-        rush::Sphere<3, float> _sceneSphereBoundingBox;
+
+        void combineBoundingBoxes(const rush::AABB<3, float>& aabb);
+
+        void recalculateBoundingBox();
 
     public:
         NeuronScene() = default;
@@ -40,6 +43,8 @@ namespace neoneuron {
         void addNeuron(Neuron&& neuron);
 
         void removeNeuron(UID neuronId);
+
+        [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const;
     };
 }
 
