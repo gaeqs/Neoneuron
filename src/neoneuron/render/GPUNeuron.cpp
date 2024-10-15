@@ -4,20 +4,29 @@
 
 #include "GPUNeuron.h"
 
+#include <utility>
+
 
 namespace neoneuron {
     GPUNeuron::GPUNeuron(GPUNeuron&& other) noexcept {
-        _instanceData = other._instanceData;
+        _model = other._model;
+        _instanceDataIndex = other._instanceDataIndex;
         _instances = std::move(other._instances);
         _neuron = other._neuron;
     }
 
-    GPUNeuron::GPUNeuron(neon::InstanceData* instanceData, const Neuron* neuron)
-        : _instanceData(instanceData),
+    GPUNeuron::GPUNeuron(std::weak_ptr<neon::Model> model,
+                         size_t instanceDataIndex,
+                         const Neuron* neuron)
+        : _model(std::move(model)),
+          _instanceDataIndex(instanceDataIndex),
           _neuron(neuron) {
         _instances.reserve(_neuron->getSegments().size());
+
+        auto* instanceData = _model.lock()->getInstanceData(_instanceDataIndex);
+
         for (size_t i = 0; i < _neuron->getSegments().size(); ++i) {
-            auto result = _instanceData->createInstance();
+            auto result = instanceData->createInstance();
             if (result.isOk()) {
                 _instances.push_back(result.getResult());
             } else {
@@ -30,14 +39,19 @@ namespace neoneuron {
     }
 
     GPUNeuron::~GPUNeuron() {
+        auto model = _model.lock();
+        if (model == nullptr) return;
+        auto* instanceData = model->getInstanceData(_instanceDataIndex);
         for (auto instance: _instances) {
-            _instanceData->freeInstance(instance);
+            instanceData->freeInstance(instance);
         }
     }
 
     void GPUNeuron::refreshGPUData() const {
         std::unordered_map<UID, size_t> positions;
-
+        auto model = _model.lock();
+        if (model == nullptr) return;
+        auto* instanceData = model->getInstanceData(_instanceDataIndex);
         for (size_t i = 0; i < _instances.size(); ++i) {
             auto& segment = _neuron->getSegments()[i];
 
@@ -55,13 +69,14 @@ namespace neoneuron {
                 parentIndex
             );
 
-            _instanceData->uploadData(_instances[i], 0, gpu);
+            instanceData->uploadData(_instances[i], 0, gpu);
         }
     }
 
     GPUNeuron& GPUNeuron::operator=(GPUNeuron&& other) noexcept {
         if (this == &other) return *this;
-        _instanceData = other._instanceData;
+        _model = other._model;
+        _instanceDataIndex = other._instanceDataIndex;
         _instances = std::move(other._instances);
         _neuron = other._neuron;
         return *this;

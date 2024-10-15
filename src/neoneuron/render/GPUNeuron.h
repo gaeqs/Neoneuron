@@ -34,7 +34,8 @@ namespace neoneuron {
     };
 
     class GPUNeuron {
-        neon::InstanceData* _instanceData;
+        std::weak_ptr<neon::Model> _model;
+        size_t _instanceDataIndex;
         std::vector<neon::InstanceData::Instance> _instances;
         const Neuron* _neuron;
 
@@ -43,7 +44,9 @@ namespace neoneuron {
 
         GPUNeuron(const GPUNeuron& other) = delete;
 
-        GPUNeuron(neon::InstanceData* instanceData, const Neuron* neuron);
+        GPUNeuron(std::weak_ptr<neon::Model> model,
+                         size_t instanceDataIndex,
+                         const Neuron* neuron);
 
         ~GPUNeuron();
 

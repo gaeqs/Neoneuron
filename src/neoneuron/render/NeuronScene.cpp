@@ -108,14 +108,14 @@ neoneuron::NeuronScene::~NeuronScene() {
 
 void neoneuron::NeuronScene::addNeuron(const Neuron& neuron) {
     _neurons.push_back(neuron);
-    _gpuNeurons.emplace_back(_neuronModel->getInstanceData(0), &_neurons.back());
+    _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());
 
     combineBoundingBoxes(neuron.getBoundingBox());
 }
 
 void neoneuron::NeuronScene::addNeuron(Neuron&& neuron) {
     _neurons.push_back(std::move(neuron));
-    _gpuNeurons.emplace_back(_neuronModel->getInstanceData(0), &_neurons.back());
+    _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());
 
     combineBoundingBoxes(neuron.getBoundingBox());
 }
