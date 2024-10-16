@@ -9,15 +9,14 @@
 
 namespace neoneuron {
     class NeoneuronRender;
-    class NeuronScene;
 
     class NeoneuronTopBar : public neon::Component {
-        NeuronScene* _scene;
+        NeoneuronRender* _render;
 
         void openFile() const;
 
     public:
-        explicit NeoneuronTopBar(NeoneuronRender& render);
+        explicit NeoneuronTopBar(NeoneuronRender* render);
 
         void onStart() override;
 

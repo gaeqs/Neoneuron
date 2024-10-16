@@ -14,9 +14,9 @@ namespace neoneuron {
     public:
         virtual void focusOn(const rush::AABB<3, float>& aabb) = 0;
 
-        virtual void forcePosition(rush::Vec3f position);
+        virtual void forcePosition(rush::Vec3f position) = 0;
 
-        virtual void setInterpolator(std::unique_ptr<CameraInterpolator> interpolator);
+        virtual void setInterpolator(std::unique_ptr<CameraInterpolator> interpolator) = 0;
     };
 }
 

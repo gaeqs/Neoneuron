@@ -78,6 +78,7 @@ neoneuron::NeuronScene::NeuronScene(NeoneuronRender* render) : _render(render) {
     });
 
     neon::ModelCreateInfo modelCreateInfo;
+    modelCreateInfo.maximumInstances = 10000000;
     modelCreateInfo.drawables.push_back(drawable);
     modelCreateInfo.uniformDescriptor = modelDescriptor;
 
@@ -110,14 +111,22 @@ void neoneuron::NeuronScene::addNeuron(const Neuron& neuron) {
     _neurons.push_back(neuron);
     _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());
 
-    combineBoundingBoxes(neuron.getBoundingBox());
+    if (_neurons.size() == 1) {
+        _sceneBoundingBox = neuron.getBoundingBox();
+    } else {
+        combineBoundingBoxes(neuron.getBoundingBox());
+    }
 }
 
 void neoneuron::NeuronScene::addNeuron(Neuron&& neuron) {
     _neurons.push_back(std::move(neuron));
     _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());
 
-    combineBoundingBoxes(neuron.getBoundingBox());
+    if (_neurons.size() == 1) {
+        _sceneBoundingBox = neuron.getBoundingBox();
+    } else {
+        combineBoundingBoxes(neuron.getBoundingBox());
+    }
 }
 
 void neoneuron::NeuronScene::removeNeuron(UID neuronId) {

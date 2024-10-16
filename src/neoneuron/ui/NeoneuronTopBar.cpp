@@ -53,11 +53,12 @@ namespace neoneuron {
         }
 
         Neuron neuron = std::move(loaderResult.getResult());
-        _scene->addNeuron(std::move(neuron));
+        _render->getNeuronScene().addNeuron(std::move(neuron));
+        _render->focusScene();
     }
 
-    NeoneuronTopBar::NeoneuronTopBar(NeoneuronRender& render)
-        : _scene(&render.getNeuronScene()) {}
+    NeoneuronTopBar::NeoneuronTopBar(NeoneuronRender* render)
+        : _render(render) {}
 
     void NeoneuronTopBar::onStart() {}
 

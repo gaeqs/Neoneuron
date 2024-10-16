@@ -20,6 +20,12 @@ namespace neoneuron {
         void setPosition(rush::Vec3f position) override;
 
         void teleport(rush::Vec3f position) override;
+
+        void setRotation(rush::Quatf rotation) override;
+
+        void teleportRotation(rush::Quatf rotation) override;
+
+        void onUpdate(float deltaTime) override;
     };
 }
 

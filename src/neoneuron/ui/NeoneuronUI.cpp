@@ -17,7 +17,7 @@ namespace neoneuron {
         _gameObject->newComponent<neon::DockSpaceComponent>(true);
         _gameObject->newComponent<neon::ViewportComponent>();
         _gameObject->newComponent<neon::DebugOverlayComponent>(false, 100);
-        _gameObject->newComponent<NeoneuronTopBar>(render);
+        _gameObject->newComponent<NeoneuronTopBar>(&render);
     }
 
     NeoneuronUI::~NeoneuronUI() {

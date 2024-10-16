@@ -4,12 +4,11 @@
 
 #include "NeoneuronRender.h"
 
-#include <neoneuron/render/component/GlobalParametersUpdaterComponent.h>
-#include <neoneuron/render/component/LockMouseComponent.h>
-
 #include <vector>
-#include <neon/util/component/CameraMovementComponent.h>
 
+#include <neoneuron/render/component/GlobalParametersUpdaterComponent.h>
+#include <neoneuron/render/component/camera/InstantCameraInterpolator.h>
+#include <neoneuron/render/component/camera/OrbitalCameraController.h>
 
 
 namespace neoneuron {
@@ -37,7 +36,7 @@ namespace neoneuron {
         return render;
     }
 
-    void NeoneuronRender::initGameObjects() const {
+    void NeoneuronRender::initGameObjects() {
         auto parameterUpdaterGO = _room->newGameObject();
         parameterUpdaterGO->setName("Parameter updater");
         parameterUpdaterGO->newComponent<GlobalParametersUpdaterComponent>();
@@ -45,10 +44,9 @@ namespace neoneuron {
         auto cameraGO = _room->newGameObject();
         cameraGO->setName("Camera controller");
 
-        auto movement = cameraGO->newComponent<neon::CameraMovementComponent>();
-        movement->setSpeed(10.0f);
-        cameraGO->newComponent<LockMouseComponent>(movement);
-
+        _cameraController = cameraGO->newComponent<OrbitalCameraController>(
+            std::make_unique<InstantCameraInterpolator>(&_room->getCamera())
+        );
     }
 
     NeoneuronRender::NeoneuronRender(const neon::vulkan::VKApplicationCreateInfo& createInfo)
@@ -57,6 +55,7 @@ namespace neoneuron {
         _application.setRender(initRender());
 
         _room = std::make_shared<neon::Room>(&_application);
+        _room->getCamera().setFrustum(_room->getCamera().getFrustum().withFar(10000.0f));
         _application.setRoom(_room);
         _neuronScene = NeuronScene(this);
         _ui = NeoneuronUI(*this);
@@ -92,7 +91,15 @@ namespace neoneuron {
         return _neuronScene;
     }
 
+    neon::IdentifiableWrapper<CameraController> NeoneuronRender::getCameraController() const {
+        return _cameraController;
+    }
+
     bool NeoneuronRender::renderLoop() {
         return _application.startGameLoop().isOk();
+    }
+
+    void NeoneuronRender::focusScene() const {
+        _cameraController->focusOn(_neuronScene.getSceneBoundingBox());
     }
 }
