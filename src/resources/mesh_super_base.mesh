@@ -1,0 +1,37 @@
+#version 460
+#extension GL_EXT_mesh_shader: enable
+
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (triangles, max_vertices = 3, max_primitives = 1) out;
+
+struct Vertex {
+    vec4 position;
+    vec2 uv;
+};
+
+layout(std430, set = 0, binding = 0) buffer Data {
+    Vertex vertices[]; // Already expanded, indices are 0, 1, 2, 3, 4, 5...
+};
+
+layout(set = 0, binding = 1) uniform Properties {
+    mat4 model;
+    int verticesAmount;
+};
+
+layout(location = 1) out vec2 outTexCoords[];
+
+void pushVertex(uint i, Vertex vertex) {
+    gl_MeshVerticesEXT[i].gl_Position = viewProjection * model * vertex.position;
+    outTexCoords[i] = vertex.uv;
+}
+
+void main() {
+    SetMeshOutputsEXT(3, 1);
+
+    uint start = gl_WorkGroupID.x * 3;
+    pushVertex(0, vertices[start]);
+    pushVertex(1, vertices[start + 1]);
+    pushVertex(2, vertices[start + 2]);
+    gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0, 1, 2);
+}
+    
