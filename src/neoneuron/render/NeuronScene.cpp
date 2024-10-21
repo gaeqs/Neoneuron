@@ -69,6 +69,7 @@ neoneuron::NeuronScene::NeuronScene(NeoneuronRender* render) : _render(render) {
     auto modelDescriptor = std::make_shared<neon::ShaderUniformDescriptor>(app, "model", modelBindings);
 
     neon::MaterialCreateInfo materialCreateInfo(render->getRenderFrameBuffer(), shader);
+    materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
     materialCreateInfo.descriptions.extraUniforms.push_back(modelDescriptor);
     auto material = std::make_shared<neon::Material>(app, "Neuron", materialCreateInfo);
 

@@ -25,7 +25,7 @@ namespace neoneuron {
             std::vector<neon::FrameBufferTextureCreateInfo>{
                 neon::TextureFormat::R8G8B8A8,
             },
-            false
+            true
         );
 
         auto scFramebuffer = std::make_shared<neon::SwapChainFrameBuffer>(&_application, false);

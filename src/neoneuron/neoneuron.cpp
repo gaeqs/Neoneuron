@@ -42,6 +42,8 @@ int main() {
         features.extensions.emplace_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
     };
 
+    info.vSync = false;
+
     neoneuron::NeoneuronRender render(info);
 
     return render.renderLoop() ? 0 : 1;

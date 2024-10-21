@@ -27,15 +27,15 @@ namespace neoneuron {
     }
 
     void OrbitalCameraController::dragRotation(const neon::CursorMoveEvent& event) {
-        constexpr float SCALE = -0.01f;
+        constexpr float SCALE = -0.003f;
 
         rush::Vec2f delta = event.delta(1, 0) * SCALE;
 
         _position.rotation += delta;
         _position.rotation.x() = std::clamp(
             _position.rotation.x(),
-            -static_cast<float>(M_PI_2) - 0.0001f,
-            static_cast<float>(M_PI_2) + 0.0001f
+            -std::numbers::pi_v<float> / 2.0f - 0.0001f,
+            std::numbers::pi_v<float> / 2.0f + 0.0001f
         );
 
         _angularVelocity = delta / getApplication()->getCurrentFrameInformation().currentDeltaTime;
@@ -72,8 +72,8 @@ namespace neoneuron {
         _position.rotation += _angularVelocity * deltaTime;
         _position.rotation.x() = std::clamp(
             _position.rotation.x(),
-            -static_cast<float>(M_PI_2) - 0.0001f,
-            static_cast<float>(M_PI_2) + 0.0001f
+            -std::numbers::pi_v<float> / 2.0f - 0.0001f,
+            std::numbers::pi_v<float> / 2.0f + 0.0001f
         );
 
         return true;
@@ -90,8 +90,8 @@ namespace neoneuron {
         auto force = -D * _radiusVelocity;
         _radiusVelocity += force * deltaTime;
         _position.radius += _radiusVelocity * deltaTime;
-        if (_position.radius < 10.0f) {
-            _position.radius = 10.0f;
+        if (_position.radius < 1.0f) {
+            _position.radius = 1.0f;
             _radiusVelocity = 0.0f;
         }
 
