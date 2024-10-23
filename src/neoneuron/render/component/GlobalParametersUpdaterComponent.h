@@ -8,6 +8,8 @@
 #include <neon/Neon.h>
 
 namespace neoneuron {
+    class NeoneuronRender;
+
     struct Matrices {
         rush::Mat4f view;
         rush::Mat4f projectionView;
@@ -16,8 +18,22 @@ namespace neoneuron {
         float far;
     };
 
+    struct Time {
+        float currentTime;
+    };
+
+    struct Scene {
+        rush::Vec3f center;
+        float unused = 0;
+        rush::Vec3f radius;
+    };
+
     class GlobalParametersUpdaterComponent : public neon::Component {
+        NeoneuronRender& _render;
+
     public:
+        explicit GlobalParametersUpdaterComponent(NeoneuronRender& render);
+
         ~GlobalParametersUpdaterComponent() override;
 
         void onStart() override;

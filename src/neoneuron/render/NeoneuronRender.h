@@ -14,12 +14,19 @@
 
 namespace neoneuron {
     class NeoneuronRender {
+        struct Components {
+            NeuronScene neuronScene;
+            NeoneuronUI ui;
+            CameraData cameraData;
+
+            Components(NeoneuronRender* render);
+        };
+
         neon::Application _application;
         std::shared_ptr<neon::FrameBuffer> _renderFrameBuffer;
         std::shared_ptr<neon::Room> _room;
-        NeuronScene _neuronScene;
-        NeoneuronUI _ui;
-        CameraData _cameraData;
+        std::chrono::time_point<std::chrono::steady_clock> _startTime;
+        std::unique_ptr<Components> _components;
 
         std::shared_ptr<neon::Render> initRender();
 
@@ -47,6 +54,8 @@ namespace neoneuron {
         [[nodiscard]] CameraData& getCameraData();
 
         [[nodiscard]] const CameraData& getCameraData() const;
+
+        float getCurrentTime() const;
 
         bool renderLoop();
 

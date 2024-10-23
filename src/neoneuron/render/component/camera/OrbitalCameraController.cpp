@@ -4,6 +4,8 @@
 
 #include "OrbitalCameraController.h"
 
+#include "CameraData.h"
+
 namespace neoneuron {
     void OrbitalCameraController::sendPosition() const {
         auto rotation = rush::Quatf::euler(rush::Vec3f(_position.rotation, 0.0f));
@@ -97,8 +99,9 @@ namespace neoneuron {
     }
 
     OrbitalCameraController::
-    OrbitalCameraController(std::unique_ptr<CameraInterpolator> interpolator)
-        : _interpolator(std::move(interpolator)),
+    OrbitalCameraController(CameraData* cameraData, std::unique_ptr<CameraInterpolator> interpolator)
+        : CameraController(cameraData),
+          _interpolator(std::move(interpolator)),
           _position(rush::Vec3f(), rush::Vec2f(), 10.0f),
           _radiusVelocity(0),
           _radiusScale(_position.radius / 10.0f),
@@ -140,12 +143,12 @@ namespace neoneuron {
             }
         }
 
-        if (_activePosition.getValue() != _dragPosition) {
-            _activePosition.setValue(_dragPosition);
+        if (_cameraData->onActivePosition().getValue() != _dragPosition) {
+            _cameraData->onActivePosition().setValue(_dragPosition);
         }
 
-        if (_activeRotation.getValue() != _dragRotation) {
-            _activeRotation.setValue(_dragRotation);
+        if (_cameraData->onActiveRotation().getValue() != _dragRotation) {
+            _cameraData->onActiveRotation().setValue(_dragRotation);
         }
     }
 

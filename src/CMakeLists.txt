@@ -9,6 +9,8 @@ cmrc_add_resource_library(
         resources/neuron.task
         resources/neuron.mesh
         resources/neuron.frag
+        resources/shader/guide/guide.vert
+        resources/shader/guide/guide.frag
 )
 
 add_executable(neoneuron ${SOURCES})

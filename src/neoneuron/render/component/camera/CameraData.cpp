@@ -4,20 +4,49 @@
 
 #include "CameraData.h"
 
+#include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/render/component/camera/OrbitalCameraController.h>
 #include <neoneuron/render/component/camera/InstantCameraInterpolator.h>
 
-namespace neoneuron {
-    CameraData::CameraData(neon::Room* room) {
-        _cameraGameObject = room->newGameObject();
-        _cameraGameObject->setName("Camera controller");
+#include <neoneuron/render/component/camera/Guide.h>
 
-        _cameraController = _cameraGameObject->newComponent<OrbitalCameraController>(
-            std::make_unique<InstantCameraInterpolator>(&room->getCamera())
-        );
+namespace neoneuron {
+    CameraData::~CameraData() {
+        if (_cameraGameObject.isValid()) {
+            _cameraGameObject->destroy();
+        }
     }
 
-    neon::IdentifiableWrapper<CameraController> CameraData::cameraController() const {
+    CameraData::CameraData(NeoneuronRender* render) {
+        auto* room = render->getRoom().get();
+        _cameraGameObject = room->newGameObject();
+        _cameraGameObject->setName("Camera");
+
+        _cameraController = _cameraGameObject->newComponent<OrbitalCameraController>(
+            this,
+            std::make_unique<InstantCameraInterpolator>(&room->getCamera())
+        );
+
+        _cameraGuide = _cameraGameObject->newComponent<Guide>(render);
+    }
+
+    neon::IdentifiableWrapper<CameraController> CameraData::getCameraController() const {
         return _cameraController;
+    }
+
+    hey::ObservableValue<bool>& CameraData::onActiveRotation() {
+        return _activeRotation;
+    }
+
+    const hey::ObservableValue<bool>& CameraData::onActiveRotation() const {
+        return _activeRotation;
+    }
+
+    hey::ObservableValue<bool>& CameraData::onActivePosition() {
+        return _activePosition;
+    }
+
+    const hey::ObservableValue<bool>& CameraData::onActivePosition() const {
+        return _activePosition;
     }
 }

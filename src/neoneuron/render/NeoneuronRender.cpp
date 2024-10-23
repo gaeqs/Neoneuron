@@ -7,14 +7,20 @@
 #include <vector>
 
 #include <neoneuron/render/component/GlobalParametersUpdaterComponent.h>
-#include <neoneuron/render/component/camera/InstantCameraInterpolator.h>
 #include <neoneuron/render/component/camera/OrbitalCameraController.h>
 
 
 namespace neoneuron {
+    NeoneuronRender::Components::Components(NeoneuronRender* render) :
+        neuronScene(render),
+        ui(render),
+        cameraData(render) {}
+
     std::shared_ptr<neon::Render> NeoneuronRender::initRender() {
         std::vector<neon::ShaderUniformBinding> bindings = {
             {neon::UniformBindingType::UNIFORM_BUFFER, sizeof(Matrices)},
+            {neon::UniformBindingType::UNIFORM_BUFFER, sizeof(Time)},
+            {neon::UniformBindingType::UNIFORM_BUFFER, sizeof(Scene)},
         };
 
         auto descriptor = std::make_shared<neon::ShaderUniformDescriptor>(&_application, "Descriptor", bindings);
@@ -39,7 +45,7 @@ namespace neoneuron {
     void NeoneuronRender::initGameObjects() {
         auto parameterUpdaterGO = _room->newGameObject();
         parameterUpdaterGO->setName("Parameter updater");
-        parameterUpdaterGO->newComponent<GlobalParametersUpdaterComponent>();
+        parameterUpdaterGO->newComponent<GlobalParametersUpdaterComponent>(*this);
     }
 
     NeoneuronRender::NeoneuronRender(const neon::vulkan::VKApplicationCreateInfo& createInfo)
@@ -50,16 +56,14 @@ namespace neoneuron {
         _room = std::make_shared<neon::Room>(&_application);
         _room->getCamera().setFrustum(_room->getCamera().getFrustum().withFar(10000.0f));
         _application.setRoom(_room);
-        _neuronScene = NeuronScene(this);
-        _ui = NeoneuronUI(*this);
-        _cameraData = CameraData(_room.get());
+        _startTime = std::chrono::high_resolution_clock::now();
+
+        _components = std::make_unique<Components>(this);
 
         initGameObjects();
     }
 
-    NeoneuronRender::~NeoneuronRender() {
-        _neuronScene = NeuronScene();
-    }
+    NeoneuronRender::~NeoneuronRender() = default;
 
     neon::Application& NeoneuronRender::getApplication() {
         return _application;
@@ -78,26 +82,35 @@ namespace neoneuron {
     }
 
     NeuronScene& NeoneuronRender::getNeuronScene() {
-        return _neuronScene;
+        return _components->neuronScene;
     }
 
     const NeuronScene& NeoneuronRender::getNeuronScene() const {
-        return _neuronScene;
+        return _components->neuronScene;
     }
 
     CameraData& NeoneuronRender::getCameraData() {
-        return _cameraData;
+        return _components->cameraData;
     }
 
     const CameraData& NeoneuronRender::getCameraData() const {
-        return _cameraData;
+        return _components->cameraData;
+    }
+
+    float NeoneuronRender::getCurrentTime() const {
+        auto now = std::chrono::high_resolution_clock::now();
+        return std::chrono::duration_cast<std::chrono::duration<float>>(now - _startTime).count();
     }
 
     bool NeoneuronRender::renderLoop() {
-        return _application.startGameLoop().isOk();
+        auto result = _application.startGameLoop();
+        if (!result.isOk()) {
+            neon::Logger::defaultLogger()->error(result.getError());
+        }
+        return result.isOk();
     }
 
     void NeoneuronRender::focusScene() const {
-        _cameraData.cameraController()->focusOn(_neuronScene.getSceneBoundingBox());
+        _components->cameraData.getCameraController()->focusOn(_components->neuronScene.getSceneBoundingBox());
     }
 }

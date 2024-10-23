@@ -43,7 +43,7 @@ namespace neoneuron {
         bool updateRadius(float deltaTime);
 
     public:
-        explicit OrbitalCameraController(std::unique_ptr<CameraInterpolator> interpolator);
+        OrbitalCameraController(CameraData* cameraData, std::unique_ptr<CameraInterpolator> interpolator);
 
         void focusOn(const rush::AABB<3, float>& aabb) override;
 

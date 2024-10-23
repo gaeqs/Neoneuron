@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/hey" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/nativefiledialog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/neon" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/neon/lib/Rush" vcs="Git" />

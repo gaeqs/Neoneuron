@@ -17,7 +17,7 @@ namespace neoneuron {
     public:
         NeoneuronUI() = default;
 
-        explicit NeoneuronUI(NeoneuronRender& render);
+        explicit NeoneuronUI(NeoneuronRender* render);
 
         ~NeoneuronUI();
 
