@@ -4,3 +4,6 @@
 [submodule "lib/nativefiledialog"]
 	path = lib/nativefiledialog
 	url = https://github.com/btzy/nativefiledialog-extended
+[submodule "lib/hey"]
+	path = lib/hey
+	url = https://github.com/gaeqs/Hey

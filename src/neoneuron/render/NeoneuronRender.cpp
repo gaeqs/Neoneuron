@@ -40,13 +40,6 @@ namespace neoneuron {
         auto parameterUpdaterGO = _room->newGameObject();
         parameterUpdaterGO->setName("Parameter updater");
         parameterUpdaterGO->newComponent<GlobalParametersUpdaterComponent>();
-
-        auto cameraGO = _room->newGameObject();
-        cameraGO->setName("Camera controller");
-
-        _cameraController = cameraGO->newComponent<OrbitalCameraController>(
-            std::make_unique<InstantCameraInterpolator>(&_room->getCamera())
-        );
     }
 
     NeoneuronRender::NeoneuronRender(const neon::vulkan::VKApplicationCreateInfo& createInfo)
@@ -59,6 +52,7 @@ namespace neoneuron {
         _application.setRoom(_room);
         _neuronScene = NeuronScene(this);
         _ui = NeoneuronUI(*this);
+        _cameraData = CameraData(_room.get());
 
         initGameObjects();
     }
@@ -91,8 +85,12 @@ namespace neoneuron {
         return _neuronScene;
     }
 
-    neon::IdentifiableWrapper<CameraController> NeoneuronRender::getCameraController() const {
-        return _cameraController;
+    CameraData& NeoneuronRender::getCameraData() {
+        return _cameraData;
+    }
+
+    const CameraData& NeoneuronRender::getCameraData() const {
+        return _cameraData;
     }
 
     bool NeoneuronRender::renderLoop() {
@@ -100,6 +98,6 @@ namespace neoneuron {
     }
 
     void NeoneuronRender::focusScene() const {
-        _cameraController->focusOn(_neuronScene.getSceneBoundingBox());
+        _cameraData.cameraController()->focusOn(_neuronScene.getSceneBoundingBox());
     }
 }

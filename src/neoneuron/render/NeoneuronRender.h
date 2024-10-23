@@ -9,7 +9,7 @@
 
 #include <neoneuron/ui/NeoneuronUI.h>
 #include <neoneuron/render/NeuronScene.h>
-#include <neoneuron/render/component/camera/CameraController.h>
+#include <neoneuron/render/component/camera/CameraData.h>
 
 
 namespace neoneuron {
@@ -19,7 +19,7 @@ namespace neoneuron {
         std::shared_ptr<neon::Room> _room;
         NeuronScene _neuronScene;
         NeoneuronUI _ui;
-        neon::IdentifiableWrapper<CameraController> _cameraController;
+        CameraData _cameraData;
 
         std::shared_ptr<neon::Render> initRender();
 
@@ -44,7 +44,9 @@ namespace neoneuron {
 
         [[nodiscard]] const NeuronScene& getNeuronScene() const;
 
-        [[nodiscard]] neon::IdentifiableWrapper<CameraController> getCameraController() const;
+        [[nodiscard]] CameraData& getCameraData();
+
+        [[nodiscard]] const CameraData& getCameraData() const;
 
         bool renderLoop();
 

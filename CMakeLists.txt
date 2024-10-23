@@ -11,6 +11,7 @@ if (UNIX)
 endif ()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/neon/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/hey/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/nativefiledialog/src/include)
 
 add_subdirectory(lib)
@@ -35,7 +36,7 @@ endif ()
 find_package(glfw3 CONFIG REQUIRED)
 list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
-list(APPEND LIBRARIES neon nfd)
+list(APPEND LIBRARIES neon nfd hey)
 
 include_directories(src)
 add_subdirectory(src)

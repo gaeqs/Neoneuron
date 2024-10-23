@@ -6,7 +6,6 @@
 
 namespace neoneuron {
     void OrbitalCameraController::sendPosition() const {
-
         auto rotation = rush::Quatf::euler(rush::Vec3f(_position.rotation, 0.0f));
         auto result = _position.position + rotation * rush::Vec3f(0.0f, 0.0f, _position.radius);
 
@@ -15,7 +14,6 @@ namespace neoneuron {
     }
 
     void OrbitalCameraController::dragPosition(const neon::CursorMoveEvent& event) {
-
         rush::Vec3f delta = {event.delta * rush::Vec2f(-_positionScale, _positionScale), 0.0f};
 
         delta = getGameObject()->getRoom()->getCamera().getRotation() * delta;
@@ -140,6 +138,14 @@ namespace neoneuron {
             if (_dragRotation) {
                 _dragPosition = false;
             }
+        }
+
+        if (_activePosition.getValue() != _dragPosition) {
+            _activePosition.setValue(_dragPosition);
+        }
+
+        if (_activeRotation.getValue() != _dragRotation) {
+            _activeRotation.setValue(_dragRotation);
         }
     }
 
