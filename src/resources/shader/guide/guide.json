@@ -1,0 +1,11 @@
+{
+  "name": "neoneuron:guide",
+  "save": true,
+  "use_present": true,
+  "vertex": {
+    "file": "guide.vert"
+  },
+  "fragment": {
+    "file": "guide.frag"
+  }
+}

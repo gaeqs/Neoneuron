@@ -10,6 +10,8 @@
 #include <neoneuron/render/component/camera/OrbitalCameraController.h>
 
 
+CMRC_DECLARE(resources);
+
 namespace neoneuron {
     NeoneuronRender::Components::Components(NeoneuronRender* render) :
         neuronScene(render),
@@ -17,28 +19,14 @@ namespace neoneuron {
         cameraData(render) {}
 
     std::shared_ptr<neon::Render> NeoneuronRender::initRender() {
-        std::vector<neon::ShaderUniformBinding> bindings = {
-            {neon::UniformBindingType::UNIFORM_BUFFER, sizeof(Matrices)},
-            {neon::UniformBindingType::UNIFORM_BUFFER, sizeof(Time)},
-            {neon::UniformBindingType::UNIFORM_BUFFER, sizeof(Scene)},
-        };
-
-        auto descriptor = std::make_shared<neon::ShaderUniformDescriptor>(&_application, "Descriptor", bindings);
-        auto render = std::make_shared<neon::Render>(&_application, "Render", descriptor);
-
-        _renderFrameBuffer = std::make_shared<neon::SimpleFrameBuffer>(
-            &_application,
-            std::vector<neon::FrameBufferTextureCreateInfo>{
-                neon::TextureFormat::R8G8B8A8,
-            },
-            true
-        );
-
-        auto scFramebuffer = std::make_shared<neon::SwapChainFrameBuffer>(&_application, false);
-
-        render->addRenderPass(std::make_shared<neon::DefaultRenderPassStrategy>(_renderFrameBuffer));
-        render->addRenderPass(std::make_shared<neon::DefaultRenderPassStrategy>(scFramebuffer));
-
+        neon::AssetLoaderContext context(&_application, nullptr, &_fileSystem);
+        auto render = neon::loadAssetFromFile<neon::Render>("render.json", context);
+        if (render == nullptr) {
+            _application.getLogger().error("Render is null!");
+        }
+        _renderFrameBuffer = _application.getAssets()
+                .get<neon::FrameBuffer>("neoneuron:frame_buffer")
+                .value_or(nullptr);
         return render;
     }
 
@@ -49,7 +37,8 @@ namespace neoneuron {
     }
 
     NeoneuronRender::NeoneuronRender(const neon::vulkan::VKApplicationCreateInfo& createInfo)
-        : _application(std::make_unique<neon::vulkan::VKApplication>(createInfo)) {
+        : _application(std::make_unique<neon::vulkan::VKApplication>(createInfo)),
+          _fileSystem(cmrc::resources::get_filesystem()) {
         _application.init();
         _application.setRender(initRender());
 

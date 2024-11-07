@@ -1,0 +1,84 @@
+{
+  "name": "neoneuron:guide",
+  "save": true,
+  "use_present": true,
+  "maximum_instances": 1,
+  "auto_flush": true,
+  "custom_instance_sizes": [
+    8
+  ],
+  "meshes": [
+    {
+      "name": "neoneuron:guide",
+      "save": true,
+      "use_present": true,
+      "vertices": [
+        -100000.0,
+        0.0,
+        -100000.0,
+        100000.0,
+        0.0,
+        -100000.0,
+        -100000.0,
+        0.0,
+        100000.0,
+        100000.0,
+        0.0,
+        100000.0
+      ],
+      "indices": [
+        0,
+        1,
+        2,
+        1,
+        2,
+        3
+      ],
+      "materials": [
+        {
+          "name": "neoneuron:guide",
+          "save": true,
+          "use_present": true,
+          "frame_buffer": "A:neoneuron:frame_buffer",
+          "shader": "/shader/guide/guide.json",
+          "descriptions": {
+            "vertex": {
+              "stride": 12,
+              "attributes": {
+                "size_in_floats": 3,
+                "offset_in_bytes": 0
+              }
+            },
+            "instance": {
+              "stride": 8,
+              "attributes": [
+                {
+                  "size_in_floats": 1,
+                  "offset_in_bytes": 0
+                },
+                {
+                  "size_in_floats": 1,
+                  "offset_in_bytes": 4
+                }
+              ]
+            }
+          },
+          "blending": {
+            "attachments": [
+              {
+                "enabled": true,
+                "alpha_blend_operation": "add",
+                "alpha_source_blend_factor": "one",
+                "alpha_destiny_blend_factor": "one"
+              }
+            ]
+          },
+          "rasterizer": {
+            "cull_mode": "none"
+          },
+          "priority": -1
+        }
+      ]
+    }
+  ]
+}

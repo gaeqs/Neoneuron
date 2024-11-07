@@ -5,12 +5,17 @@ cmrc_add_resource_library(
         ALIAS neoneuron::resources
         NAMESPACE resources
         WHENCE resources
-        resources/data.swc
-        resources/neuron.task
-        resources/neuron.mesh
-        resources/neuron.frag
+        resources/model/guide/guide.json
         resources/shader/guide/guide.vert
         resources/shader/guide/guide.frag
+        resources/shader/guide/guide.json
+        resources/shader/neuron/neuron.frag
+        resources/shader/neuron/neuron.mesh
+        resources/shader/neuron/neuron.task
+        resources/shader/neuron/neuron_beta.mesh
+        resources/swc/data.swc
+        resources/swc/test.swc
+        resources/render.json
 )
 
 add_executable(neoneuron ${SOURCES})

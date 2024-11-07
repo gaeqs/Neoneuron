@@ -56,9 +56,9 @@ neoneuron::NeuronScene::NeuronScene(NeoneuronRender* render) : _render(render) {
     auto shader = std::make_shared<neon::ShaderProgram>(&render->getApplication(), "Neuron");
 
     auto fs = cmrc::resources::get_filesystem();
-    shader->addShader(neon::ShaderType::TASK, fs.open("neuron.task"));
-    shader->addShader(neon::ShaderType::MESH, fs.open("neuron.mesh"));
-    shader->addShader(neon::ShaderType::FRAGMENT, fs.open("neuron.frag"));
+    shader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/neuron.task"));
+    shader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/neuron.mesh"));
+    shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/neuron.frag"));
 
     if (auto result = shader->compile(); result.has_value()) {
         render->getApplication().getLogger().error(result.value());

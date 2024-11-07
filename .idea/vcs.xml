@@ -9,6 +9,7 @@
     <mapping directory="$PROJECT_DIR$/lib/neon/lib/glslang" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/neon/lib/imgui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/neon/lib/implot" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/neon/lib/libzippp" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/neon/lib/spirv-headers" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/neon/lib/spirv-tools" vcs="Git" />
   </component>

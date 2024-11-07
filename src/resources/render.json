@@ -1,0 +1,40 @@
+{
+  "name": "neoneuron:render",
+  "save": true,
+  "use_present": true,
+  "global_uniform_descriptor": {
+    "name": "neoneuron:global_uniforms",
+    "save": true,
+    "bindings": [
+      {
+        "type": "uniform_buffer",
+        "size": 200
+      },
+      {
+        "type": "uniform_buffer",
+        "size": 4
+      },
+      {
+        "type": "uniform_buffer",
+        "size": 28
+      }
+    ]
+  },
+  "render_passes": [
+    {
+      "name": "neoneuron:frame_buffer",
+      "save": true,
+      "type": "simple",
+      "textures": {
+        "name": "neoneuron:frame_buffer_output",
+        "save": true,
+        "format": "R8G8B8A8"
+      }
+    },
+    {
+      "name": "neoneuron:frame_buffer_swap_chain",
+      "save": true,
+      "type": "swap_chain"
+    }
+  ]
+}
