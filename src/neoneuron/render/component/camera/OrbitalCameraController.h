@@ -58,6 +58,10 @@ namespace neoneuron {
         void onScroll(const neon::ScrollEvent& event) override;
 
         void onUpdate(float deltaTime) override;
+
+        float getRadius() const;
+
+        rush::Vec3f getCenter() const;
     };
 }
 

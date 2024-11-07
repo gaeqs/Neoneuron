@@ -168,4 +168,12 @@ namespace neoneuron {
         update |= updateRadius(deltaTime);
         if (update) sendPosition();
     }
+
+    float OrbitalCameraController::getRadius() const {
+        return _position.radius;
+    }
+
+    rush::Vec3f OrbitalCameraController::getCenter() const {
+        return _position.position;
+    }
 }

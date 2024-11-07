@@ -1,5 +1,5 @@
 {
-  "name": "neoneuron:guide",
+  "name": "neoneuron:plane_guide",
   "save": true,
   "use_present": true,
   "maximum_instances": 1,
@@ -9,7 +9,7 @@
   ],
   "meshes": [
     {
-      "name": "neoneuron:guide",
+      "name": "neoneuron:plane_guide",
       "save": true,
       "use_present": true,
       "vertices": [
@@ -36,11 +36,11 @@
       ],
       "materials": [
         {
-          "name": "neoneuron:guide",
+          "name": "neoneuron:plane_guide",
           "save": true,
           "use_present": true,
           "frame_buffer": "A:neoneuron:frame_buffer",
-          "shader": "/shader/guide/guide.json",
+          "shader": "/shader/guide/plane_guide.json",
           "descriptions": {
             "vertex": {
               "stride": 12,

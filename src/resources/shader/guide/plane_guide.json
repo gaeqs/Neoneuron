@@ -1,0 +1,11 @@
+{
+  "name": "neoneuron:plane_guide",
+  "save": true,
+  "use_present": true,
+  "vertex": {
+    "file": "plane_guide.vert"
+  },
+  "fragment": {
+    "file": "plane_guide.frag"
+  }
+}

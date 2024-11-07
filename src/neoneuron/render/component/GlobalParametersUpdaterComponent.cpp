@@ -6,6 +6,8 @@
 
 #include <neoneuron/render/NeoneuronRender.h>
 
+#include "camera/OrbitalCameraController.h"
+
 namespace neoneuron {
     GlobalParametersUpdaterComponent::GlobalParametersUpdaterComponent(NeoneuronRender& render) : _render(render) {}
 
@@ -37,12 +39,22 @@ namespace neoneuron {
 
         auto bb = _render.getNeuronScene().getSceneBoundingBox();
 
+        float radius = 0.0f;
+        rush::Vec3f center = camera.getPosition();
+        auto controller = _render.getCameraData().getCameraController();
+        if (auto* orb = dynamic_cast<OrbitalCameraController*>(controller.raw())) {
+            radius = orb->getRadius();
+            center = orb->getCenter();
+        }
+
         buffer.uploadData<Scene>(
             2,
             Scene{
                 bb.center,
+                radius,
+                bb.radius,
                 0,
-                bb.radius
+                center
             }
         );
     }

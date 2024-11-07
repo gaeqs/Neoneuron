@@ -9,9 +9,18 @@
 CMRC_DECLARE(resources);
 
 namespace neoneuron {
-    void Guide::updateState(bool active) {
-        _model->getInstanceData(0)->uploadData(
-            _instance, 0, GuideInstancingData{
+    void Guide::updatePlaneState(bool active) const {
+        _planeModel->getInstanceData(0)->uploadData(
+            _planeInstance, 0, GuideInstancingData{
+                active ? 1.0f : 0.0f,
+                _render->getCurrentTime()
+            }
+        );
+    }
+
+    void Guide::updateSphereState(bool active) const {
+        _sphereModel->getInstanceData(0)->uploadData(
+            _sphereInstance, 0, GuideInstancingData{
                 active ? 1.0f : 0.0f,
                 _render->getCurrentTime()
             }
@@ -21,12 +30,18 @@ namespace neoneuron {
     Guide::Guide(NeoneuronRender* render)
         : _render(render),
           _positionListener([this](bool active) {
-              updateState(active);
+              updatePlaneState(active);
+          }),
+          _rotationListener([this](bool active) {
+              updateSphereState(active);
           }) {}
 
     Guide::~Guide() {
-        if (_model != nullptr) {
-            getRoom()->unmarkUsingModel(_model.get());
+        if (_planeModel != nullptr) {
+            getRoom()->unmarkUsingModel(_planeModel.get());
+        }
+        if(_sphereModel != nullptr) {
+            getRoom()->unmarkUsingModel(_sphereModel.get());
         }
     }
 
@@ -34,15 +49,21 @@ namespace neoneuron {
         neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
         neon::AssetLoaderContext context(getApplication());
         context.fileSystem = &fs;
-        _model = neon::loadAssetFromFile<neon::Model>("/model/guide/guide.json", context);
 
-        getRoom()->markUsingModel(_model.get());
+        _planeModel = neon::loadAssetFromFile<neon::Model>("/model/guide/plane_guide.json", context);
+        _sphereModel = neon::loadAssetFromFile<neon::Model>("/model/guide/sphere_guide.json", context);
 
-        _instance = _model->getInstanceData(0)->createInstance().getResult();
+        getRoom()->markUsingModel(_planeModel.get());
+        getRoom()->markUsingModel(_sphereModel.get());
+
+        _planeInstance = _planeModel->getInstanceData(0)->createInstance().getResult();
+        _sphereInstance = _sphereModel->getInstanceData(0)->createInstance().getResult();
 
         // Init Hey!
         _render->getCameraData().onActivePosition() += _positionListener;
+        _render->getCameraData().onActiveRotation() += _rotationListener;
 
-        updateState(false);
+        updatePlaneState(false);
+        updateSphereState(false);
     }
 }

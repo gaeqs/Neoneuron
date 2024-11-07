@@ -1,0 +1,11 @@
+{
+  "name": "neoneuron:sphere_guide",
+  "save": true,
+  "use_present": true,
+  "vertex": {
+    "file": "sphere_guide.vert"
+  },
+  "fragment": {
+    "file": "sphere_guide.frag"
+  }
+}

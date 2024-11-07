@@ -14,27 +14,22 @@ namespace neoneuron {
     struct GuideInstancingData {
         float active;
         float lastUpdate;
-
-        static neon::InputDescription getInstancingDescription() {
-            neon::InputDescription description(
-                sizeof(GuideInstancingData),
-                neon::InputRate::INSTANCE
-            );
-            description.addAttribute(1, 0);
-            description.addAttribute(1, 4);
-
-            return description;
-        }
     };
 
     class Guide : public neon::Component {
         NeoneuronRender* _render;
 
-        std::shared_ptr<neon::Model> _model;
-        neon::InstanceData::Instance _instance;
-        hey::Listener<bool> _positionListener;
+        std::shared_ptr<neon::Model> _planeModel;
+        std::shared_ptr<neon::Model> _sphereModel;
+        neon::InstanceData::Instance _planeInstance;
+        neon::InstanceData::Instance _sphereInstance;
 
-        void updateState (bool active);
+        hey::Listener<bool> _positionListener;
+        hey::Listener<bool> _rotationListener;
+
+        void updatePlaneState(bool active) const;
+
+        void updateSphereState(bool active) const;
 
     public:
         explicit Guide(NeoneuronRender* render);

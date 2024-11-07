@@ -5,10 +5,15 @@ cmrc_add_resource_library(
         ALIAS neoneuron::resources
         NAMESPACE resources
         WHENCE resources
-        resources/model/guide/guide.json
-        resources/shader/guide/guide.vert
-        resources/shader/guide/guide.frag
-        resources/shader/guide/guide.json
+        resources/model/guide/plane_guide.json
+        resources/shader/guide/plane_guide.vert
+        resources/shader/guide/plane_guide.frag
+        resources/shader/guide/plane_guide.json
+        resources/model/guide/sphere_guide.json
+        resources/model/guide/sphere_guide.obj
+        resources/shader/guide/sphere_guide.vert
+        resources/shader/guide/sphere_guide.frag
+        resources/shader/guide/sphere_guide.json
         resources/shader/neuron/neuron.frag
         resources/shader/neuron/neuron.mesh
         resources/shader/neuron/neuron.task
