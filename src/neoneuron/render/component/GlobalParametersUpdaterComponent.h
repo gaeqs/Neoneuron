@@ -24,10 +24,8 @@ namespace neoneuron {
 
     struct Scene {
         rush::Vec3f sceneCenter;
-        float cameraRadius;
-        rush::Vec3f sceneRadius;
         float dummy;
-        rush::Vec3f cameraCenter;
+        rush::Vec3f sceneRadius;
     };
 
     class GlobalParametersUpdaterComponent : public neon::Component {

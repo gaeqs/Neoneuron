@@ -9,6 +9,8 @@
 #include <neoneuron/render/component/camera/CameraController.h>
 
 namespace neoneuron {
+    class NeoneuronRender;
+
     class OrbitalCameraController : public CameraController {
         struct Position {
             rush::Vec3f position;
@@ -16,6 +18,7 @@ namespace neoneuron {
             float radius;
         };
 
+        NeoneuronRender* _render;
         std::unique_ptr<CameraInterpolator> _interpolator;
 
         Position _position;
@@ -30,6 +33,8 @@ namespace neoneuron {
         bool _dragPosition;
         bool _dragRotation;
 
+        std::vector<neon::IdentifiableWrapper<Component>> _guides;
+
         void sendPosition() const;
 
         void dragPosition(const neon::CursorMoveEvent& event);
@@ -43,7 +48,11 @@ namespace neoneuron {
         bool updateRadius(float deltaTime);
 
     public:
-        OrbitalCameraController(CameraData* cameraData, std::unique_ptr<CameraInterpolator> interpolator);
+        OrbitalCameraController(NeoneuronRender* render,
+                                CameraData* cameraData,
+                                std::unique_ptr<CameraInterpolator> interpolator);
+
+        ~OrbitalCameraController();
 
         void focusOn(const rush::AABB<3, float>& aabb) override;
 
@@ -56,6 +65,8 @@ namespace neoneuron {
         void onCursorMove(const neon::CursorMoveEvent& event) override;
 
         void onScroll(const neon::ScrollEvent& event) override;
+
+        void onStart() override;
 
         void onUpdate(float deltaTime) override;
 

@@ -6,6 +6,8 @@
 layout(location = 0) in vec3 vertex;
 layout(location = 1) in float isActive;
 layout(location = 2) in float lastUpdate;
+layout(location = 3) in vec3 center;
+layout(location = 4) in float radius;
 
 layout(location = 0) out vec3 position;
 layout(location = 1) out flat float fragActive;
@@ -20,14 +22,13 @@ layout (set = 0, binding = 0) uniform Matrices {
 };
 
 layout (set = 0, binding = 2) uniform Scene {
-    vec4 centerAndCameraRadius;
-    vec3 radius;
-    vec3 cameraCenter;
+    vec3 sceneCenter;
+    vec3 sceneRadius;
 };
 
 void main() {
-    float radius = centerAndCameraRadius.w + 2.0f;
-    gl_Position = viewProjection * vec4(cameraCenter + vertex * radius, 1.0f);
+    float rad = radius + 2.0f;
+    gl_Position = viewProjection * vec4(center + vertex * rad, 1.0f);
     position = vertex;
     fragActive = isActive;
     fragLastUpdate = lastUpdate;

@@ -62,6 +62,10 @@ namespace neoneuron {
         return _application;
     }
 
+    const neon::CMRCFileSystem NeoneuronRender::getFileSystem() const {
+        return _fileSystem;
+    }
+
     const std::shared_ptr<neon::FrameBuffer>& NeoneuronRender::getRenderFrameBuffer() const {
         return _renderFrameBuffer;
     }
@@ -76,6 +80,14 @@ namespace neoneuron {
 
     const NeuronScene& NeoneuronRender::getNeuronScene() const {
         return _components->neuronScene;
+    }
+
+    NeoneuronUI& NeoneuronRender::getUI() {
+        return _components->ui;
+    }
+
+    const NeoneuronUI& NeoneuronRender::getUI() const {
+        return _components->ui;
     }
 
     CameraData& NeoneuronRender::getCameraData() {

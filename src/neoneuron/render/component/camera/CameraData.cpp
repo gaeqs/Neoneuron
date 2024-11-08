@@ -23,11 +23,10 @@ namespace neoneuron {
         _cameraGameObject->setName("Camera");
 
         _cameraController = _cameraGameObject->newComponent<OrbitalCameraController>(
+            render,
             this,
             std::make_unique<InstantCameraInterpolator>(&room->getCamera())
         );
-
-        _cameraGuide = _cameraGameObject->newComponent<Guide>(render);
     }
 
     neon::IdentifiableWrapper<CameraController> CameraData::getCameraController() const {

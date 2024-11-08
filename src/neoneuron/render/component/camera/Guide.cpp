@@ -6,10 +6,12 @@
 
 #include <neoneuron/render/NeoneuronRender.h>
 
+#include "OrbitalCameraController.h"
+
 CMRC_DECLARE(resources);
 
 namespace neoneuron {
-    void Guide::updatePlaneState(bool active) const {
+    void PlaneGuide::updatePlaneState(bool active) const {
         _planeModel->getInstanceData(0)->uploadData(
             _planeInstance, 0, GuideInstancingData{
                 active ? 1.0f : 0.0f,
@@ -18,52 +20,79 @@ namespace neoneuron {
         );
     }
 
-    void Guide::updateSphereState(bool active) const {
-        _sphereModel->getInstanceData(0)->uploadData(
-            _sphereInstance, 0, GuideInstancingData{
-                active ? 1.0f : 0.0f,
-                _render->getCurrentTime()
-            }
-        );
-    }
-
-    Guide::Guide(NeoneuronRender* render)
+    PlaneGuide::PlaneGuide(NeoneuronRender* render)
         : _render(render),
           _positionListener([this](bool active) {
               updatePlaneState(active);
-          }),
-          _rotationListener([this](bool active) {
-              updateSphereState(active);
           }) {}
 
-    Guide::~Guide() {
+    PlaneGuide::~PlaneGuide() {
         if (_planeModel != nullptr) {
             getRoom()->unmarkUsingModel(_planeModel.get());
         }
-        if(_sphereModel != nullptr) {
-            getRoom()->unmarkUsingModel(_sphereModel.get());
-        }
     }
 
-    void Guide::onStart() {
+    void PlaneGuide::onStart() {
         neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
         neon::AssetLoaderContext context(getApplication());
         context.fileSystem = &fs;
 
         _planeModel = neon::loadAssetFromFile<neon::Model>("/model/guide/plane_guide.json", context);
-        _sphereModel = neon::loadAssetFromFile<neon::Model>("/model/guide/sphere_guide.json", context);
-
         getRoom()->markUsingModel(_planeModel.get());
-        getRoom()->markUsingModel(_sphereModel.get());
-
         _planeInstance = _planeModel->getInstanceData(0)->createInstance().getResult();
-        _sphereInstance = _sphereModel->getInstanceData(0)->createInstance().getResult();
 
         // Init Hey!
         _render->getCameraData().onActivePosition() += _positionListener;
-        _render->getCameraData().onActiveRotation() += _rotationListener;
 
         updatePlaneState(false);
-        updateSphereState(false);
+    }
+
+
+    void SphereGuide::updateSphereState() const {
+        _sphereModel->getInstanceData(0)->uploadData(
+            _sphereInstance, 0, GuideInstancingData{
+                _state ? 1.0f : 0.0f,
+                _lastUpdate,
+                _orbitalController->getCenter(),
+                _orbitalController->getRadius()
+            }
+        );
+    }
+
+    SphereGuide::SphereGuide(NeoneuronRender* render, neon::IdentifiableWrapper<OrbitalCameraController> controller)
+        : _render(render),
+          _orbitalController(controller),
+          _rotationListener([this](bool active) {
+              _state = active;
+              _lastUpdate = _render->getCurrentTime();
+              updateSphereState();
+          }),
+          _state(false) {}
+
+    SphereGuide::~SphereGuide() {
+        if (_sphereModel != nullptr) {
+            getRoom()->unmarkUsingModel(_sphereModel.get());
+        }
+    }
+
+    void SphereGuide::onStart() {
+        neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
+        neon::AssetLoaderContext context(getApplication());
+        context.fileSystem = &fs;
+
+        _sphereModel = neon::loadAssetFromFile<neon::Model>("/model/guide/sphere_guide.json", context);
+
+        getRoom()->markUsingModel(_sphereModel.get());
+
+        _sphereInstance = _sphereModel->getInstanceData(0)->createInstance().getResult();
+
+        // Init Hey!
+        _render->getCameraData().onActiveRotation() += _rotationListener;
+
+        updateSphereState();
+    }
+
+    void SphereGuide::onUpdate(float deltaTime) {
+        updateSphereState();
     }
 }

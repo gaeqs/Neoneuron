@@ -9,13 +9,16 @@
 #include <neon/util/component/ViewportComponent.h>
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/ui/NeoneuronTopBar.h>
+#include <neoneuron/ui/style/Themes.h>
 
 namespace neoneuron {
     NeoneuronUI::NeoneuronUI(NeoneuronRender* render) {
+        StyleColorsDark();
+        ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
         _gameObject = render->getRoom()->newGameObject();
         _gameObject->setName("UI");
         _gameObject->newComponent<neon::DockSpaceComponent>(true);
-        _gameObject->newComponent<neon::ViewportComponent>();
+        _viewport = _gameObject->newComponent<neon::ViewportComponent>();
         _gameObject->newComponent<neon::DebugOverlayComponent>(false, 100);
         _gameObject->newComponent<NeoneuronTopBar>(render);
     }
@@ -30,5 +33,9 @@ namespace neoneuron {
         _gameObject = other._gameObject;
         other._gameObject = nullptr;
         return *this;
+    }
+
+    neon::IdentifiableWrapper<neon::ViewportComponent> NeoneuronUI::getViewport() const {
+        return _viewport;
     }
 }

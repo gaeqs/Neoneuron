@@ -17,7 +17,6 @@ namespace neoneuron {
     class CameraData {
         neon::IdentifiableWrapper<neon::GameObject> _cameraGameObject;
         neon::IdentifiableWrapper<CameraController> _cameraController;
-        neon::IdentifiableWrapper<Guide> _cameraGuide;
 
         hey::ObservableValue<bool> _activeRotation = false;
         hey::ObservableValue<bool> _activePosition = false;

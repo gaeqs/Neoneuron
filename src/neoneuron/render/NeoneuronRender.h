@@ -26,7 +26,7 @@ namespace neoneuron {
         neon::CMRCFileSystem _fileSystem;
         std::shared_ptr<neon::FrameBuffer> _renderFrameBuffer;
         std::shared_ptr<neon::Room> _room;
-        std::chrono::system_clock::time_point _startTime;
+        std::chrono::steady_clock::time_point _startTime;
         std::unique_ptr<Components> _components;
 
         std::shared_ptr<neon::Render> initRender();
@@ -44,6 +44,8 @@ namespace neoneuron {
 
         [[nodiscard]] const neon::Application& getApplication() const;
 
+        const neon::CMRCFileSystem getFileSystem() const;
+
         [[nodiscard]] const std::shared_ptr<neon::FrameBuffer>& getRenderFrameBuffer() const;
 
         [[nodiscard]] const std::shared_ptr<neon::Room>& getRoom() const;
@@ -51,6 +53,11 @@ namespace neoneuron {
         [[nodiscard]] NeuronScene& getNeuronScene();
 
         [[nodiscard]] const NeuronScene& getNeuronScene() const;
+
+        [[nodiscard]] NeoneuronUI& getUI();
+
+        [[nodiscard]] const NeoneuronUI& getUI() const;
+
 
         [[nodiscard]] CameraData& getCameraData();
 

@@ -16,7 +16,7 @@
       },
       {
         "type": "uniform_buffer",
-        "size": 44
+        "size": 28
       }
     ]
   },

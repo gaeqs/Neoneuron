@@ -21,9 +21,8 @@ layout (set = 0, binding = 1) uniform Time {
 };
 
 layout (set = 0, binding = 2) uniform Scene {
-    vec4 centerAndCameraRadius;
-    vec3 radius;
-    vec3 cameraCenter;
+    vec3 sceneCenter;
+    vec3 sceneRadius;
 };
 
 float gridAlpha (float entry, float widthScale) {

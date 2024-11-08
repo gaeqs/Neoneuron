@@ -5,6 +5,7 @@ cmrc_add_resource_library(
         ALIAS neoneuron::resources
         NAMESPACE resources
         WHENCE resources
+        resources/font/SourceSans3.ttf
         resources/model/guide/plane_guide.json
         resources/shader/guide/plane_guide.vert
         resources/shader/guide/plane_guide.frag

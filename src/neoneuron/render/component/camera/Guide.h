@@ -10,33 +10,59 @@
 
 namespace neoneuron {
     class NeoneuronRender;
+    class OrbitalCameraController;
 
-    struct GuideInstancingData {
-        float active;
-        float lastUpdate;
-    };
+    class PlaneGuide : public neon::Component {
+        struct GuideInstancingData {
+            float active;
+            float lastUpdate;
+        };
 
-    class Guide : public neon::Component {
         NeoneuronRender* _render;
 
         std::shared_ptr<neon::Model> _planeModel;
-        std::shared_ptr<neon::Model> _sphereModel;
         neon::InstanceData::Instance _planeInstance;
-        neon::InstanceData::Instance _sphereInstance;
 
         hey::Listener<bool> _positionListener;
-        hey::Listener<bool> _rotationListener;
 
         void updatePlaneState(bool active) const;
 
-        void updateSphereState(bool active) const;
-
     public:
-        explicit Guide(NeoneuronRender* render);
+        explicit PlaneGuide(NeoneuronRender* render);
 
-        ~Guide() override;
+        ~PlaneGuide() override;
 
         void onStart() override;
+    };
+
+    class SphereGuide : public neon::Component {
+        struct GuideInstancingData {
+            float active;
+            float lastUpdate;
+            rush::Vec3f center;
+            float radius;
+        };
+
+        NeoneuronRender* _render;
+        neon::IdentifiableWrapper<OrbitalCameraController> _orbitalController;
+
+        std::shared_ptr<neon::Model> _sphereModel;
+        neon::InstanceData::Instance _sphereInstance;
+        hey::Listener<bool> _rotationListener;
+
+        bool _state;
+        float _lastUpdate;
+
+        void updateSphereState() const;
+
+    public:
+        explicit SphereGuide(NeoneuronRender* render, neon::IdentifiableWrapper<OrbitalCameraController> controller);
+
+        ~SphereGuide() override;
+
+        void onStart() override;
+
+        void onUpdate(float deltaTime) override;
     };
 }
 

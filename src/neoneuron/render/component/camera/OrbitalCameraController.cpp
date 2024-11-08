@@ -4,6 +4,8 @@
 
 #include "OrbitalCameraController.h"
 
+#include <neoneuron/render/NeoneuronRender.h>
+
 #include "CameraData.h"
 
 namespace neoneuron {
@@ -99,8 +101,11 @@ namespace neoneuron {
     }
 
     OrbitalCameraController::
-    OrbitalCameraController(CameraData* cameraData, std::unique_ptr<CameraInterpolator> interpolator)
+    OrbitalCameraController(NeoneuronRender* render,
+                            CameraData* cameraData,
+                            std::unique_ptr<CameraInterpolator> interpolator)
         : CameraController(cameraData),
+          _render(render),
           _interpolator(std::move(interpolator)),
           _position(rush::Vec3f(), rush::Vec2f(), 10.0f),
           _radiusVelocity(0),
@@ -109,6 +114,12 @@ namespace neoneuron {
           _dragPosition(false),
           _dragRotation(false) {
         sendPosition();
+    }
+
+    OrbitalCameraController::~OrbitalCameraController() {
+        for (auto guide: _guides) {
+            guide->destroy();
+        }
     }
 
     void OrbitalCameraController::focusOn(const rush::AABB<3, float>& aabb) {
@@ -130,6 +141,9 @@ namespace neoneuron {
     }
 
     void OrbitalCameraController::onMouseButton(const neon::MouseButtonEvent& event) {
+        if(event.action == neon::KeyboardAction::PRESS && !_render->getUI().getViewport()->isHovered()) {
+            return;
+        }
         if (event.button == neon::MouseButton::BUTTON_SECONDARY) {
             _dragPosition = event.action == neon::KeyboardAction::PRESS;
             if (_dragPosition) {
@@ -159,6 +173,11 @@ namespace neoneuron {
 
     void OrbitalCameraController::onScroll(const neon::ScrollEvent& event) {
         _radiusVelocity -= event.delta.y() * _radiusScale;
+    }
+
+    void OrbitalCameraController::onStart() {
+        _guides.push_back(getGameObject()->newComponent<PlaneGuide>(_render));
+        _guides.push_back(getGameObject()->newComponent<SphereGuide>(_render, this));
     }
 
     void OrbitalCameraController::onUpdate(float deltaTime) {
