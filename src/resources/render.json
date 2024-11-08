@@ -25,6 +25,7 @@
       "name": "neoneuron:frame_buffer",
       "save": true,
       "type": "simple",
+      "depth": true,
       "textures": {
         "name": "neoneuron:frame_buffer_output",
         "save": true,

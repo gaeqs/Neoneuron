@@ -26,9 +26,8 @@ layout (set = 0, binding = 2) uniform Scene {
     vec3 cameraCenter;
 };
 
-float gridAlpha (float scale, float widthScale) {
-    vec3 grid = fract(position * scale);
-    return step(widthScale, grid.x) * step(widthScale, grid.y);
+float gridAlpha (float entry, float widthScale) {
+    return 1.0f - step(widthScale, abs(entry));
 }
 
 float timeAlpha () {
@@ -41,9 +40,12 @@ float timeAlpha () {
 }
 
 void main() {
-    vec4 big = vec4(0.8f, 0.5f, 0.5f, gridAlpha(10, 0.2));
-    vec4 small = vec4(0.5f, 0.5f, 0.5f, gridAlpha(1, 0.1));
-    vec4 result = mix(big, small, 1.0f - big.a);
-    result.a *= 0.2f; //* timeAlpha();
-    color = result;//vec4((position + PI) / (2 * PI), 1.0f);
+    vec4 x = vec4(0.8f, 0.5f, 0.5f, gridAlpha(position.x, 0.005f));
+    vec4 y = vec4(0.5f, 0.8f, 0.5f, gridAlpha(position.y, 0.005f));
+    vec4 z = vec4(0.5f, 0.5f, 0.8f, gridAlpha(position.z, 0.005f));
+
+    vec4 result = mix(x, y, 1.0f - x.a);
+    result = mix(result, z, 1.0f - result.a);
+    result.a *= 0.5f * timeAlpha();
+    color = result;
 }

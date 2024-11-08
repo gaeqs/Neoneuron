@@ -28,11 +28,7 @@ layout (set = 0, binding = 2) uniform Scene {
 void main() {
     float radius = centerAndCameraRadius.w + 2.0f;
     gl_Position = viewProjection * vec4(cameraCenter + vertex * radius, 1.0f);
-
-    float pitch = atan(vertex.y, vertex.x);
-    float yaw = atan(vertex.z, vertex.x);
-
-    position = vec3(pitch, yaw, -PI);
+    position = vertex;
     fragActive = isActive;
     fragLastUpdate = lastUpdate;
 }
