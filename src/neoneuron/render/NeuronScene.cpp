@@ -108,6 +108,10 @@ neoneuron::NeuronScene::~NeuronScene() {
     }
 }
 
+const std::vector<neoneuron::Neuron>& neoneuron::NeuronScene::getNeurons() const {
+    return _neurons;
+}
+
 void neoneuron::NeuronScene::addNeuron(const Neuron& neuron) {
     _neurons.push_back(neuron);
     _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());

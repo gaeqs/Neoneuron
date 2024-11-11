@@ -12,6 +12,8 @@
 #include <neoneuron/ui/style/Themes.h>
 #include <neoneuron/ui/style/Fonts.h>
 
+#include <neoneuron/ui/components/NeoneuronUINeuronList.h>
+
 namespace neoneuron {
     NeoneuronUI::NeoneuronUI(NeoneuronRender* render) {
         StyleColorsDark();
@@ -22,6 +24,7 @@ namespace neoneuron {
         _viewport = _gameObject->newComponent<neon::ViewportComponent>();
         _gameObject->newComponent<neon::DebugOverlayComponent>(false, 100);
         _gameObject->newComponent<NeoneuronTopBar>(render);
+        _gameObject->newComponent<NeoneuronUINeuronList>(render);
 
         auto& fs = render->getFileSystem();
         auto file = fs.readFile("/font/SourceSans3.ttf");

@@ -141,7 +141,7 @@ namespace neoneuron {
     }
 
     void OrbitalCameraController::onMouseButton(const neon::MouseButtonEvent& event) {
-        if(event.action == neon::KeyboardAction::PRESS && !_render->getUI().getViewport()->isHovered()) {
+        if (event.action == neon::KeyboardAction::PRESS && !_render->getUI().getViewport()->isHovered()) {
             return;
         }
         if (event.button == neon::MouseButton::BUTTON_SECONDARY) {
@@ -172,6 +172,8 @@ namespace neoneuron {
     }
 
     void OrbitalCameraController::onScroll(const neon::ScrollEvent& event) {
+        if (!_render->getUI().getViewport()->isHovered()) return;
+
         _radiusVelocity -= event.delta.y() * _radiusScale;
     }
 

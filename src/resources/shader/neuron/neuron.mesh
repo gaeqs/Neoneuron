@@ -91,8 +91,8 @@ void main() {
         pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0);
 
         uint a = gl_LocalInvocationID.x;
-        uint b = (gl_LocalInvocationID.x + 1) % 16;
-        uint c = (gl_LocalInvocationID.x + (first ? 0 : 1)) % 16 + 16;
+        uint b = (gl_LocalInvocationID.x + 1) % POINTS_PER_CIRCLE;
+        uint c = (gl_LocalInvocationID.x + (first ? 0 : 1)) % POINTS_PER_CIRCLE + POINTS_PER_CIRCLE;
         gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(a, b, c);
     } else {
         SetMeshOutputsEXT(GROUPS_SIZE * 3, GROUPS_SIZE);

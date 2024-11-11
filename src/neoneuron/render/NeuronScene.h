@@ -38,6 +38,8 @@ namespace neoneuron {
 
         ~NeuronScene();
 
+        [[nodiscard]] const std::vector<Neuron>& getNeurons() const;
+
         void addNeuron(const Neuron& neuron);
 
         void addNeuron(Neuron&& neuron);
