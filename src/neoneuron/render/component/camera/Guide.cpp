@@ -92,7 +92,66 @@ namespace neoneuron {
         updateSphereState();
     }
 
-    void SphereGuide::onUpdate(float deltaTime) {
+    void SphereGuide::onPreDraw() {
         updateSphereState();
+    }
+
+    void PointGuide::updatePointState() {
+        bool newState = _positionState | _rotationState;
+        if (newState != _state) {
+            _state = newState;
+            _lastUpdate = _render->getCurrentTime();
+        }
+
+        _sphereModel->getInstanceData(0)->uploadData(
+            _sphereInstance, 0, GuideInstancingData{
+                _state ? 1.0f : 0.0f,
+                _lastUpdate,
+                _orbitalController->getCenter()
+            }
+        );
+    }
+
+    PointGuide::PointGuide(NeoneuronRender* render, neon::IdentifiableWrapper<OrbitalCameraController> controller)
+        : _render(render),
+          _orbitalController(controller),
+          _positionListener([this](bool active) {
+              _positionState = active;
+              updatePointState();
+          }),
+          _rotationListener([this](bool active) {
+              _rotationState = active;
+              updatePointState();
+          }),
+          _positionState(false),
+          _rotationState(false),
+          _state(false) {}
+
+    PointGuide::~PointGuide() {
+        if (_sphereModel != nullptr) {
+            getRoom()->unmarkUsingModel(_sphereModel.get());
+        }
+    }
+
+    void PointGuide::onStart() {
+        neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
+        neon::AssetLoaderContext context(getApplication());
+        context.fileSystem = &fs;
+
+        _sphereModel = neon::loadAssetFromFile<neon::Model>("/model/guide/point_guide.json", context);
+
+        getRoom()->markUsingModel(_sphereModel.get());
+
+        _sphereInstance = _sphereModel->getInstanceData(0)->createInstance().getResult();
+
+        // Init Hey!
+        _render->getCameraData().onActiveRotation() += _rotationListener;
+        _render->getCameraData().onActivePosition() += _positionListener;
+
+        updatePointState();
+    }
+
+    void PointGuide::onPreDraw() {
+        updatePointState();
     }
 }

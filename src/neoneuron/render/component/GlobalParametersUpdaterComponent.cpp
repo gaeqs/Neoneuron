@@ -15,7 +15,7 @@ namespace neoneuron {
 
     void GlobalParametersUpdaterComponent::onStart() {}
 
-    void GlobalParametersUpdaterComponent::onUpdate(float deltaTime) {
+    void GlobalParametersUpdaterComponent::onPreDraw() {
         auto& camera = getRoom()->getCamera();
 
         auto& buffer = getApplication()->getRender()->getGlobalUniformBuffer();

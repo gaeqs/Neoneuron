@@ -10,6 +10,7 @@
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/ui/NeoneuronTopBar.h>
 #include <neoneuron/ui/style/Themes.h>
+#include <neoneuron/ui/style/Fonts.h>
 
 namespace neoneuron {
     NeoneuronUI::NeoneuronUI(NeoneuronRender* render) {
@@ -21,6 +22,22 @@ namespace neoneuron {
         _viewport = _gameObject->newComponent<neon::ViewportComponent>();
         _gameObject->newComponent<neon::DebugOverlayComponent>(false, 100);
         _gameObject->newComponent<NeoneuronTopBar>(render);
+
+        auto& fs = render->getFileSystem();
+        auto file = fs.readFile("/font/SourceSans3.ttf");
+        if (file.has_value()) {
+            fonts::loadFont(fonts::SS3_16, file.value(), 16.0f);
+            fonts::loadFont(fonts::SS3_18, file.value(), 18.0f);
+            fonts::loadFont(fonts::SS3_20, file.value(), 20.0f);
+            fonts::loadFont(fonts::SS3_24, file.value(), 24.0f);
+            fonts::loadFont(fonts::SS3_32, file.value(), 32.0f);
+
+            if (auto font = fonts::getFont(fonts::SS3_18); font.has_value()) {
+                ImGui::GetIO().FontDefault = font.value();
+            }
+        }
+
+        fonts::recreateFonts();
     }
 
     NeoneuronUI::~NeoneuronUI() {

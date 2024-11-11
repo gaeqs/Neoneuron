@@ -47,18 +47,5 @@ int main() {
 
     neoneuron::NeoneuronRender render(info);
 
-
-    auto& fs = render.getFileSystem();
-    auto file = fs.readFile("/font/SourceSans3.ttf");
-    if (file.has_value()) {
-        auto& io = ImGui::GetIO();
-        ImFontConfig font_cfg;
-        font_cfg.FontDataOwnedByAtlas = false;
-        void* data = const_cast<char*>(file->getData());
-        auto* font = io.Fonts->AddFontFromMemoryTTF(data, file->getSize(), 16.0f, &font_cfg);
-        ImGui_ImplVulkan_CreateFontsTexture();
-        io.FontDefault = font;
-    }
-
     return render.renderLoop() ? 0 : 1;
 }

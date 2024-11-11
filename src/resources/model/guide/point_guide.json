@@ -1,0 +1,79 @@
+{
+  "name": "neoneuron:point_guide",
+  "save": true,
+  "use_present": true,
+  "maximum_instances": 1,
+  "auto_flush": true,
+  "custom_instance_sizes": [
+    20
+  ],
+  "meshes": [
+    {
+      "name": "neoneuron:point_guide",
+      "save": true,
+      "use_present": true,
+      "vertices": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "indices": [
+        0
+      ],
+      "materials": [
+        {
+          "name": "neoneuron:point_guide",
+          "save": true,
+          "use_present": true,
+          "frame_buffer": "A:neoneuron:frame_buffer",
+          "shader": "/shader/guide/point_guide.json",
+          "descriptions": {
+            "vertex": {
+              "stride": 12,
+              "attributes": {
+                "size_in_floats": 3,
+                "offset_in_bytes": 0
+              }
+            },
+            "instance": {
+              "stride": 8,
+              "attributes": [
+                {
+                  "size_in_floats": 1,
+                  "offset_in_bytes": 0
+                },
+                {
+                  "size_in_floats": 1,
+                  "offset_in_bytes": 4
+                },
+                {
+                  "size_in_floats": 3,
+                  "offset_in_bytes": 8
+                }
+              ]
+            }
+          },
+          "blending": {
+            "attachments": [
+              {
+                "enabled": true,
+                "alpha_blend_operation": "add",
+                "alpha_source_blend_factor": "one",
+                "alpha_destiny_blend_factor": "one"
+              }
+            ]
+          },
+          "rasterizer": {
+            "cull_mode": "none"
+          },
+          "depth_stencil": {
+            "depth_test": true,
+            "depth_write": false
+          },
+          "topology": "point_list",
+          "priority": -1
+        }
+      ]
+    }
+  ]
+}

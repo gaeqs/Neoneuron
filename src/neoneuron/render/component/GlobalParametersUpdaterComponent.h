@@ -38,7 +38,7 @@ namespace neoneuron {
 
         void onStart() override;
 
-        void onUpdate(float deltaTime) override;
+        void onPreDraw() override;
     };
 
     REGISTER_COMPONENT(GlobalParametersUpdaterComponent, "Global Parameters Updater")

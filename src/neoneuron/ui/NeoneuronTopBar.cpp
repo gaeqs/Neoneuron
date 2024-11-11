@@ -15,6 +15,8 @@
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/render/NeuronScene.h>
 
+#include "style/Fonts.h"
+
 namespace neoneuron {
     void NeoneuronTopBar::openFile() const {
         auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
@@ -63,14 +65,19 @@ namespace neoneuron {
     void NeoneuronTopBar::onStart() {}
 
     void NeoneuronTopBar::onPreDraw() {
+        ImGui::ShowDemoWindow();
+        fonts::imGuiPushFont(fonts::SS3_20);
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
+                fonts::imGuiPushFont(fonts::SS3_18);
                 if (ImGui::MenuItem("Open SWC File", "Ctrl+O")) {
                     openFile();
                 }
+                ImGui::PopFont();
                 ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();
         }
+        ImGui::PopFont();
     }
 }

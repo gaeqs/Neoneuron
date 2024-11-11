@@ -15,6 +15,10 @@ cmrc_add_resource_library(
         resources/shader/guide/sphere_guide.vert
         resources/shader/guide/sphere_guide.frag
         resources/shader/guide/sphere_guide.json
+        resources/model/guide/point_guide.json
+        resources/shader/guide/point_guide.vert
+        resources/shader/guide/point_guide.frag
+        resources/shader/guide/point_guide.json
         resources/shader/neuron/neuron.frag
         resources/shader/neuron/neuron.mesh
         resources/shader/neuron/neuron.task

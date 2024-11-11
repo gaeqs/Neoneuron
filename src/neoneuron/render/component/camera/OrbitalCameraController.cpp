@@ -178,6 +178,7 @@ namespace neoneuron {
     void OrbitalCameraController::onStart() {
         _guides.push_back(getGameObject()->newComponent<PlaneGuide>(_render));
         _guides.push_back(getGameObject()->newComponent<SphereGuide>(_render, this));
+        _guides.push_back(getGameObject()->newComponent<PointGuide>(_render, this));
     }
 
     void OrbitalCameraController::onUpdate(float deltaTime) {

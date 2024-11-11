@@ -62,7 +62,39 @@ namespace neoneuron {
 
         void onStart() override;
 
-        void onUpdate(float deltaTime) override;
+        void onPreDraw() override;
+    };
+
+    class PointGuide : public neon::Component {
+        struct GuideInstancingData {
+            float active;
+            float lastUpdate;
+            rush::Vec3f center;
+        };
+
+        NeoneuronRender* _render;
+        neon::IdentifiableWrapper<OrbitalCameraController> _orbitalController;
+
+        std::shared_ptr<neon::Model> _sphereModel;
+        neon::InstanceData::Instance _sphereInstance;
+        hey::Listener<bool> _positionListener;
+        hey::Listener<bool> _rotationListener;
+
+        bool _positionState;
+        bool _rotationState;
+        bool _state;
+        float _lastUpdate;
+
+        void updatePointState();
+
+    public:
+        explicit PointGuide(NeoneuronRender* render, neon::IdentifiableWrapper<OrbitalCameraController> controller);
+
+        ~PointGuide() override;
+
+        void onStart() override;
+
+        void onPreDraw() override;
     };
 }
 
