@@ -7,13 +7,13 @@
 
 #include <vector>
 #include <string>
-#include <fstream>
 
 #include <neoneuron/loader/Loader.h>
+#include <neoneuron/structure/prototype/PrototypeNeuron.h>
 
 namespace neoneuron {
     class SWCLoader final : public Loader {
-        struct SegmentPrototype {
+        struct SWCSegment {
             UID id;
             uint8_t type;
             rush::Vec3f end;
@@ -23,7 +23,7 @@ namespace neoneuron {
 
         std::vector<std::string> _lines;
 
-        [[nodiscard]] neon::Result<SegmentPrototype, std::string> toSegment(size_t lineIndex) const;
+        [[nodiscard]] neon::Result<SWCSegment, std::string> toSegment(size_t lineIndex) const;
 
     public:
         explicit SWCLoader(const std::vector<std::string>& lines);
@@ -34,7 +34,7 @@ namespace neoneuron {
 
         ~SWCLoader() override = default;
 
-        [[nodiscard]] neon::Result<Neuron, std::string> build(UID uid) const override;
+        [[nodiscard]] neon::Result<PrototypeNeuron, std::string> build(UID uid) const override;
     };
 }
 

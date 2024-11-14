@@ -11,6 +11,8 @@
 #include <neoneuron/structure/Identifiable.h>
 #include <neoneuron/structure/NeuronSegment.h>
 
+#include "prototype/PrototypeNeuron.h"
+
 namespace neoneuron {
     class Neuron : public Identifiable {
         std::vector<NeuronSegment> _segments;
@@ -20,7 +22,17 @@ namespace neoneuron {
         void calculateBoundingBox();
 
     public:
+        Neuron(const Neuron& other) = default;
+
+        Neuron(Neuron&& other) noexcept;
+
+        Neuron& operator=(const Neuron& other);
+
+        Neuron& operator=(Neuron&& other) noexcept;
+
         Neuron();
+
+        explicit Neuron(const PrototypeNeuron& prototype);
 
         Neuron(UID uid, const std::vector<NeuronSegment>& segments);
 

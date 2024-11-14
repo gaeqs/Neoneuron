@@ -26,7 +26,7 @@ namespace neoneuron {
         neon::CMRCFileSystem _fileSystem;
         std::shared_ptr<neon::FrameBuffer> _renderFrameBuffer;
         std::shared_ptr<neon::Room> _room;
-        std::chrono::steady_clock::time_point _startTime;
+        std::chrono::high_resolution_clock::time_point _startTime;
         std::unique_ptr<Components> _components;
 
         std::shared_ptr<neon::Render> initRender();

@@ -6,14 +6,14 @@
 #define LOADER_H
 
 #include <neon/assimp/AssimpLoader.h>
-#include <neoneuron/structure/Neuron.h>
+#include <neoneuron/structure/prototype/PrototypeNeuron.h>
 
 namespace neoneuron {
     class Loader {
     public:
         virtual ~Loader() = default;
 
-        [[nodiscard]] virtual neon::Result<Neuron, std::string> build(UID uid) const = 0;
+        [[nodiscard]] virtual neon::Result<PrototypeNeuron, std::string> build(UID uid) const = 0;
     };
 }
 

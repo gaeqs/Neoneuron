@@ -4,6 +4,8 @@
 
 #include "Neuron.h"
 
+#include <neon/logging/Logger.h>
+
 namespace neoneuron {
     void Neuron::calculateBoundingBox() {
         if (_segments.empty()) {
@@ -21,7 +23,80 @@ namespace neoneuron {
         _boundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
+    Neuron::Neuron(Neuron&& other) noexcept
+        : Identifiable(std::move(other)),
+          _segments(std::move(other._segments)),
+          _segmentsByUID(std::move(other._segmentsByUID)),
+          _boundingBox(std::move(other._boundingBox)) {}
+
+    Neuron& Neuron::operator=(const Neuron& other) {
+        if (this == &other)
+            return *this;
+        Identifiable::operator =(other);
+        _segments = other._segments;
+        _segmentsByUID = other._segmentsByUID;
+        _boundingBox = other._boundingBox;
+        return *this;
+    }
+
+    Neuron& Neuron::operator=(Neuron&& other) noexcept {
+        if (this == &other)
+            return *this;
+        Identifiable::operator =(std::move(other));
+        _segments = std::move(other._segments);
+        _segmentsByUID = std::move(other._segmentsByUID);
+        _boundingBox = other._boundingBox;
+        return *this;
+    }
+
     Neuron::Neuron() : Identifiable(std::numeric_limits<UID>::max()) {}
+
+    Neuron::Neuron(const PrototypeNeuron& prototype) :
+        Identifiable(prototype.getId()) {
+        std::optional<UID> propType = prototype.getProperty(PROPERTY_TYPE);
+        std::optional<UID> propEnd = prototype.getProperty(PROPERTY_END);
+        std::optional<UID> propRadius = prototype.getProperty(PROPERTY_RADIUS);
+        std::optional<UID> propParent = prototype.getProperty(PROPERTY_PARENT);
+        if (!propType.has_value() || !propEnd.has_value() || !propRadius.has_value() || !propParent.has_value()) {
+            neon::Logger::defaultLogger()->error("Cannot load neuron, properties are not found.");
+            return;
+        }
+
+        std::unordered_map<UID, size_t> indices;
+
+        _segments.reserve(prototype.getSegments().size());
+        for (auto& segment: prototype.getSegments()) {
+            auto type = segment.getProperty<SegmentType>(propType.value());
+            auto end = segment.getProperty<rush::Vec3f>(propEnd.value());
+            auto radius = segment.getProperty<float>(propRadius.value());
+            auto parent = segment.getProperty<int64_t>(propParent.value());
+
+            if (!type.has_value() || !end.has_value() || !radius.has_value() || !parent.has_value()) {
+                neon::Logger::defaultLogger()->error(neon::MessageBuilder()
+                    .print("Cannot load section ")
+                    .print(segment.getId())
+                    .print(". Properties are not found."));
+                continue;
+            }
+
+            indices.insert({segment.getId(), indices.size()});
+
+            _segments.emplace_back(
+                segment.getId(),
+                type.value(),
+                end.value(),
+                end.value(),
+                radius.value(),
+                radius.value(),
+                parent.value() >= 0 ? std::optional(static_cast<UID>(parent.value())) : std::optional<UID>()
+            );
+        }
+
+        // Load parent data
+        for (auto& segment : _segments) {
+            auto parent =
+        }
+    }
 
     Neuron::Neuron(UID uid, const std::vector<NeuronSegment>& segments)
         : Identifiable(uid),

@@ -10,18 +10,9 @@
 #include <neoneuron/structure/Identifiable.h>
 #include <rush/rush.h>
 
-namespace neoneuron {
-    enum class SegmentType : uint8_t {
-        UNDEFINED = 0,
-        SOMA = 1,
-        AXON = 2,
-        BASAL_DENDRITE = 3,
-        APICAL_DENDRITE = 4,
-        CUSTOM = 5,
-        UNSPECIFIED_NEURITE = 6,
-        GLIA_PROCESSES = 7
-    };
+#include <neoneuron/structure/prototype/NeuronProperties.h>
 
+namespace neoneuron {
     class NeuronSegment : public Identifiable {
         SegmentType _type;
         rush::Vec3f _start;

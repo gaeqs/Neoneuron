@@ -5,10 +5,11 @@
 #include "SWCLoader.h"
 
 #include <unordered_map>
+#include <neoneuron/structure/prototype/NeuronProperties.h>
 
 namespace neoneuron {
-    neon::Result<SWCLoader::SegmentPrototype, std::string> SWCLoader::toSegment(size_t lineIndex) const {
-        SegmentPrototype segment;
+    neon::Result<SWCLoader::SWCSegment, std::string> SWCLoader::toSegment(size_t lineIndex) const {
+        SWCSegment segment;
 
         std::stringstream ss(_lines[lineIndex]);
         ss >> segment.id;
@@ -39,12 +40,18 @@ namespace neoneuron {
         }
     }
 
-    neon::Result<Neuron, std::string> SWCLoader::build(UID uid) const {
-        std::unordered_map<UID, SegmentPrototype> prototypes;
-        std::vector<NeuronSegment> segments;
+    neon::Result<PrototypeNeuron, std::string> SWCLoader::build(UID uid) const {
+        std::unordered_map<UID, SWCSegment> prototypes;
+        PrototypeNeuron neuron(uid);
+
+        // Define properties
+        neuron.defineProperty(PROPERTY_TYPE, 0);
+        neuron.defineProperty(PROPERTY_END, 1);
+        neuron.defineProperty(PROPERTY_RADIUS, 2);
+        neuron.defineProperty(PROPERTY_PARENT, 3);
 
         prototypes.reserve(_lines.size());
-        prototypes.reserve(segments.size());
+        neuron.reserveSpaceForSegments(_lines.size());
 
         for (size_t i = 0; i < _lines.size(); ++i) {
             auto result = toSegment(i);
@@ -53,32 +60,14 @@ namespace neoneuron {
         }
 
         for (auto& [id, prototype]: prototypes) {
-            SegmentPrototype* parent = nullptr;
-            if (prototype.parent >= 0) {
-                UID parentUID = static_cast<UID>(prototype.parent);
-                auto it = prototypes.find(parentUID);
-                if (it == prototypes.end()) {
-                    return "Error while parsing segment " + std::to_string(id) +
-                           ". Parent " + std::to_string(parentUID) + " not found.";
-                }
-                parent = &it->second;
-            }
-
-            rush::Vec3f start = parent == nullptr ? prototype.end : parent->end;
-            float startRadius = parent == nullptr ? prototype.radius : parent->radius;
-
-            segments.emplace_back(
-                prototype.id,
-                static_cast<SegmentType>(prototype.type),
-                start,
-                prototype.end,
-                startRadius,
-                prototype.radius,
-                parent == nullptr ? std::optional<UID>() : parent->id
-            );
+            PrototypeNeuronSegment segment(id);
+            segment.setProperty(0, static_cast<SegmentType>(prototype.type));
+            segment.setProperty(1, prototype.end);
+            segment.setProperty(2, prototype.radius);
+            segment.setProperty(3, prototype.parent);
+            neuron.addSegment(std::move(segment));
         }
 
-
-        return Neuron(uid, std::move(segments));
+        return std::move(neuron);
     }
 }
