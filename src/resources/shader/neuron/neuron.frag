@@ -2,8 +2,11 @@
 
 layout(location = 0) in vec3 fragNormal;
 layout(location = 1) flat in float fragType;
+layout(location = 2) flat in float fragNeuronId;
+layout(location = 3) flat in float fragSectionId;
 
 layout(location = 0) out vec4 color;
+layout(location = 1) out vec3 ids;
 
 layout (set = 0, binding = 0) uniform Matrices {
     mat4 view;
@@ -22,5 +25,5 @@ void main() {
     pre[type] = type == 0 ? intensity : 1;
     color = pre;
 
-    //color = vec4(intensity, 0, 0, 1);
+    ids = vec3(1, fragNeuronId, fragSectionId);
 }

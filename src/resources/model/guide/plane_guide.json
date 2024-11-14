@@ -70,6 +70,10 @@
                 "alpha_blend_operation": "add",
                 "alpha_source_blend_factor": "one",
                 "alpha_destiny_blend_factor": "one"
+              },
+              {
+                "enabled": true,
+                "write_mask": ""
               }
             ]
           },

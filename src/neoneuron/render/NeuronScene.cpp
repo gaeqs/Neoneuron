@@ -65,7 +65,7 @@ neoneuron::NeuronScene::NeuronScene(NeoneuronRender* render) : _render(render) {
         return;
     }
 
-    std::vector modelBindings = {neon::ShaderUniformBinding::storageBuffer(sizeof(GPUNeuronSegment) * 1000000)};
+    std::vector modelBindings = {neon::ShaderUniformBinding::storageBuffer(sizeof(GPUNeuronSegment) * 10000000)};
     auto modelDescriptor = std::make_shared<neon::ShaderUniformDescriptor>(app, "model", modelBindings);
 
     neon::MaterialCreateInfo materialCreateInfo(render->getRenderFrameBuffer(), shader);

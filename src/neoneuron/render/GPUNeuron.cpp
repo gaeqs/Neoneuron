@@ -13,6 +13,8 @@ namespace neoneuron {
         _instanceDataIndex = other._instanceDataIndex;
         _instances = std::move(other._instances);
         _neuron = other._neuron;
+        _valid = other._valid;
+        other._valid = false;
     }
 
     GPUNeuron::GPUNeuron(std::weak_ptr<neon::Model> model,
@@ -20,7 +22,8 @@ namespace neoneuron {
                          const Neuron* neuron)
         : _model(std::move(model)),
           _instanceDataIndex(instanceDataIndex),
-          _neuron(neuron) {
+          _neuron(neuron),
+          _valid(true) {
         _instances.reserve(_neuron->getSegments().size());
 
         auto* instanceData = _model.lock()->getInstanceData(_instanceDataIndex);
@@ -39,6 +42,8 @@ namespace neoneuron {
     }
 
     GPUNeuron::~GPUNeuron() {
+        if (!_valid) return;
+        _valid = false;
         auto model = _model.lock();
         if (model == nullptr) return;
         auto* instanceData = model->getInstanceData(_instanceDataIndex);
@@ -48,6 +53,7 @@ namespace neoneuron {
     }
 
     void GPUNeuron::refreshGPUData() const {
+        if (!_valid) return;
         std::unordered_map<UID, size_t> positions;
         auto model = _model.lock();
         if (model == nullptr) return;
@@ -64,9 +70,11 @@ namespace neoneuron {
             }
 
             GPUNeuronSegment gpu(
-                rush::Vec4f(segment.getEnd(), segment.getEndRadius()),
+                _neuron->getId(),
+                segment.getId(),
                 static_cast<uint32_t>(segment.getType()),
-                parentIndex
+                parentIndex,
+                rush::Vec4f(segment.getEnd(), segment.getEndRadius())
             );
 
             instanceData->uploadData(_instances[i], 0, gpu);

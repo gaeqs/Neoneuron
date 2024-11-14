@@ -47,7 +47,7 @@ namespace neoneuron {
 
         std::ifstream ss(file);
         SWCLoader loader(ss);
-        auto loaderResult = loader.build(1);
+        auto loaderResult = loader.build(_render->getNeuronScene().getNeurons().size());
 
         if (!loaderResult.isOk()) {
             getLogger().error(loaderResult.getError());
@@ -55,9 +55,7 @@ namespace neoneuron {
         }
 
         Neuron neuron = std::move(loaderResult.getResult());
-        for (int i = 0; i < 100; ++i) {
-            _render->getNeuronScene().addNeuron(neuron);
-        }
+        _render->getNeuronScene().addNeuron(std::move(neuron));
         _render->focusScene();
     }
 

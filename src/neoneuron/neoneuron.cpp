@@ -30,6 +30,9 @@ int main() {
 
     info.deviceFilter = [](const neon::vulkan::VKPhysicalDevice& device) {
         if (!neon::vulkan::VKApplicationCreateInfo::defaultDeviceFilter(device)) return false;
+
+        if (!device.getFeatures().basicFeatures.independentBlend) return false;
+
         auto feature = device.getFeatures().findFeature<MeshFeature>(MESH_FEATURE);
         if (!feature.has_value()) return false;
         return feature.value()->meshShader > 0;
@@ -37,6 +40,7 @@ int main() {
 
     info.featuresConfigurator = [](const auto& device, neon::vulkan::VKPhysicalDeviceFeatures& features) {
         neon::vulkan::VKApplicationCreateInfo::defaultFeaturesConfigurer(device, features);
+        features.basicFeatures.independentBlend = true;
         auto* mesh = features.findFeature<MeshFeature>(MESH_FEATURE).value();
         mesh->meshShader = true;
         mesh->taskShader = true;

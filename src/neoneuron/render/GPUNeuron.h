@@ -11,11 +11,9 @@
 
 namespace neoneuron {
     struct GPUNeuronSegment {
-        /**
-        * The end position of the segment (x, y, z) and the radius (w).
-        * This merge is done to save a float position (vec3 has the same padding as vec4 in std430)
-        */
-        rush::Vec4f endAndRadius;
+        uint32_t neuronId;
+
+        uint32_t sectionId;
 
         /**
         * The type of the segment.
@@ -28,9 +26,10 @@ namespace neoneuron {
         uint32_t parent;
 
         /**
-        * Reserved memory required by the padding.
+        * The end position of the segment (x, y, z) and the radius (w).
+        * This merge is done to save a float position (vec3 has the same padding as vec4 in std430)
         */
-        uint32_t reserved[2]; // Padding must be 32 bits because of the vec4.
+        rush::Vec4f endAndRadius;
     };
 
     class GPUNeuron {
@@ -38,6 +37,7 @@ namespace neoneuron {
         size_t _instanceDataIndex;
         std::vector<neon::InstanceData::Instance> _instances;
         const Neuron* _neuron;
+        bool _valid;
 
     public:
         GPUNeuron(GPUNeuron&& other) noexcept;
@@ -45,8 +45,8 @@ namespace neoneuron {
         GPUNeuron(const GPUNeuron& other) = delete;
 
         GPUNeuron(std::weak_ptr<neon::Model> model,
-                         size_t instanceDataIndex,
-                         const Neuron* neuron);
+                  size_t instanceDataIndex,
+                  const Neuron* neuron);
 
         ~GPUNeuron();
 

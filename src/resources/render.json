@@ -26,11 +26,18 @@
       "save": true,
       "type": "simple",
       "depth": true,
-      "textures": {
-        "name": "neoneuron:frame_buffer_output",
-        "save": true,
-        "format": "R8G8B8A8"
-      }
+      "textures": [
+        {
+          "name": "neoneuron:frame_buffer_output",
+          "save": true,
+          "format": "R8G8B8A8"
+        },
+        {
+          "name": "neoneuron:frame_buffer_picker",
+          "save": true,
+          "format": "R32FG32FB32FA32F"
+        }
+      ]
     },
     {
       "name": "neoneuron:frame_buffer_swap_chain",

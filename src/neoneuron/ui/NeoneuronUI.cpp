@@ -13,6 +13,7 @@
 #include <neoneuron/ui/style/Fonts.h>
 
 #include <neoneuron/ui/components/NeoneuronUINeuronList.h>
+#include <neoneuron/ui/components/NeuronTexturePicker.h>
 
 namespace neoneuron {
     NeoneuronUI::NeoneuronUI(NeoneuronRender* render) {
@@ -23,8 +24,10 @@ namespace neoneuron {
         _gameObject->newComponent<neon::DockSpaceComponent>(true);
         _viewport = _gameObject->newComponent<neon::ViewportComponent>();
         _gameObject->newComponent<neon::DebugOverlayComponent>(false, 100);
+        _gameObject->newComponent<neon::LogComponent>();
         _gameObject->newComponent<NeoneuronTopBar>(render);
         _gameObject->newComponent<NeoneuronUINeuronList>(render);
+        _gameObject->newComponent<NeuronTexturePicker>(_viewport);
 
         auto& fs = render->getFileSystem();
         auto file = fs.readFile("/font/SourceSans3.ttf");
