@@ -44,4 +44,32 @@ namespace neoneuron {
     std::optional<UID> NeuronSegment::getParentId() const {
         return _parentID;
     }
+
+    void NeuronSegment::setType(SegmentType type) {
+        _type = type;
+    }
+
+    void NeuronSegment::setStart(const rush::Vec3f& start) {
+        _start = start;
+    }
+
+    void NeuronSegment::setEnd(const rush::Vec3f& end) {
+        _end = end;
+    }
+
+    void NeuronSegment::setStartRadius(float startRadius) {
+        _startRadius = startRadius;
+    }
+
+    void NeuronSegment::setEndRadius(float endRadius) {
+        _endRadius = endRadius;
+    }
+
+    void NeuronSegment::setParentId(const UID& parentId) {
+        _parentID = parentId;
+    }
+
+    void NeuronSegment::clearParentId() {
+        _parentID = {};
+    }
 }

@@ -54,8 +54,9 @@ namespace neoneuron {
             return;
         }
 
-        Neuron neuron = std::move(loaderResult.getResult());
-        _render->getNeuronScene().addNeuron(std::move(neuron));
+        PrototypeNeuron prototype = std::move(loaderResult.getResult());
+        Neuron neuron(prototype);
+        _render->getNeuronScene().addNeuron(neuron);
         _render->focusScene();
     }
 

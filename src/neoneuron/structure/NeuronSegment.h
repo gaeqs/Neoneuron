@@ -34,15 +34,29 @@ namespace neoneuron {
 
         [[nodiscard]] SegmentType getType() const;
 
+        void setType(SegmentType type);
+
         [[nodiscard]] rush::Vec3f getStart() const;
+
+        void setStart(const rush::Vec3f& start);
 
         [[nodiscard]] rush::Vec3f getEnd() const;
 
+        void setEnd(const rush::Vec3f& end);
+
         [[nodiscard]] float getStartRadius() const;
+
+        void setStartRadius(float startRadius);
 
         [[nodiscard]] float getEndRadius() const;
 
+        void setEndRadius(float endRadius);
+
         [[nodiscard]] std::optional<UID> getParentId() const;
+
+        void setParentId(const UID& parentId);
+
+        void clearParentId();
     };
 }
 

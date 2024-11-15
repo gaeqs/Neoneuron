@@ -62,8 +62,6 @@ namespace neoneuron {
             return;
         }
 
-        std::unordered_map<UID, size_t> indices;
-
         _segments.reserve(prototype.getSegments().size());
         for (auto& segment: prototype.getSegments()) {
             auto type = segment.getProperty<SegmentType>(propType.value());
@@ -79,8 +77,6 @@ namespace neoneuron {
                 continue;
             }
 
-            indices.insert({segment.getId(), indices.size()});
-
             _segments.emplace_back(
                 segment.getId(),
                 type.value(),
@@ -90,12 +86,29 @@ namespace neoneuron {
                 radius.value(),
                 parent.value() >= 0 ? std::optional(static_cast<UID>(parent.value())) : std::optional<UID>()
             );
+
+            _segmentsByUID.emplace(segment.getId(), _segmentsByUID.size());
         }
 
         // Load parent data
-        for (auto& segment : _segments) {
-            auto parent =
+        for (auto& segment: _segments) {
+            if (!segment.getParentId().has_value()) continue;
+            auto parentIndex = _segmentsByUID.find(segment.getParentId().value());
+            if (parentIndex == _segmentsByUID.end()) {
+                neon::Logger::defaultLogger()->error(neon::MessageBuilder()
+                    .print("Cannot find parent ")
+                    .print(segment.getParentId().value())
+                    .print("."));
+                continue;
+            }
+
+            auto& parent = _segments[parentIndex->second];
+
+            segment.setStart(parent.getEnd());
+            segment.setStartRadius(parent.getEndRadius());
         }
+
+        calculateBoundingBox();
     }
 
     Neuron::Neuron(UID uid, const std::vector<NeuronSegment>& segments)
