@@ -128,7 +128,7 @@ void neoneuron::NeuronScene::addNeuron(Neuron&& neuron) {
     _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());
 
     if (_neurons.size() == 1) {
-        _sceneBoundingBox = neuron.getBoundingBox();
+        _sceneBoundingBox = _neurons[0].getBoundingBox();
     } else {
         combineBoundingBoxes(neuron.getBoundingBox());
     }
