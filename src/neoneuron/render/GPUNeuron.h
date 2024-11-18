@@ -36,6 +36,7 @@ namespace neoneuron {
         std::weak_ptr<neon::Model> _model;
         size_t _instanceDataIndex;
         std::vector<neon::InstanceData::Instance> _instances;
+        std::unordered_map<UID, neon::InstanceData::Instance> _instancesByUID;
         const Neuron* _neuron;
         bool _valid;
 

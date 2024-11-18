@@ -15,7 +15,7 @@
 namespace neoneuron {
     class NeoneuronRender {
         struct Components {
-            NeuronScene neuronScene;
+            std::unique_ptr<AbstractNeuronScene> neuronScene;
             NeoneuronUI ui;
             CameraData cameraData;
 
@@ -50,9 +50,9 @@ namespace neoneuron {
 
         [[nodiscard]] const std::shared_ptr<neon::Room>& getRoom() const;
 
-        [[nodiscard]] NeuronScene& getNeuronScene();
+        [[nodiscard]] std::unique_ptr<AbstractNeuronScene>& getNeuronScene();
 
-        [[nodiscard]] const NeuronScene& getNeuronScene() const;
+        [[nodiscard]] const std::unique_ptr<AbstractNeuronScene>& getNeuronScene() const;
 
         [[nodiscard]] NeoneuronUI& getUI();
 

@@ -49,25 +49,28 @@ namespace neoneuron {
         if (ImGui::Begin("Neurons")) {
             float maxSize = ImGui::GetContentRegionAvail().x;
 
-            auto& neurons = _render->getNeuronScene().getNeurons();
+            auto* render = dynamic_cast<NeuronScene*>(_render->getNeuronScene().get());
+            if (render != nullptr) {
+                auto& neurons = render->getNeurons();
 
-            int elements = 0;
-            float totalSize = MIN_SIZE;
+                int elements = 0;
+                float totalSize = MIN_SIZE;
 
-            while (totalSize < maxSize) {
-                totalSize += spacing + MIN_SIZE;
-                ++elements;
-            }
-            if (elements == 0) ++elements;
+                while (totalSize < maxSize) {
+                    totalSize += spacing + MIN_SIZE;
+                    ++elements;
+                }
+                if (elements == 0) ++elements;
 
-            float sizePerElement = (maxSize - spacing * elements) / elements;
+                float sizePerElement = (maxSize - spacing * elements) / elements;
 
-            ImGuiListClipper clipper;
-            clipper.Begin(neurons.size() / elements + (neurons.size() % elements > 0 ? 1 : 0));
+                ImGuiListClipper clipper;
+                clipper.Begin(neurons.size() / elements + (neurons.size() % elements > 0 ? 1 : 0));
 
-            while (clipper.Step()) {
-                for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-                    neuronRow(neurons, row, elements, sizePerElement);
+                while (clipper.Step()) {
+                    for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+                        neuronRow(neurons, row, elements, sizePerElement);
+                    }
                 }
             }
         }

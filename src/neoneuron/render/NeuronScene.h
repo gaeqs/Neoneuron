@@ -10,10 +10,12 @@
 #include <neoneuron/structure/Neuron.h>
 #include <neoneuron/render/GPUNeuron.h>
 
+#include "AbstractNeuronScene.h"
+
 namespace neoneuron {
     class NeoneuronRender;
 
-    class NeuronScene {
+    class NeuronScene : public AbstractNeuronScene {
         NeoneuronRender* _render;
         std::shared_ptr<neon::Model> _neuronModel;
         std::vector<Neuron> _neurons;
@@ -26,27 +28,27 @@ namespace neoneuron {
         void recalculateBoundingBox();
 
     public:
-        NeuronScene() = default;
-
-        NeuronScene(const NeuronScene& other) = delete;
-
-        NeuronScene(NeuronScene&& other) noexcept;
-
-        NeuronScene& operator=(NeuronScene&& other) noexcept;
-
         explicit NeuronScene(NeoneuronRender* render);
 
-        ~NeuronScene();
+        ~NeuronScene() override;
 
         [[nodiscard]] const std::vector<Neuron>& getNeurons() const;
+
+        [[nodiscard]] size_t getNeuronsAmount() override;
+
+        [[nodiscard]] std::optional<Neuron*> findNeuron(UID uid);
+
+        [[nodiscard]] std::optional<const Neuron*> findNeuron(UID uid) const;
+
+        bool addNeuron(const PrototypeNeuron& neuron) override;
 
         void addNeuron(const Neuron& neuron);
 
         void addNeuron(Neuron&& neuron);
 
-        void removeNeuron(UID neuronId);
+        bool removeNeuron(UID neuronId) override;
 
-        [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const;
+        [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
     };
 }
 

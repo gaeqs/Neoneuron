@@ -14,7 +14,7 @@ CMRC_DECLARE(resources);
 
 namespace neoneuron {
     NeoneuronRender::Components::Components(NeoneuronRender* render) :
-        neuronScene(render),
+        neuronScene(std::make_unique<NeuronScene>(render)),
         ui(render),
         cameraData(render) {}
 
@@ -74,11 +74,11 @@ namespace neoneuron {
         return _room;
     }
 
-    NeuronScene& NeoneuronRender::getNeuronScene() {
+    std::unique_ptr<AbstractNeuronScene>& NeoneuronRender::getNeuronScene() {
         return _components->neuronScene;
     }
 
-    const NeuronScene& NeoneuronRender::getNeuronScene() const {
+    const std::unique_ptr<AbstractNeuronScene>& NeoneuronRender::getNeuronScene() const {
         return _components->neuronScene;
     }
 
@@ -112,6 +112,6 @@ namespace neoneuron {
     }
 
     void NeoneuronRender::focusScene() const {
-        _components->cameraData.getCameraController()->focusOn(_components->neuronScene.getSceneBoundingBox());
+        _components->cameraData.getCameraController()->focusOn(_components->neuronScene->getSceneBoundingBox());
     }
 }

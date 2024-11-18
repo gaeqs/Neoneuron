@@ -28,10 +28,12 @@ namespace neoneuron {
 
         auto* instanceData = _model.lock()->getInstanceData(_instanceDataIndex);
 
-        for (size_t i = 0; i < _neuron->getSegments().size(); ++i) {
+        auto& segments = _neuron->getSegments();
+        for (auto& segment: segments) {
             auto result = instanceData->createInstance();
             if (result.isOk()) {
                 _instances.push_back(result.getResult());
+                _instancesByUID[segment.getId()] = result.getResult();
             } else {
                 neon::Logger::defaultLogger()->error("Cannot create new instances!");
                 break;
@@ -54,7 +56,6 @@ namespace neoneuron {
 
     void GPUNeuron::refreshGPUData() const {
         if (!_valid) return;
-        std::unordered_map<UID, size_t> positions;
         auto model = _model.lock();
         if (model == nullptr) return;
         auto* instanceData = model->getInstanceData(_instanceDataIndex);

@@ -51,66 +51,6 @@ namespace neoneuron {
 
     Neuron::Neuron() : Identifiable(std::numeric_limits<UID>::max()) {}
 
-    Neuron::Neuron(const PrototypeNeuron& prototype) :
-        Identifiable(prototype.getId()) {
-        std::optional<UID> propType = prototype.getProperty(PROPERTY_TYPE);
-        std::optional<UID> propEnd = prototype.getProperty(PROPERTY_END);
-        std::optional<UID> propRadius = prototype.getProperty(PROPERTY_RADIUS);
-        std::optional<UID> propParent = prototype.getProperty(PROPERTY_PARENT);
-        if (!propType.has_value() || !propEnd.has_value() || !propRadius.has_value() || !propParent.has_value()) {
-            neon::Logger::defaultLogger()->error("Cannot load neuron, properties are not found.");
-            return;
-        }
-
-        _segments.reserve(prototype.getSegments().size());
-        for (auto& segment: prototype.getSegments()) {
-            auto type = segment.getProperty<SegmentType>(propType.value());
-            auto end = segment.getProperty<rush::Vec3f>(propEnd.value());
-            auto radius = segment.getProperty<float>(propRadius.value());
-            auto parent = segment.getProperty<int64_t>(propParent.value());
-
-            if (!type.has_value() || !end.has_value() || !radius.has_value() || !parent.has_value()) {
-                neon::Logger::defaultLogger()->error(neon::MessageBuilder()
-                    .print("Cannot load section ")
-                    .print(segment.getId())
-                    .print(". Properties are not found."));
-                continue;
-            }
-
-            _segments.emplace_back(
-                segment.getId(),
-                type.value(),
-                end.value(),
-                end.value(),
-                radius.value(),
-                radius.value(),
-                parent.value() >= 0 ? std::optional(static_cast<UID>(parent.value())) : std::optional<UID>()
-            );
-
-            _segmentsByUID.emplace(segment.getId(), _segmentsByUID.size());
-        }
-
-        // Load parent data
-        for (auto& segment: _segments) {
-            if (!segment.getParentId().has_value()) continue;
-            auto parentIndex = _segmentsByUID.find(segment.getParentId().value());
-            if (parentIndex == _segmentsByUID.end()) {
-                neon::Logger::defaultLogger()->error(neon::MessageBuilder()
-                    .print("Cannot find parent ")
-                    .print(segment.getParentId().value())
-                    .print("."));
-                continue;
-            }
-
-            auto& parent = _segments[parentIndex->second];
-
-            segment.setStart(parent.getEnd());
-            segment.setStartRadius(parent.getEndRadius());
-        }
-
-        calculateBoundingBox();
-    }
-
     Neuron::Neuron(UID uid, const std::vector<NeuronSegment>& segments)
         : Identifiable(uid),
           _segments(segments) {
@@ -153,5 +93,67 @@ namespace neoneuron {
         auto it = _segmentsByUID.find(uid);
         if (it == _segmentsByUID.end()) return {};
         return it->second;
+    }
+
+    neon::Result<Neuron, std::string> Neuron::fromPrototype(const PrototypeNeuron& prototype) {
+        std::optional<UID> propType = prototype.getProperty(PROPERTY_TYPE);
+        std::optional<UID> propEnd = prototype.getProperty(PROPERTY_END);
+        std::optional<UID> propRadius = prototype.getProperty(PROPERTY_RADIUS);
+        std::optional<UID> propParent = prototype.getProperty(PROPERTY_PARENT);
+        if (!propType.has_value() || !propEnd.has_value() || !propRadius.has_value() || !propParent.has_value()) {
+            return {"Cannot load neuron, properties are not found."};
+        }
+
+        std::vector<NeuronSegment> segments;
+        std::unordered_map<UID, size_t> segmentsByUid;
+
+
+        segments.reserve(prototype.getSegments().size());
+        for (auto& segment: prototype.getSegments()) {
+            auto type = segment.getProperty<SegmentType>(propType.value());
+            auto end = segment.getProperty<rush::Vec3f>(propEnd.value());
+            auto radius = segment.getProperty<float>(propRadius.value());
+            auto parent = segment.getProperty<int64_t>(propParent.value());
+
+            if (!type.has_value() || !end.has_value() || !radius.has_value() || !parent.has_value()) {
+                std::stringstream ss;
+                ss << "Cannot load section ";
+                ss << segment.getId();
+                ss << ". Properties are not found.";
+                return ss.str();
+            }
+
+            segments.emplace_back(
+                segment.getId(),
+                type.value(),
+                end.value(),
+                end.value(),
+                radius.value(),
+                radius.value(),
+                parent.value() >= 0 ? std::optional(static_cast<UID>(parent.value())) : std::optional<UID>()
+            );
+
+            segmentsByUid.emplace(segment.getId(), segmentsByUid.size());
+        }
+
+        // Load parent data
+        for (auto& segment: segments) {
+            if (!segment.getParentId().has_value()) continue;
+            auto parentIndex = segmentsByUid.find(segment.getParentId().value());
+            if (parentIndex == segmentsByUid.end()) {
+                std::stringstream ss;
+                ss << "Cannot find parent ";
+                ss << segment.getParentId().value();
+                ss << ".";
+                return ss.str();
+            }
+
+            auto& parent = segments[parentIndex->second];
+
+            segment.setStart(parent.getEnd());
+            segment.setStartRadius(parent.getEndRadius());
+        }
+
+        return Neuron(prototype.getId(), segments);
     }
 }

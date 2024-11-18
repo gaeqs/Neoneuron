@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <neon/util/Result.h>
 
 #include <neoneuron/structure/Identifiable.h>
 #include <neoneuron/structure/NeuronSegment.h>
@@ -32,8 +33,6 @@ namespace neoneuron {
 
         Neuron();
 
-        explicit Neuron(const PrototypeNeuron& prototype);
-
         Neuron(UID uid, const std::vector<NeuronSegment>& segments);
 
         Neuron(UID uid, std::vector<NeuronSegment>&& segments);
@@ -47,6 +46,11 @@ namespace neoneuron {
         std::optional<NeuronSegment*> findSegment(UID uid);
 
         std::optional<size_t> findSegmentIndex(UID uid) const;
+
+
+        // Static methods
+
+        static neon::Result<Neuron, std::string> fromPrototype(const PrototypeNeuron& prototype);
     };
 }
 
