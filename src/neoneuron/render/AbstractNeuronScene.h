@@ -14,6 +14,10 @@ namespace neoneuron {
     public:
         virtual ~AbstractNeuronScene() = default;
 
+        [[nodiscard]] virtual AbstractSelector& getSelector() = 0;
+
+        [[nodiscard]] virtual const AbstractSelector& getSelector() const = 0;
+
         [[nodiscard]] virtual size_t getNeuronsAmount() = 0;
 
         virtual bool addNeuron(const PrototypeNeuron& neuron) = 0;

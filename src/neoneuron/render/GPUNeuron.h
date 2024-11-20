@@ -53,6 +53,8 @@ namespace neoneuron {
 
         void refreshGPUData() const;
 
+        std::optional<neon::InstanceData::Instance> findSegment(UID uid) const;
+
         GPUNeuron& operator=(GPUNeuron&& other) noexcept;
     };
 }

@@ -11,13 +11,13 @@
 CMRC_DECLARE(resources);
 
 namespace neoneuron {
-    void neoneuron::NeuronScene::combineBoundingBoxes(const rush::AABB<3, float>& aabb) {
+    void NeuronScene::combineBoundingBoxes(const rush::AABB<3, float>& aabb) {
         auto min = rush::min(aabb.center - aabb.radius, _sceneBoundingBox.center - _sceneBoundingBox.radius);
         auto max = rush::max(aabb.center + aabb.radius, _sceneBoundingBox.center + _sceneBoundingBox.radius);
         _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
-    void neoneuron::NeuronScene::recalculateBoundingBox() {
+    void NeuronScene::recalculateBoundingBox() {
         if (_neurons.empty()) {
             _sceneBoundingBox = {};
             return;
@@ -36,7 +36,7 @@ namespace neoneuron {
         _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
-    neoneuron::NeuronScene::NeuronScene(NeoneuronRender* render) : _render(render) {
+    NeuronScene::NeuronScene(NeoneuronRender* render) : _render(render) {
         constexpr size_t INSTANCES = 10000000;
 
         auto* app = &render->getApplication();
@@ -91,19 +91,29 @@ namespace neoneuron {
 
         _neuronModel = std::make_shared<neon::Model>(app, "Neuron", modelCreateInfo);
         render->getRoom()->markUsingModel(_neuronModel.get());
+
+        _selector = NeuronSelector(this, _neuronModel->getUniformBuffer(), 1);
     }
 
-    neoneuron::NeuronScene::~NeuronScene() {
+    NeuronScene::~NeuronScene() {
         if (_neuronModel != nullptr) {
             _render->getRoom()->unmarkUsingModel(_neuronModel.get());
         }
     }
 
-    const std::vector<neoneuron::Neuron>& neoneuron::NeuronScene::getNeurons() const {
+    const std::vector<Neuron>& NeuronScene::getNeurons() const {
         return _neurons;
     }
 
-    size_t neoneuron::NeuronScene::getNeuronsAmount() {
+    AbstractSelector& NeuronScene::getSelector() {
+        return _selector;
+    }
+
+    const AbstractSelector& NeuronScene::getSelector() const {
+        return _selector;
+    }
+
+    size_t NeuronScene::getNeuronsAmount() {
         return _neurons.size();
     }
 
@@ -127,6 +137,32 @@ namespace neoneuron {
         );
         if (it == _neurons.cend()) return {};
         return {&*it};
+    }
+
+    std::optional<GPUNeuron*> NeuronScene::findGPUNeuron(UID uid) {
+        auto it = std::find_if(
+            _neurons.cbegin(), _neurons.cend(),
+            [uid](const Neuron& neuron) {
+                return uid == neuron.getId();
+            }
+        );
+        if (it == _neurons.cend()) return {};
+        ptrdiff_t index = it - _neurons.begin();
+
+        return &_gpuNeurons[index];
+    }
+
+    std::optional<const GPUNeuron*> NeuronScene::findGPUNeuron(UID uid) const {
+        auto it = std::find_if(
+            _neurons.cbegin(), _neurons.cend(),
+            [uid](const Neuron& neuron) {
+                return uid == neuron.getId();
+            }
+        );
+        if (it == _neurons.cend()) return {};
+        ptrdiff_t index = it - _neurons.begin();
+
+        return &_gpuNeurons[index];
     }
 
     bool NeuronScene::addNeuron(const PrototypeNeuron& neuron) {
@@ -178,6 +214,8 @@ namespace neoneuron {
         for (auto& gpuNeuron: _gpuNeurons) {
             gpuNeuron.refreshGPUData();
         }
+
+        _selector.refreshGPUData();
 
         recalculateBoundingBox();
 

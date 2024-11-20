@@ -27,7 +27,7 @@ namespace neoneuron {
         _gameObject->newComponent<neon::LogComponent>();
         _gameObject->newComponent<NeoneuronTopBar>(render);
         _gameObject->newComponent<NeoneuronUINeuronList>(render);
-        _gameObject->newComponent<NeuronTexturePicker>(_viewport);
+        _gameObject->newComponent<NeuronTexturePicker>(render, _viewport);
 
         auto& fs = render->getFileSystem();
         auto file = fs.readFile("/font/SourceSans3.ttf");

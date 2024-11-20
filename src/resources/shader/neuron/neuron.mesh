@@ -21,12 +21,16 @@ struct Section {
     uint neuronId;
     uint sectionId;
     uint type;
-    uint parent; // This is the index inside the sections array! It is not the id of the section.
+    uint parent;// This is the index inside the sections array! It is not the id of the section.
     vec4 endAndRadius;
 };
 
 layout(std430, set = 2, binding = 0) buffer Data {
     Section sections[];
+};
+
+layout(std430, set = 2, binding = 1) buffer Selection {
+    bool selected[];
 };
 
 struct TaskData {
@@ -39,14 +43,16 @@ layout(location = 0) out vec3 fragNormal[];
 layout(location = 1) flat out float fragType[];
 layout(location = 2) flat out float fragNeuronId[];
 layout(location = 3) flat out float fragSectionId[];
+layout(location = 4) flat out float fragSelected[];
 
 
-void pushVertex(uint i, vec4 position, vec3 normal, uint type, uint neuronId, uint sectionId) {
+void pushVertex(uint i, vec4 position, vec3 normal, uint type, uint neuronId, uint sectionId, bool sel) {
     gl_MeshVerticesEXT[i].gl_Position = viewProjection * position;
     fragNormal[i] = normal;
     fragType[i] = uintBitsToFloat(type);
     fragNeuronId[i] = uintBitsToFloat(neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
+    fragSelected[i] = sel ? 1.0f : 0.0f;
 }
 
 vec3 rotate (vec3 v, vec3 n, float a) {
@@ -57,6 +63,8 @@ void main() {
     Section section = sections[td.section];
     Section parent = sections[section.parent];
     Section grandParent = sections[parent.parent];
+
+    bool isSelected = selected[td.section];
 
     vec3 end = section.endAndRadius.xyz;
     vec3 start = parent.endAndRadius.xyz;
@@ -94,7 +102,7 @@ void main() {
         SetMeshOutputsEXT(GROUPS_SIZE, GROUPS_SIZE);
 
         vec3 point = center + rotated * radius;
-        pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, section.neuronId, section.sectionId);
+        pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, section.neuronId, section.sectionId, isSelected);
 
         uint a = gl_LocalInvocationID.x;
         uint b = (gl_LocalInvocationID.x + 1) % POINTS_PER_CIRCLE;
@@ -107,9 +115,9 @@ void main() {
         vec3 point2 = point + direction * radius * 0.1f;
         vec3 point3 = point + direction * radius * 0.05f + p * 0.25;
         uint type = gl_LocalInvocationID.x < 16 ? 1 : 2;
-        pushVertex(gl_LocalInvocationID.x * 3, vec4(point, 1), rotated, type, section.neuronId, section.sectionId);
-        pushVertex(gl_LocalInvocationID.x * 3 + 1, vec4(point2, 1), rotated, type, section.neuronId, section.sectionId);
-        pushVertex(gl_LocalInvocationID.x * 3 + 2, vec4(point3, 1), rotated, type, section.neuronId, section.sectionId);
+        pushVertex(gl_LocalInvocationID.x * 3, vec4(point, 1), rotated, type, section.neuronId, section.sectionId, isSelected);
+        pushVertex(gl_LocalInvocationID.x * 3 + 1, vec4(point2, 1), rotated, type, section.neuronId, section.sectionId, isSelected);
+        pushVertex(gl_LocalInvocationID.x * 3 + 2, vec4(point3, 1), rotated, type, section.neuronId, section.sectionId, isSelected);
         gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(0, 1, 2) + uvec3(gl_LocalInvocationID.x * 3);
     }
 }

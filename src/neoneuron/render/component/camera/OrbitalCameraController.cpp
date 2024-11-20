@@ -141,7 +141,9 @@ namespace neoneuron {
     }
 
     void OrbitalCameraController::onMouseButton(const neon::MouseButtonEvent& event) {
-        if (event.action == neon::KeyboardAction::PRESS && !_render->getUI().getViewport()->isHovered()) {
+        if (event.action == neon::KeyboardAction::PRESS &&
+            (!_render->getUI().getViewport()->isHovered() ||
+             !event.isModifierActive(neon::KeyboardModifier::CONTROL))) {
             return;
         }
         if (event.button == neon::MouseButton::BUTTON_SECONDARY) {

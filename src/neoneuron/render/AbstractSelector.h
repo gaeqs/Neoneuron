@@ -5,12 +5,22 @@
 #ifndef ABSTRACTNEURONSELECTOR_H
 #define ABSTRACTNEURONSELECTOR_H
 
+#include <vector>
+#include <any>
+
 namespace neoneuron {
+    struct Selection {
+        bool clear = false;
+        std::vector<std::any> selections = {};
+    };
+
     class AbstractSelector {
     public:
         virtual ~AbstractSelector() = default;
 
-        virtual void setSelectionData(const void* data) = 0;
+        virtual void setSelectionData(const Selection& selection) = 0;
+
+        virtual void clearSelection() = 0;
     };
 }
 

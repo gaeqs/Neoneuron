@@ -82,6 +82,12 @@ namespace neoneuron {
         }
     }
 
+    std::optional<neon::InstanceData::Instance> GPUNeuron::findSegment(UID uid) const {
+        auto id = _instancesByUID.find(uid);
+        if (id == _instancesByUID.end()) return {};
+        return id->second;
+    }
+
     GPUNeuron& GPUNeuron::operator=(GPUNeuron&& other) noexcept {
         if (this == &other) return *this;
         _model = other._model;

@@ -7,32 +7,30 @@
 #include <neon/io/CursorEvent.h>
 #include <neon/structure/collection/AssetCollection.h>
 #include <neon/io/MouseButtonEvent.h>
+#include <neoneuron/render/NeoneuronRender.h>
+
+#include "nfd_glfw3.h"
 
 
 namespace neoneuron {
-    std::optional<std::pair<UID, UID>> NeuronTexturePicker::pickNeuron(rush::Vec2i min,
-                                                                       rush::Vec2i max,
-                                                                       const rush::Vec4i* data) {
-        int32_t squaredLength = std::numeric_limits<float>::max();
-        std::optional<std::pair<UID, UID>> selected = {};
+    std::unordered_set<rush::Vec<2, uint32_t>>
+    NeuronTexturePicker::pickNeurons(const rush::Vec4i* data, size_t size) {
+        std::unordered_set<rush::Vec<2, uint32_t>> selection;
 
-        size_t i = 0;
-        for (int32_t y = min.y(); y <= max.y(); ++y) {
-            for (int32_t x = min.x(); x <= max.x(); ++x) {
-                rush::Vec4i current = data[i++];
-                int32_t currentLength = x * x + y * y;
-                if (current.x() > 0 && (!selected.has_value() || currentLength < squaredLength)) {
-                    squaredLength = currentLength;
-                    selected = {current.y(), current.z()};
-                }
+        for (size_t i = 0; i < size; ++i) {
+            rush::Vec4i current = data[i];
+            if (current.x() > 0) {
+                rush::Vec<2, uint32_t> pair = {current.y(), current.z()};
+                selection.insert(pair);
             }
         }
 
-        return selected;
+        return selection;
     }
 
-    NeuronTexturePicker::NeuronTexturePicker(neon::IdentifiableWrapper<neon::ViewportComponent> viewport)
-        : _viewport(viewport) {}
+    NeuronTexturePicker::NeuronTexturePicker(NeoneuronRender* render,
+                                             neon::IdentifiableWrapper<neon::ViewportComponent> viewport)
+        : _render(render), _viewport(viewport) {}
 
     void NeuronTexturePicker::onStart() {
         _texture = getAssets().get<neon::Texture>("neoneuron:frame_buffer_picker").value_or(nullptr);
@@ -42,32 +40,44 @@ namespace neoneuron {
     }
 
     void NeuronTexturePicker::onMouseButton(const neon::MouseButtonEvent& event) {
-        constexpr size_t RADIUS = 5;
+        if (_texture == nullptr || event.button != neon::MouseButton::BUTTON_PRIMARY) return;
 
-        if (_texture == nullptr ||
-            !_inside ||
-            event.button != neon::MouseButton::BUTTON_PRIMARY ||
-            event.action != neon::KeyboardAction::PRESS)
-            return;
+        if (event.action == neon::KeyboardAction::PRESS) {
+            if (!_inside || event.modifiers != 0) return;
+            _selecting = true;
+            _origin = _pixelPosition;
+        } else if (event.action == neon::KeyboardAction::RELEASE) {
+            if (!_selecting) return;
 
+            auto imSize = _viewport->getWindowSize();
+            auto winSize = rush::Vec2f(imSize.x, imSize.y).cast<int32_t>() - 1;
 
-        rush::Vec2i min = rush::max(_pixelPosition - RADIUS, 0);
-        rush::Vec2i max = rush::min(_pixelPosition + RADIUS,
-                                    rush::Vec2i(_texture->getWidth() - 1, _texture->getHeight() - 1));
-        rush::Vec<3, uint32_t> size = {(max + 1 - min).cast<uint32_t>(), 1};
-        uint32_t amount = size[0] * size[1];
+            rush::Vec2i to = rush::clamp(_pixelPosition, rush::Vec<2, int32_t>(0, 0), winSize);
 
-        auto data = std::make_unique<rush::Vec4i[]>(amount);
-        _texture->fetchData(data.get(), {min, 0}, size, 0, 1);
+            auto min = rush::min(_origin, to);
+            auto max = rush::max(_origin, to);
+            rush::Vec<3, uint32_t> size = {(max + 1 - min).cast<uint32_t>(), 1};
 
-        auto result = pickNeuron(min, max, data.get());
+            uint32_t amount = size[0] * size[1];
 
-        if (result.has_value()) {
-            getLogger().debug(neon::MessageBuilder()
-                .print("Segment found! ")
-                .print(result.value().first)
-                .print(" - ")
-                .print(result.value().second));
+            auto data = std::make_unique<rush::Vec4i[]>(amount);
+            _texture->fetchData(data.get(), {min, 0}, size, 0, 1);
+
+            auto result = pickNeurons(data.get(), amount);
+
+            auto& selector = _render->getNeuronScene()->getSelector();
+
+            Selection selection(true);
+
+            selection.selections.insert(
+                selection.selections.begin(),
+                result.begin(),
+                result.end()
+            );
+
+            selector.setSelectionData(selection);
+
+            _selecting = false;
         }
     }
 
@@ -79,5 +89,22 @@ namespace neoneuron {
 
         _inside = _pixelPosition.x() >= 0 && _pixelPosition.y() >= 0 &&
                   _pixelPosition.x() < size.x && _pixelPosition.y() < size.y;
+    }
+
+    void NeuronTexturePicker::onPreDraw() {
+        if (!_selecting) return;
+        auto base = rush::Vec2i(_viewport->getWindowOrigin().x, _viewport->getWindowOrigin().y);
+        auto size = rush::Vec2i(_viewport->getWindowSize().x, _viewport->getWindowSize().y);
+        auto from = base + _origin;
+        auto to = base + rush::clamp(_pixelPosition, rush::Vec2i(0), size);
+
+        auto min = rush::min(from, to).cast<float>();
+        auto max = rush::max(from, to).cast<float>();
+        ImGui::GetForegroundDrawList()->AddRectFilled(
+            {min.x(), min.y()},
+            {max.x(), max.y()},
+            0x550000FF,
+            5.f
+        );
     }
 }
