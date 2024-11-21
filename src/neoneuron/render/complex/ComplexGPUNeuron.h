@@ -2,15 +2,15 @@
 // Created by gaeqs on 10/10/24.
 //
 
-#ifndef GPUNEURON_H
-#define GPUNEURON_H
+#ifndef COMPLEXGPUNEURON_H
+#define COMPLEXGPUNEURON_H
 
 
 #include <neon/Neon.h>
-#include <neoneuron/structure/simple/SimpleNeuron.h>
+#include <neoneuron/structure/complex/ComplexNeuron.h>
 
 namespace neoneuron {
-    struct SimpleGPUNeuronSegment {
+    struct ComplexGPUNeuronSegment {
         /**
         * The UID of the neuron this segment is inside.
         */
@@ -38,31 +38,43 @@ namespace neoneuron {
         rush::Vec4f endAndRadius;
     };
 
-    class SimpleGPUNeuron {
+    struct ComplexGPUNeuronJoint {
+        /**
+        * The amount of connections.
+        */
+        uint32_t amount;
+
+        /**
+         * The connections' positions in the storage buffer.
+         */
+        uint32_t connections[8];
+    };
+
+    class ComplexGPUNeuron {
         std::weak_ptr<neon::Model> _model;
         size_t _instanceDataIndex;
         std::vector<neon::InstanceData::Instance> _instances;
         std::unordered_map<UID, neon::InstanceData::Instance> _instancesByUID;
-        const SimpleNeuron* _neuron;
+        const ComplexNeuron* _neuron;
         bool _valid;
 
     public:
-        SimpleGPUNeuron(SimpleGPUNeuron&& other) noexcept;
+        ComplexGPUNeuron(ComplexGPUNeuron&& other) noexcept;
 
-        SimpleGPUNeuron(const SimpleGPUNeuron& other) = delete;
+        ComplexGPUNeuron(const ComplexGPUNeuron& other) = delete;
 
-        SimpleGPUNeuron(std::weak_ptr<neon::Model> model,
-                        size_t instanceDataIndex,
-                        const SimpleNeuron* neuron);
+        ComplexGPUNeuron(std::weak_ptr<neon::Model> model,
+                         size_t instanceDataIndex,
+                         const ComplexNeuron* neuron);
 
-        ~SimpleGPUNeuron();
+        ~ComplexGPUNeuron();
 
         void refreshGPUData() const;
 
         std::optional<neon::InstanceData::Instance> findSegment(UID uid) const;
 
-        SimpleGPUNeuron& operator=(SimpleGPUNeuron&& other) noexcept;
+        ComplexGPUNeuron& operator=(ComplexGPUNeuron&& other) noexcept;
     };
 }
 
-#endif //GPUNEURON_H
+#endif //COMPLEXGPUNEURON_H
