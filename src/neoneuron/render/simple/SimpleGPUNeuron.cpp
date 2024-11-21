@@ -2,13 +2,13 @@
 // Created by gaeqs on 10/10/24.
 //
 
-#include "GPUNeuron.h"
+#include "SimpleGPUNeuron.h"
 
 #include <utility>
 
 
 namespace neoneuron {
-    GPUNeuron::GPUNeuron(GPUNeuron&& other) noexcept {
+    SimpleGPUNeuron::SimpleGPUNeuron(SimpleGPUNeuron&& other) noexcept {
         _model = other._model;
         _instanceDataIndex = other._instanceDataIndex;
         _instances = std::move(other._instances);
@@ -17,9 +17,9 @@ namespace neoneuron {
         other._valid = false;
     }
 
-    GPUNeuron::GPUNeuron(std::weak_ptr<neon::Model> model,
+    SimpleGPUNeuron::SimpleGPUNeuron(std::weak_ptr<neon::Model> model,
                          size_t instanceDataIndex,
-                         const Neuron* neuron)
+                         const SimpleNeuron* neuron)
         : _model(std::move(model)),
           _instanceDataIndex(instanceDataIndex),
           _neuron(neuron),
@@ -43,7 +43,7 @@ namespace neoneuron {
         refreshGPUData();
     }
 
-    GPUNeuron::~GPUNeuron() {
+    SimpleGPUNeuron::~SimpleGPUNeuron() {
         if (!_valid) return;
         _valid = false;
         auto model = _model.lock();
@@ -54,7 +54,7 @@ namespace neoneuron {
         }
     }
 
-    void GPUNeuron::refreshGPUData() const {
+    void SimpleGPUNeuron::refreshGPUData() const {
         if (!_valid) return;
         auto model = _model.lock();
         if (model == nullptr) return;
@@ -70,7 +70,7 @@ namespace neoneuron {
                 parentIndex = *_instances[i].id;
             }
 
-            GPUNeuronSegment gpu(
+            SimpleGPUNeuronSegment gpu(
                 _neuron->getId(),
                 segment.getId(),
                 static_cast<uint32_t>(segment.getType()),
@@ -82,13 +82,13 @@ namespace neoneuron {
         }
     }
 
-    std::optional<neon::InstanceData::Instance> GPUNeuron::findSegment(UID uid) const {
+    std::optional<neon::InstanceData::Instance> SimpleGPUNeuron::findSegment(UID uid) const {
         auto id = _instancesByUID.find(uid);
         if (id == _instancesByUID.end()) return {};
         return id->second;
     }
 
-    GPUNeuron& GPUNeuron::operator=(GPUNeuron&& other) noexcept {
+    SimpleGPUNeuron& SimpleGPUNeuron::operator=(SimpleGPUNeuron&& other) noexcept {
         if (this == &other) return *this;
         _model = other._model;
         _instanceDataIndex = other._instanceDataIndex;

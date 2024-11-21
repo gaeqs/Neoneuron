@@ -87,7 +87,8 @@ namespace neoneuron {
         auto rush = rush::Vec2f(origin.x, origin.y);
         _pixelPosition = (event.position - rush).cast<int32_t>();
 
-        _inside = _pixelPosition.x() >= 0 && _pixelPosition.y() >= 0 &&
+        _inside = _viewport->isHovered() &&
+                  _pixelPosition.x() >= 0 && _pixelPosition.y() >= 0 &&
                   _pixelPosition.x() < size.x && _pixelPosition.y() < size.y;
     }
 

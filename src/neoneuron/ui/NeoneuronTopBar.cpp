@@ -13,7 +13,6 @@
 #include <neoneuron/loader/SWCLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
-#include <neoneuron/render/NeuronScene.h>
 
 #include "style/Fonts.h"
 

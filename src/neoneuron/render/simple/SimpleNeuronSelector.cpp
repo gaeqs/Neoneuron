@@ -2,27 +2,29 @@
 // Created by gaeqs on 15/11/24.
 //
 
-#include "NeuronSelector.h"
+#include "SimpleNeuronSelector.h"
 
-#include "NeuronScene.h"
+#include "SimpleNeuronScene.h"
 
 namespace neoneuron {
-    bool SelectionEntry::operator==(const SelectionEntry& other) const {
+    bool SimpleSelectionEntry::operator==(const SimpleSelectionEntry& other) const {
         return neuron == other.neuron && segment == other.segment;
     }
 
-    bool SelectionEntry::operator!=(const SelectionEntry& other) const {
+    bool SimpleSelectionEntry::operator!=(const SimpleSelectionEntry& other) const {
         return neuron != other.neuron || segment != other.segment;
     }
 
-    NeuronSelector::NeuronSelector() : _scene(nullptr), _uniformBuffer(nullptr), _binding(0) {}
+    SimpleNeuronSelector::SimpleNeuronSelector() : _scene(nullptr), _uniformBuffer(nullptr), _binding(0) {}
 
-    NeuronSelector::NeuronSelector(NeuronScene* scene, neon::ShaderUniformBuffer* uniformBuffer, size_t binding)
+    SimpleNeuronSelector::SimpleNeuronSelector(SimpleNeuronScene* scene,
+                                               neon::ShaderUniformBuffer* uniformBuffer,
+                                               size_t binding)
         : _scene(scene),
           _uniformBuffer(uniformBuffer),
           _binding(binding) {}
 
-    void NeuronSelector::setSelectionData(const Selection& selection) {
+    void SimpleNeuronSelector::setSelectionData(const Selection& selection) {
         auto* buffer = static_cast<GPUNeuronSelectionData*>(_uniformBuffer->fetchData(_binding));
 
         if (selection.clear) {
@@ -40,7 +42,7 @@ namespace neoneuron {
             UID neuronId = pair[0];
             UID sectionId = pair[1];
 
-            SelectionEntry entry{neuronId, sectionId};
+            SimpleSelectionEntry entry{neuronId, sectionId};
             if (_selection.contains(entry)) continue;
 
             auto neuron = _scene->findGPUNeuron(neuronId);
@@ -56,12 +58,12 @@ namespace neoneuron {
         }
     }
 
-    void NeuronSelector::clearSelection() {
+    void SimpleNeuronSelector::clearSelection() {
         _selection.clear();
         refreshGPUData();
     }
 
-    void NeuronSelector::refreshGPUData() {
+    void SimpleNeuronSelector::refreshGPUData() {
         auto data = static_cast<GPUNeuronSelectionData*>(_uniformBuffer->fetchData(_binding));
 
         for (uint32_t id: _activeIndices) {

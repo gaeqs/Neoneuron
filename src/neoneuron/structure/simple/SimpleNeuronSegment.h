@@ -13,7 +13,7 @@
 #include <neoneuron/structure/prototype/NeuronProperties.h>
 
 namespace neoneuron {
-    class NeuronSegment : public Identifiable {
+    class SimpleNeuronSegment : public Identifiable {
         SegmentType _type;
         rush::Vec3f _start;
         rush::Vec3f _end;
@@ -22,7 +22,7 @@ namespace neoneuron {
         std::optional<UID> _parentID;
 
     public:
-        NeuronSegment(
+        SimpleNeuronSegment(
             UID id,
             SegmentType type,
             const rush::Vec3f& start,

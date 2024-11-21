@@ -5,12 +5,13 @@
 #include "NeoneuronUINeuronList.h"
 
 #include <imgui_internal.h>
+#include <neoneuron/render/simple/SimpleNeuronScene.h>
 #include <neoneuron/ui/imgui/ImGuiCustomComponents.h>
 #include <neoneuron/ui/style/Fonts.h>
 
 
 namespace neoneuron {
-    void NeoneuronUINeuronList::neuronRow(const std::vector<Neuron>& neurons,
+    void NeoneuronUINeuronList::neuronRow(const std::vector<SimpleNeuron>& neurons,
                                           size_t row, size_t elements, float size) {
         for (size_t i = 0; i < elements; ++i) {
             size_t id = row * elements + i;
@@ -21,7 +22,7 @@ namespace neoneuron {
         }
     }
 
-    void NeoneuronUINeuronList::neuronSection(const Neuron& neuron, size_t id, float size) const {
+    void NeoneuronUINeuronList::neuronSection(const SimpleNeuron& neuron, size_t id, float size) const {
         std::string name = "Neuron " + std::to_string(id) + "##" + std::to_string(id);
 
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg));
@@ -49,7 +50,7 @@ namespace neoneuron {
         if (ImGui::Begin("Neurons")) {
             float maxSize = ImGui::GetContentRegionAvail().x;
 
-            auto* render = dynamic_cast<NeuronScene*>(_render->getNeuronScene().get());
+            auto* render = dynamic_cast<SimpleNeuronScene*>(_render->getNeuronScene().get());
             if (render != nullptr) {
                 auto& neurons = render->getNeurons();
 

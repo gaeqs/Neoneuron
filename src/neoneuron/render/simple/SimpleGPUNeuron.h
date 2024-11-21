@@ -7,10 +7,10 @@
 
 
 #include <neon/Neon.h>
-#include <neoneuron/structure/Neuron.h>
+#include <neoneuron/structure/simple/SimpleNeuron.h>
 
 namespace neoneuron {
-    struct GPUNeuronSegment {
+    struct SimpleGPUNeuronSegment {
         uint32_t neuronId;
 
         uint32_t sectionId;
@@ -32,30 +32,30 @@ namespace neoneuron {
         rush::Vec4f endAndRadius;
     };
 
-    class GPUNeuron {
+    class SimpleGPUNeuron {
         std::weak_ptr<neon::Model> _model;
         size_t _instanceDataIndex;
         std::vector<neon::InstanceData::Instance> _instances;
         std::unordered_map<UID, neon::InstanceData::Instance> _instancesByUID;
-        const Neuron* _neuron;
+        const SimpleNeuron* _neuron;
         bool _valid;
 
     public:
-        GPUNeuron(GPUNeuron&& other) noexcept;
+        SimpleGPUNeuron(SimpleGPUNeuron&& other) noexcept;
 
-        GPUNeuron(const GPUNeuron& other) = delete;
+        SimpleGPUNeuron(const SimpleGPUNeuron& other) = delete;
 
-        GPUNeuron(std::weak_ptr<neon::Model> model,
+        SimpleGPUNeuron(std::weak_ptr<neon::Model> model,
                   size_t instanceDataIndex,
-                  const Neuron* neuron);
+                  const SimpleNeuron* neuron);
 
-        ~GPUNeuron();
+        ~SimpleGPUNeuron();
 
         void refreshGPUData() const;
 
         std::optional<neon::InstanceData::Instance> findSegment(UID uid) const;
 
-        GPUNeuron& operator=(GPUNeuron&& other) noexcept;
+        SimpleGPUNeuron& operator=(SimpleGPUNeuron&& other) noexcept;
     };
 }
 

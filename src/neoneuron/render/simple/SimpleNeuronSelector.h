@@ -14,19 +14,19 @@
 
 
 namespace neoneuron {
-    struct SelectionEntry {
+    struct SimpleSelectionEntry {
         UID neuron;
         UID segment;
 
-        bool operator==(const SelectionEntry& other) const;
+        bool operator==(const SimpleSelectionEntry& other) const;
 
-        bool operator!=(const SelectionEntry& other) const;
+        bool operator!=(const SimpleSelectionEntry& other) const;
     };
 }
 
 template<>
-struct std::hash<neoneuron::SelectionEntry> {
-    size_t operator()(const neoneuron::SelectionEntry& entry) const noexcept {
+struct std::hash<neoneuron::SimpleSelectionEntry> {
+    size_t operator()(const neoneuron::SimpleSelectionEntry& entry) const noexcept {
         std::hash<uint32_t> hasher;
         size_t hash1 = hasher(entry.neuron);
         size_t hash2 = hasher(entry.segment);
@@ -35,28 +35,28 @@ struct std::hash<neoneuron::SelectionEntry> {
 };
 
 namespace neoneuron {
-    class NeuronScene;
+    class SimpleNeuronScene;
 
     struct GPUNeuronSelectionData {
         uint32_t selected;
     };
 
-    class NeuronSelector : public AbstractSelector {
-        NeuronScene* _scene;
+    class SimpleNeuronSelector : public AbstractSelector {
+        SimpleNeuronScene* _scene;
         neon::ShaderUniformBuffer* _uniformBuffer;
         size_t _binding;
 
-        std::unordered_map<SelectionEntry, neon::InstanceData::Instance> _selection;
+        std::unordered_map<SimpleSelectionEntry, neon::InstanceData::Instance> _selection;
         std::vector<uint32_t> _activeIndices;
 
     public:
-        NeuronSelector();
+        SimpleNeuronSelector();
 
-        NeuronSelector(NeuronScene* scene,
+        SimpleNeuronSelector(SimpleNeuronScene* scene,
                        neon::ShaderUniformBuffer* uniformBuffer,
                        size_t binding);
 
-        ~NeuronSelector() override = default;
+        ~SimpleNeuronSelector() override = default;
 
         void setSelectionData(const Selection& selection) override;
 

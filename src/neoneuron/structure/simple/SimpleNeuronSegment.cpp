@@ -2,10 +2,10 @@
 // Created by gaeqs on 8/10/24.
 //
 
-#include "NeuronSegment.h"
+#include "SimpleNeuronSegment.h"
 
 namespace neoneuron {
-    NeuronSegment::NeuronSegment(
+    SimpleNeuronSegment::SimpleNeuronSegment(
         UID id,
         SegmentType type,
         const rush::Vec3f& start,
@@ -21,55 +21,55 @@ namespace neoneuron {
        _endRadius(endRadius),
        _parentID(parentId) {}
 
-    SegmentType NeuronSegment::getType() const {
+    SegmentType SimpleNeuronSegment::getType() const {
         return _type;
     }
 
-    rush::Vec3f NeuronSegment::getStart() const {
+    rush::Vec3f SimpleNeuronSegment::getStart() const {
         return _start;
     }
 
-    rush::Vec3f NeuronSegment::getEnd() const {
+    rush::Vec3f SimpleNeuronSegment::getEnd() const {
         return _end;
     }
 
-    float NeuronSegment::getStartRadius() const {
+    float SimpleNeuronSegment::getStartRadius() const {
         return _startRadius;
     }
 
-    float NeuronSegment::getEndRadius() const {
+    float SimpleNeuronSegment::getEndRadius() const {
         return _endRadius;
     }
 
-    std::optional<UID> NeuronSegment::getParentId() const {
+    std::optional<UID> SimpleNeuronSegment::getParentId() const {
         return _parentID;
     }
 
-    void NeuronSegment::setType(SegmentType type) {
+    void SimpleNeuronSegment::setType(SegmentType type) {
         _type = type;
     }
 
-    void NeuronSegment::setStart(const rush::Vec3f& start) {
+    void SimpleNeuronSegment::setStart(const rush::Vec3f& start) {
         _start = start;
     }
 
-    void NeuronSegment::setEnd(const rush::Vec3f& end) {
+    void SimpleNeuronSegment::setEnd(const rush::Vec3f& end) {
         _end = end;
     }
 
-    void NeuronSegment::setStartRadius(float startRadius) {
+    void SimpleNeuronSegment::setStartRadius(float startRadius) {
         _startRadius = startRadius;
     }
 
-    void NeuronSegment::setEndRadius(float endRadius) {
+    void SimpleNeuronSegment::setEndRadius(float endRadius) {
         _endRadius = endRadius;
     }
 
-    void NeuronSegment::setParentId(const UID& parentId) {
+    void SimpleNeuronSegment::setParentId(const UID& parentId) {
         _parentID = parentId;
     }
 
-    void NeuronSegment::clearParentId() {
+    void SimpleNeuronSegment::clearParentId() {
         _parentID = {};
     }
 }

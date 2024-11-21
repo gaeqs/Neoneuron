@@ -7,14 +7,15 @@
 
 #include <neon/Neon.h>
 #include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/structure/simple/SimpleNeuron.h>
 
 namespace neoneuron {
     class NeoneuronUINeuronList : public neon::Component {
         NeoneuronRender* _render;
 
-        void neuronRow(const std::vector<Neuron>& neurons, size_t row, size_t elements, float size);
+        void neuronRow(const std::vector<SimpleNeuron>& neurons, size_t row, size_t elements, float size);
 
-        void neuronSection(const Neuron& neuron, size_t id, float size) const;
+        void neuronSection(const SimpleNeuron& neuron, size_t id, float size) const;
 
     public:
         NeoneuronUINeuronList(NeoneuronRender* render);

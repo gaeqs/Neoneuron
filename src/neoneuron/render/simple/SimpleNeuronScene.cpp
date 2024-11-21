@@ -2,22 +2,22 @@
 // Created by gaeqs on 9/10/24.
 //
 
-#include "NeuronScene.h"
+#include "SimpleNeuronScene.h"
 
 #include <neoneuron/render/NeoneuronRender.h>
 
-#include "NeuronSelector.h"
+#include "SimpleNeuronSelector.h"
 
 CMRC_DECLARE(resources);
 
 namespace neoneuron {
-    void NeuronScene::combineBoundingBoxes(const rush::AABB<3, float>& aabb) {
+    void SimpleNeuronScene::combineBoundingBoxes(const rush::AABB<3, float>& aabb) {
         auto min = rush::min(aabb.center - aabb.radius, _sceneBoundingBox.center - _sceneBoundingBox.radius);
         auto max = rush::max(aabb.center + aabb.radius, _sceneBoundingBox.center + _sceneBoundingBox.radius);
         _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
-    void NeuronScene::recalculateBoundingBox() {
+    void SimpleNeuronScene::recalculateBoundingBox() {
         if (_neurons.empty()) {
             _sceneBoundingBox = {};
             return;
@@ -36,7 +36,7 @@ namespace neoneuron {
         _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
-    NeuronScene::NeuronScene(NeoneuronRender* render) : _render(render) {
+    SimpleNeuronScene::SimpleNeuronScene(NeoneuronRender* render) : _render(render) {
         constexpr size_t INSTANCES = 10000000;
 
         auto* app = &render->getApplication();
@@ -54,7 +54,7 @@ namespace neoneuron {
         }
 
         std::vector modelBindings = {
-            neon::ShaderUniformBinding::storageBuffer(sizeof(GPUNeuronSegment) * INSTANCES),
+            neon::ShaderUniformBinding::storageBuffer(sizeof(SimpleGPUNeuronSegment) * INSTANCES),
             neon::ShaderUniformBinding::storageBuffer(sizeof(GPUNeuronSelectionData) * INSTANCES)
         };
         auto modelDescriptor = std::make_shared<neon::ShaderUniformDescriptor>(app, "model", modelBindings);
@@ -74,14 +74,14 @@ namespace neoneuron {
         modelCreateInfo.drawables.push_back(drawable);
         modelCreateInfo.uniformDescriptor = modelDescriptor;
 
-        modelCreateInfo.defineInstanceType<GPUNeuronSegment>();
+        modelCreateInfo.defineInstanceType<SimpleGPUNeuronSegment>();
         modelCreateInfo.instanceDataProvider = [](neon::Application* app,
                                                   const neon::ModelCreateInfo& info,
                                                   const neon::Model* model) {
             std::vector indices = {
                 neon::StorageBufferInstanceData::Slot(
-                    sizeof(GPUNeuronSegment),
-                    sizeof(GPUNeuronSegment),
+                    sizeof(SimpleGPUNeuronSegment),
+                    sizeof(SimpleGPUNeuronSegment),
                     0,
                     model->getUniformBuffer()
                 )
@@ -92,35 +92,35 @@ namespace neoneuron {
         _neuronModel = std::make_shared<neon::Model>(app, "Neuron", modelCreateInfo);
         render->getRoom()->markUsingModel(_neuronModel.get());
 
-        _selector = NeuronSelector(this, _neuronModel->getUniformBuffer(), 1);
+        _selector = SimpleNeuronSelector(this, _neuronModel->getUniformBuffer(), 1);
     }
 
-    NeuronScene::~NeuronScene() {
+    SimpleNeuronScene::~SimpleNeuronScene() {
         if (_neuronModel != nullptr) {
             _render->getRoom()->unmarkUsingModel(_neuronModel.get());
         }
     }
 
-    const std::vector<Neuron>& NeuronScene::getNeurons() const {
+    const std::vector<SimpleNeuron>& SimpleNeuronScene::getNeurons() const {
         return _neurons;
     }
 
-    AbstractSelector& NeuronScene::getSelector() {
+    AbstractSelector& SimpleNeuronScene::getSelector() {
         return _selector;
     }
 
-    const AbstractSelector& NeuronScene::getSelector() const {
+    const AbstractSelector& SimpleNeuronScene::getSelector() const {
         return _selector;
     }
 
-    size_t NeuronScene::getNeuronsAmount() {
+    size_t SimpleNeuronScene::getNeuronsAmount() {
         return _neurons.size();
     }
 
-    std::optional<Neuron*> NeuronScene::findNeuron(UID uid) {
+    std::optional<SimpleNeuron*> SimpleNeuronScene::findNeuron(UID uid) {
         auto it = std::find_if(
             _neurons.begin(), _neurons.end(),
-            [uid](const Neuron& neuron) {
+            [uid](const SimpleNeuron& neuron) {
                 return uid == neuron.getId();
             }
         );
@@ -128,10 +128,10 @@ namespace neoneuron {
         return {&*it};
     }
 
-    std::optional<const Neuron*> NeuronScene::findNeuron(UID uid) const {
+    std::optional<const SimpleNeuron*> SimpleNeuronScene::findNeuron(UID uid) const {
         auto it = std::find_if(
             _neurons.cbegin(), _neurons.cend(),
-            [uid](const Neuron& neuron) {
+            [uid](const SimpleNeuron& neuron) {
                 return uid == neuron.getId();
             }
         );
@@ -139,10 +139,10 @@ namespace neoneuron {
         return {&*it};
     }
 
-    std::optional<GPUNeuron*> NeuronScene::findGPUNeuron(UID uid) {
+    std::optional<SimpleGPUNeuron*> SimpleNeuronScene::findGPUNeuron(UID uid) {
         auto it = std::find_if(
             _neurons.cbegin(), _neurons.cend(),
-            [uid](const Neuron& neuron) {
+            [uid](const SimpleNeuron& neuron) {
                 return uid == neuron.getId();
             }
         );
@@ -152,10 +152,10 @@ namespace neoneuron {
         return &_gpuNeurons[index];
     }
 
-    std::optional<const GPUNeuron*> NeuronScene::findGPUNeuron(UID uid) const {
+    std::optional<const SimpleGPUNeuron*> SimpleNeuronScene::findGPUNeuron(UID uid) const {
         auto it = std::find_if(
             _neurons.cbegin(), _neurons.cend(),
-            [uid](const Neuron& neuron) {
+            [uid](const SimpleNeuron& neuron) {
                 return uid == neuron.getId();
             }
         );
@@ -165,8 +165,8 @@ namespace neoneuron {
         return &_gpuNeurons[index];
     }
 
-    bool NeuronScene::addNeuron(const PrototypeNeuron& neuron) {
-        auto result = Neuron::fromPrototype(neuron);
+    bool SimpleNeuronScene::addNeuron(const PrototypeNeuron& neuron) {
+        auto result = SimpleNeuron::fromPrototype(neuron);
         if (result.isOk()) {
             addNeuron(std::move(result.getResult()));
             return true;
@@ -176,7 +176,7 @@ namespace neoneuron {
         return false;
     }
 
-    void NeuronScene::addNeuron(const Neuron& neuron) {
+    void SimpleNeuronScene::addNeuron(const SimpleNeuron& neuron) {
         _neurons.push_back(neuron);
         _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());
 
@@ -187,7 +187,7 @@ namespace neoneuron {
         }
     }
 
-    void NeuronScene::addNeuron(Neuron&& neuron) {
+    void SimpleNeuronScene::addNeuron(SimpleNeuron&& neuron) {
         auto bb = neuron.getBoundingBox();
         _neurons.push_back(std::move(neuron));
         _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());
@@ -198,11 +198,11 @@ namespace neoneuron {
         }
     }
 
-    bool NeuronScene::removeNeuron(UID neuronId) {
+    bool SimpleNeuronScene::removeNeuron(UID neuronId) {
         auto it = std::find_if(
             _neurons.begin(),
             _neurons.end(),
-            [&neuronId](const Neuron& neuron) {
+            [&neuronId](const SimpleNeuron& neuron) {
                 return neuron.getId() == neuronId;
             }
         );
@@ -222,7 +222,7 @@ namespace neoneuron {
         return true;
     }
 
-    rush::AABB<3, float> NeuronScene::getSceneBoundingBox() const {
+    rush::AABB<3, float> SimpleNeuronScene::getSceneBoundingBox() const {
         return _sceneBoundingBox;
     }
 }

@@ -9,12 +9,14 @@
 #include <neoneuron/render/component/GlobalParametersUpdaterComponent.h>
 #include <neoneuron/render/component/camera/OrbitalCameraController.h>
 
+#include "simple/SimpleNeuronScene.h"
+
 
 CMRC_DECLARE(resources);
 
 namespace neoneuron {
     NeoneuronRender::Components::Components(NeoneuronRender* render) :
-        neuronScene(std::make_unique<NeuronScene>(render)),
+        neuronScene(std::make_unique<SimpleNeuronScene>(render)),
         ui(render),
         cameraData(render) {}
 

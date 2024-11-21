@@ -8,8 +8,8 @@
 #include <neon/Neon.h>
 
 #include <neoneuron/ui/NeoneuronUI.h>
-#include <neoneuron/render/NeuronScene.h>
 #include <neoneuron/render/component/camera/CameraData.h>
+#include <neoneuron/render/AbstractNeuronScene.h>
 
 
 namespace neoneuron {
