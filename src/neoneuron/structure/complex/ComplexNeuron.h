@@ -14,13 +14,19 @@
 
 #include <neoneuron/structure/prototype/PrototypeNeuron.h>
 
+#include "ComplexJoint.h"
+
 namespace neoneuron {
     class ComplexNeuron : public Identifiable {
         std::vector<ComplexNeuronSegment> _segments;
         std::unordered_map<UID, size_t> _segmentsByUID;
+        std::vector<ComplexJoint> _joints;
+        std::unordered_map<UID, size_t> _jointsByUID;
         rush::AABB<3, float> _boundingBox;
 
         void calculateBoundingBox();
+
+        void calculateJoints();
 
     public:
         ComplexNeuron(const ComplexNeuron& other) = default;
@@ -43,10 +49,15 @@ namespace neoneuron {
 
         std::optional<const ComplexNeuronSegment*> findSegment(UID uid) const;
 
-        std::optional<ComplexNeuronSegment*> findSegment(UID uid);
-
         std::optional<size_t> findSegmentIndex(UID uid) const;
 
+        [[nodiscard]] const std::vector<ComplexJoint>& getJoints() const;
+
+        std::optional<const ComplexJoint*> findJoint(UID uid) const;
+
+        std::optional<size_t> findJointIndex(UID uid) const;
+
+        void recalculateMetadata();
 
         // Static methods
 

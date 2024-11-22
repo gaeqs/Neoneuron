@@ -45,6 +45,11 @@ namespace neoneuron {
         uint32_t amount;
 
         /**
+        * The parent's position in the storage buffer.
+*/
+        uint32_t parent;
+
+        /**
          * The connections' positions in the storage buffer.
          */
         uint32_t connections[8];

@@ -19,10 +19,14 @@ cmrc_add_resource_library(
         resources/shader/guide/point_guide.vert
         resources/shader/guide/point_guide.frag
         resources/shader/guide/point_guide.json
-        resources/shader/neuron/neuron.frag
-        resources/shader/neuron/neuron.mesh
-        resources/shader/neuron/neuron.task
-        resources/shader/neuron/neuron_beta.mesh
+        resources/shader/neuron/simple/neuron.frag
+        resources/shader/neuron/simple/neuron.mesh
+        resources/shader/neuron/simple/neuron.task
+        resources/shader/neuron/simple/neuron_beta.mesh
+        resources/shader/neuron/complex/neuron.frag
+        resources/shader/neuron/complex/neuron.mesh
+        resources/shader/neuron/complex/neuron.task
+        resources/shader/neuron/complex/neuron_beta.mesh
         resources/swc/data.swc
         resources/swc/test.swc
         resources/render.json

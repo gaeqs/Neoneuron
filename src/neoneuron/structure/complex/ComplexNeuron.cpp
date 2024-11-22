@@ -23,6 +23,27 @@ namespace neoneuron {
         _boundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
+    void ComplexNeuron::calculateJoints() {
+        _joints.clear();
+        _jointsByUID.clear();
+
+        for (auto& segment: _segments) {
+            if (segment.getParentId().has_value()) {
+                auto it = _jointsByUID.find(segment.getParentId().value());
+                if (it == _jointsByUID.end()) {
+                    ComplexJoint joint(
+                        segment.getParentId().value(),
+                        {segment.getId()}
+                    );
+                    _jointsByUID.insert({segment.getParentId().value(), _joints.size()});
+                    _joints.push_back(std::move(joint));
+                } else {
+                    _joints[it->second].getChildren().push_back(segment.getId());
+                }
+            }
+        }
+    }
+
     ComplexNeuron::ComplexNeuron(ComplexNeuron&& other) noexcept
         : Identifiable(std::move(other)),
           _segments(std::move(other._segments)),
@@ -57,7 +78,7 @@ namespace neoneuron {
         for (size_t i = 0; i < _segments.size(); ++i) {
             _segmentsByUID.emplace(_segments[i].getId(), i);
         }
-        calculateBoundingBox();
+        recalculateMetadata();
     }
 
     ComplexNeuron::ComplexNeuron(UID uid, std::vector<ComplexNeuronSegment>&& segments)
@@ -66,7 +87,7 @@ namespace neoneuron {
         for (size_t i = 0; i < _segments.size(); ++i) {
             _segmentsByUID.emplace(_segments[i].getId(), i);
         }
-        calculateBoundingBox();
+        recalculateMetadata();
     }
 
     rush::AABB<3, float> ComplexNeuron::getBoundingBox() const {
@@ -83,16 +104,32 @@ namespace neoneuron {
         return &_segments[it->second];
     }
 
-    std::optional<ComplexNeuronSegment*> ComplexNeuron::findSegment(UID uid) {
-        auto it = _segmentsByUID.find(uid);
-        if (it == _segmentsByUID.end()) return {};
-        return &_segments[it->second];
-    }
-
     std::optional<size_t> ComplexNeuron::findSegmentIndex(UID uid) const {
         auto it = _segmentsByUID.find(uid);
         if (it == _segmentsByUID.end()) return {};
         return it->second;
+    }
+
+    const std::vector<ComplexJoint>& ComplexNeuron::getJoints() const {
+        return _joints;
+    }
+
+    std::optional<const ComplexJoint*> ComplexNeuron::findJoint(UID uid) const {
+        auto it = _jointsByUID.find(uid);
+        if (it == _segmentsByUID.end()) return {};
+        return &_joints[it->second];
+    }
+
+    std::optional<size_t> ComplexNeuron::findJointIndex(UID uid) const {
+        auto it = _jointsByUID.find(uid);
+        if (it == _segmentsByUID.end()) return {};
+        return it->second;
+    }
+
+
+    void ComplexNeuron::recalculateMetadata() {
+        calculateBoundingBox();
+        calculateJoints();
     }
 
     neon::Result<ComplexNeuron, std::string> ComplexNeuron::fromPrototype(const PrototypeNeuron& prototype) {
