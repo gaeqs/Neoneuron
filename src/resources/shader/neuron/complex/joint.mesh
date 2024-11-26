@@ -25,8 +25,18 @@ struct Section {
     vec4 endAndRadius;
 };
 
+struct Joint {
+    uint parent;
+    uint amount;
+    uint connection[8];
+};
+
 layout(std430, set = 3, binding = 0) buffer Data {
     Section sections[];
+};
+
+layout(std430, set = 3, binding = 1) buffer Joints {
+    Joint joints[];
 };
 
 layout(std430, set = 3, binding = 2) buffer Selection {
@@ -60,7 +70,7 @@ vec3 rotate (vec3 v, vec3 n, float a) {
 }
 
 void main() {
-    Section section = sections[td.section];
+    /*Section section = sections[td.section];
     Section parent = sections[section.parent];
     Section grandParent = sections[parent.parent];
 
@@ -119,5 +129,5 @@ void main() {
         pushVertex(gl_LocalInvocationID.x * 3 + 1, vec4(point2, 1), rotated, type, section.neuronId, section.sectionId, isSelected);
         pushVertex(gl_LocalInvocationID.x * 3 + 2, vec4(point3, 1), rotated, type, section.neuronId, section.sectionId, isSelected);
         gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(0, 1, 2) + uvec3(gl_LocalInvocationID.x * 3);
-    }
+    }*/
 }

@@ -27,6 +27,9 @@ cmrc_add_resource_library(
         resources/shader/neuron/complex/neuron.mesh
         resources/shader/neuron/complex/neuron.task
         resources/shader/neuron/complex/neuron_beta.mesh
+        resources/shader/neuron/complex/joint.frag
+        resources/shader/neuron/complex/joint.mesh
+        resources/shader/neuron/complex/joint.task
         resources/swc/data.swc
         resources/swc/test.swc
         resources/render.json

@@ -20,6 +20,10 @@ int main() {
     using MeshFeature = VkPhysicalDeviceMeshShaderFeaturesEXT;
     constexpr VkStructureType MESH_FEATURE = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT;
 
+    using GraphicsPipelineFeature = VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT;
+    constexpr VkStructureType GRAPHICS_PIPELINE_FEATURE = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT;
+
+
     auto logger = neon::Logger(true, true, true);
     logger.debug("Hello world!");
 
@@ -27,6 +31,8 @@ int main() {
     info.name = "Neoneuron";
 
     info.extraFeatures.emplace_back(MeshFeature{MESH_FEATURE});
+    info.extraFeatures.emplace_back(GraphicsPipelineFeature{GRAPHICS_PIPELINE_FEATURE});
+
 
     info.deviceFilter = [](const neon::vulkan::VKPhysicalDevice& device) {
         if (!neon::vulkan::VKApplicationCreateInfo::defaultDeviceFilter(device)) return false;
@@ -45,6 +51,10 @@ int main() {
         mesh->meshShader = true;
         mesh->taskShader = true;
         features.extensions.emplace_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
+
+        auto* graphics = features.findFeature<GraphicsPipelineFeature>(GRAPHICS_PIPELINE_FEATURE).value();
+        graphics->graphicsPipelineLibrary = true;
+        features.extensions.emplace_back(VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME);
     };
 
     info.vSync = false;

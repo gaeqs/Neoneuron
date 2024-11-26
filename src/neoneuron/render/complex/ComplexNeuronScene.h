@@ -19,11 +19,21 @@ namespace neoneuron {
     class ComplexNeuronScene : public AbstractNeuronScene {
         NeoneuronRender* _render;
         ComplexNeuronSelector _selector;
+
+        std::shared_ptr<neon::ShaderUniformDescriptor> _uboDescriptor;
+        std::shared_ptr<neon::ShaderUniformBuffer> _ubo;
+
         std::shared_ptr<neon::Model> _neuronModel;
+        std::shared_ptr<neon::Model> _jointModel;
         std::vector<ComplexNeuron> _neurons;
         std::vector<ComplexGPUNeuron> _gpuNeurons;
         rush::AABB<3, float> _sceneBoundingBox;
 
+        void loadUniformBuffers();
+
+        void loadNeuronModel();
+
+        void loadJointModel();
 
         void combineBoundingBoxes(const rush::AABB<3, float>& aabb);
 

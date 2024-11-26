@@ -11,6 +11,128 @@
 CMRC_DECLARE(resources);
 
 namespace neoneuron {
+    void ComplexNeuronScene::loadUniformBuffers() {
+        constexpr size_t INSTANCES = 10000000;
+
+
+        auto* app = &_render->getApplication();
+
+        std::vector bindings = {
+            // SEGMENTS
+            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSegment) * INSTANCES),
+            // JOINTS
+            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronJoint) * INSTANCES),
+            // SELECTION
+            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSelectionData) * INSTANCES)
+        };
+
+        _uboDescriptor = std::make_shared<neon::ShaderUniformDescriptor>(
+            app, "neoneuron:complex_neuron_descriptor", bindings);
+
+
+        _ubo = std::make_shared<neon::ShaderUniformBuffer>("neoneuron:complex_neuron_ubo", _uboDescriptor);
+    }
+
+    void ComplexNeuronScene::loadNeuronModel() {
+        constexpr size_t INSTANCES = 10000000;
+        auto* app = &_render->getApplication();
+
+        auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
+
+        auto fs = cmrc::resources::get_filesystem();
+        shader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/neuron.task"));
+        shader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/neuron.mesh"));
+        shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/neuron.frag"));
+
+        if (auto result = shader->compile(); result.has_value()) {
+            _render->getApplication().getLogger().error(result.value());
+            return;
+        }
+
+        neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), shader);
+        materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
+        materialCreateInfo.descriptions.extraUniforms.push_back(_uboDescriptor);
+        auto material = std::make_shared<neon::Material>(app, "Neuron", materialCreateInfo);
+
+        auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Neuron", material);
+        drawable->setGroupsSupplier([](const neon::Model& model) {
+            return rush::Vec<3, uint32_t>{model.getInstanceData(0)->getInstanceAmount(), 1, 1};
+        });
+
+        neon::ModelCreateInfo modelCreateInfo;
+        modelCreateInfo.maximumInstances = INSTANCES;
+        modelCreateInfo.drawables.push_back(drawable);
+        modelCreateInfo.extraUniformBuffers.push_back(_ubo);
+
+        modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
+        modelCreateInfo.instanceDataProvider = [](neon::Application* app,
+                                                  const neon::ModelCreateInfo& info,
+                                                  const neon::Model* model) {
+            std::vector indices = {
+                neon::StorageBufferInstanceData::Slot(
+                    sizeof(ComplexGPUNeuronSegment),
+                    sizeof(ComplexGPUNeuronSegment),
+                    0,
+                    model->getUniformBuffer()
+                )
+            };
+            return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
+        };
+
+        _neuronModel = std::make_shared<neon::Model>(app, "Neuron", modelCreateInfo);
+        _render->getRoom()->markUsingModel(_neuronModel.get());
+    }
+
+    void ComplexNeuronScene::loadJointModel() {
+        constexpr size_t INSTANCES = 10000000;
+        auto* app = &_render->getApplication();
+
+        auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
+
+        auto fs = cmrc::resources::get_filesystem();
+        shader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/joint.task"));
+        shader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/joint.mesh"));
+        shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/joint.frag"));
+
+        if (auto result = shader->compile(); result.has_value()) {
+            _render->getApplication().getLogger().error(result.value());
+            return;
+        }
+
+        neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), shader);
+        materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
+        materialCreateInfo.descriptions.extraUniforms.push_back(_uboDescriptor);
+        auto material = std::make_shared<neon::Material>(app, "Joint", materialCreateInfo);
+
+        auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Joint", material);
+        drawable->setGroupsSupplier([](const neon::Model& model) {
+            return rush::Vec<3, uint32_t>{model.getInstanceData(0)->getInstanceAmount(), 1, 1};
+        });
+
+        neon::ModelCreateInfo modelCreateInfo;
+        modelCreateInfo.maximumInstances = INSTANCES;
+        modelCreateInfo.drawables.push_back(drawable);
+        modelCreateInfo.extraUniformBuffers.push_back(_ubo);
+
+        modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
+        modelCreateInfo.instanceDataProvider = [](neon::Application* app,
+                                                  const neon::ModelCreateInfo& info,
+                                                  const neon::Model* model) {
+            std::vector indices = {
+                neon::StorageBufferInstanceData::Slot(
+                    sizeof(ComplexGPUNeuronJoint),
+                    sizeof(ComplexGPUNeuronJoint),
+                    1,
+                    model->getUniformBuffer()
+                ),
+            };
+            return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
+        };
+
+        _jointModel = std::make_shared<neon::Model>(app, "Neuron", modelCreateInfo);
+        _render->getRoom()->markUsingModel(_jointModel.get());
+    }
+
     void ComplexNeuronScene::combineBoundingBoxes(const rush::AABB<3, float>& aabb) {
         auto min = rush::min(aabb.center - aabb.radius, _sceneBoundingBox.center - _sceneBoundingBox.radius);
         auto max = rush::max(aabb.center + aabb.radius, _sceneBoundingBox.center + _sceneBoundingBox.radius);
@@ -37,74 +159,18 @@ namespace neoneuron {
     }
 
     ComplexNeuronScene::ComplexNeuronScene(NeoneuronRender* render) : _render(render) {
-        constexpr size_t INSTANCES = 10000000;
-
-        auto* app = &render->getApplication();
-
-        auto shader = std::make_shared<neon::ShaderProgram>(&render->getApplication(), "Neuron");
-
-        auto fs = cmrc::resources::get_filesystem();
-        shader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/neuron.task"));
-        shader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/neuron.mesh"));
-        shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/neuron.frag"));
-
-        if (auto result = shader->compile(); result.has_value()) {
-            render->getApplication().getLogger().error(result.value());
-            return;
-        }
-
-        std::vector modelBindings = {
-            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSegment) * INSTANCES),
-            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronJoint) * INSTANCES),
-            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSelectionData) * INSTANCES)
-        };
-        auto modelDescriptor = std::make_shared<neon::ShaderUniformDescriptor>(app, "model", modelBindings);
-
-        neon::MaterialCreateInfo materialCreateInfo(render->getRenderFrameBuffer(), shader);
-        materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
-        materialCreateInfo.descriptions.extraUniforms.push_back(modelDescriptor);
-        auto material = std::make_shared<neon::Material>(app, "Neuron", materialCreateInfo);
-
-        auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Neuron", material);
-        drawable->setGroupsSupplier([](const neon::Model& model) {
-            return rush::Vec<3, uint32_t>{model.getInstanceData(0)->getInstanceAmount(), 1, 1};
-        });
-
-        neon::ModelCreateInfo modelCreateInfo;
-        modelCreateInfo.maximumInstances = 10000000;
-        modelCreateInfo.drawables.push_back(drawable);
-        modelCreateInfo.uniformDescriptor = modelDescriptor;
-
-        modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
-        modelCreateInfo.instanceDataProvider = [](neon::Application* app,
-                                                  const neon::ModelCreateInfo& info,
-                                                  const neon::Model* model) {
-            std::vector indices = {
-                neon::StorageBufferInstanceData::Slot(
-                    sizeof(ComplexGPUNeuronSegment),
-                    sizeof(ComplexGPUNeuronSegment),
-                    0,
-                    model->getUniformBuffer()
-                ),
-                neon::StorageBufferInstanceData::Slot(
-                    sizeof(ComplexGPUNeuronSegment),
-                    sizeof(ComplexGPUNeuronSegment),
-                    1,
-                    model->getUniformBuffer()
-                ),
-            };
-            return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
-        };
-
-        _neuronModel = std::make_shared<neon::Model>(app, "Neuron", modelCreateInfo);
-        render->getRoom()->markUsingModel(_neuronModel.get());
-
+        loadUniformBuffers();
+        loadNeuronModel();
+        loadJointModel();
         _selector = ComplexNeuronSelector(this, _neuronModel->getUniformBuffer(), 2);
     }
 
     ComplexNeuronScene::~ComplexNeuronScene() {
         if (_neuronModel != nullptr) {
             _render->getRoom()->unmarkUsingModel(_neuronModel.get());
+        }
+        if (_jointModel != nullptr) {
+            _render->getRoom()->unmarkUsingModel(_jointModel.get());
         }
     }
 
@@ -185,7 +251,7 @@ namespace neoneuron {
 
     void ComplexNeuronScene::addNeuron(const ComplexNeuron& neuron) {
         _neurons.push_back(neuron);
-        _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());
+        _gpuNeurons.emplace_back(_neuronModel, _jointModel, 0, 0, &_neurons.back());
 
         if (_neurons.size() == 1) {
             _sceneBoundingBox = neuron.getBoundingBox();
@@ -197,7 +263,7 @@ namespace neoneuron {
     void ComplexNeuronScene::addNeuron(ComplexNeuron&& neuron) {
         auto bb = neuron.getBoundingBox();
         _neurons.push_back(std::move(neuron));
-        _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());
+        _gpuNeurons.emplace_back(_neuronModel, _jointModel, 0, 0, &_neurons.back());
         if (_neurons.size() == 1) {
             _sceneBoundingBox = bb;
         } else {

@@ -40,14 +40,14 @@ namespace neoneuron {
 
     struct ComplexGPUNeuronJoint {
         /**
+        * The parent's position in the storage buffer.
+        */
+        uint32_t parent;
+
+        /**
         * The amount of connections.
         */
         uint32_t amount;
-
-        /**
-        * The parent's position in the storage buffer.
-*/
-        uint32_t parent;
 
         /**
          * The connections' positions in the storage buffer.
@@ -56,20 +56,31 @@ namespace neoneuron {
     };
 
     class ComplexGPUNeuron {
-        std::weak_ptr<neon::Model> _model;
-        size_t _instanceDataIndex;
-        std::vector<neon::InstanceData::Instance> _instances;
-        std::unordered_map<UID, neon::InstanceData::Instance> _instancesByUID;
+        std::weak_ptr<neon::Model> _segmentModel;
+        std::weak_ptr<neon::Model> _jointModel;
+        size_t _segmentInstanceDataIndex;
+        size_t _jointInstanceDataIndex;
+        std::vector<neon::InstanceData::Instance> _segmentInstances;
+        std::unordered_map<UID, neon::InstanceData::Instance> _segmentInstancesByUID;
+        std::vector<neon::InstanceData::Instance> _jointInstances;
+        std::unordered_map<UID, neon::InstanceData::Instance> _jointInstancesByUID;
         const ComplexNeuron* _neuron;
         bool _valid;
+
+
+        void generateSegmentInstances();
+
+        void generateJointInstances();
 
     public:
         ComplexGPUNeuron(ComplexGPUNeuron&& other) noexcept;
 
         ComplexGPUNeuron(const ComplexGPUNeuron& other) = delete;
 
-        ComplexGPUNeuron(std::weak_ptr<neon::Model> model,
-                         size_t instanceDataIndex,
+        ComplexGPUNeuron(std::weak_ptr<neon::Model> neuronModel,
+                         std::weak_ptr<neon::Model> jointModel,
+                         size_t segmentInstanceDataIndex,
+                         size_t jointInstanceDataIndex,
                          const ComplexNeuron* neuron);
 
         ~ComplexGPUNeuron();

@@ -8,6 +8,7 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #endif
 
+#include <imgui_internal.h>
 #include <nfd.hpp>
 #include <nfd_glfw3.h>
 #include <neoneuron/loader/SWCLoader.h>
@@ -78,5 +79,18 @@ namespace neoneuron {
             ImGui::EndMainMenuBar();
         }
         ImGui::PopFont();
+
+        ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+        float height = ImGui::GetFrameHeight();
+
+        if (ImGui::BeginViewportSideBar("##Status", viewport, ImGuiDir_Down, height, window_flags)) {
+            if (ImGui::BeginMenuBar()) {
+                ImGui::Text("Happy status bar");
+                ImGui::Text("Happy status bar");
+                ImGui::EndMenuBar();
+            }
+            ImGui::End();
+        }
     }
 }
