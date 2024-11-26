@@ -51,7 +51,7 @@ namespace neoneuron {
 
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), shader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
-        materialCreateInfo.descriptions.extraUniforms.push_back(_uboDescriptor);
+        materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
         auto material = std::make_shared<neon::Material>(app, "Neuron", materialCreateInfo);
 
         auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Neuron", material);
@@ -62,18 +62,18 @@ namespace neoneuron {
         neon::ModelCreateInfo modelCreateInfo;
         modelCreateInfo.maximumInstances = INSTANCES;
         modelCreateInfo.drawables.push_back(drawable);
-        modelCreateInfo.extraUniformBuffers.push_back(_ubo);
+        modelCreateInfo.uniformBufferBindings[2] = neon::ModelBufferBinding::extra(_ubo);
 
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
-        modelCreateInfo.instanceDataProvider = [](neon::Application* app,
-                                                  const neon::ModelCreateInfo& info,
-                                                  const neon::Model* model) {
+        modelCreateInfo.instanceDataProvider = [this](neon::Application* app,
+                                                      const neon::ModelCreateInfo& info,
+                                                      const neon::Model* model) {
             std::vector indices = {
                 neon::StorageBufferInstanceData::Slot(
                     sizeof(ComplexGPUNeuronSegment),
                     sizeof(ComplexGPUNeuronSegment),
                     0,
-                    model->getUniformBuffer()
+                    _ubo.get()
                 )
             };
             return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
@@ -101,7 +101,7 @@ namespace neoneuron {
 
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), shader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
-        materialCreateInfo.descriptions.extraUniforms.push_back(_uboDescriptor);
+        materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
         auto material = std::make_shared<neon::Material>(app, "Joint", materialCreateInfo);
 
         auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Joint", material);
@@ -112,18 +112,18 @@ namespace neoneuron {
         neon::ModelCreateInfo modelCreateInfo;
         modelCreateInfo.maximumInstances = INSTANCES;
         modelCreateInfo.drawables.push_back(drawable);
-        modelCreateInfo.extraUniformBuffers.push_back(_ubo);
+        modelCreateInfo.uniformBufferBindings[2] = neon::ModelBufferBinding::extra(_ubo);
 
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
-        modelCreateInfo.instanceDataProvider = [](neon::Application* app,
-                                                  const neon::ModelCreateInfo& info,
-                                                  const neon::Model* model) {
+        modelCreateInfo.instanceDataProvider = [this](neon::Application* app,
+                                                      const neon::ModelCreateInfo& info,
+                                                      const neon::Model* model) {
             std::vector indices = {
                 neon::StorageBufferInstanceData::Slot(
                     sizeof(ComplexGPUNeuronJoint),
                     sizeof(ComplexGPUNeuronJoint),
                     1,
-                    model->getUniformBuffer()
+                    _ubo.get()
                 ),
             };
             return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
@@ -162,7 +162,7 @@ namespace neoneuron {
         loadUniformBuffers();
         loadNeuronModel();
         loadJointModel();
-        _selector = ComplexNeuronSelector(this, _neuronModel->getUniformBuffer(), 2);
+        _selector = ComplexNeuronSelector(this, _ubo.get(), 2);
     }
 
     ComplexNeuronScene::~ComplexNeuronScene() {

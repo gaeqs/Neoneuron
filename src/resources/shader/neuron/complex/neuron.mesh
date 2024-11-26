@@ -25,11 +25,11 @@ struct Section {
     vec4 endAndRadius;
 };
 
-layout(std430, set = 3, binding = 0) buffer Data {
+layout(std430, set = 2, binding = 0) buffer Data {
     Section sections[];
 };
 
-layout(std430, set = 3, binding = 2) buffer Selection {
+layout(std430, set = 2, binding = 2) buffer Selection {
     bool selected[];
 };
 
