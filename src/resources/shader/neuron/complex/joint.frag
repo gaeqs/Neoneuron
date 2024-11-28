@@ -24,6 +24,8 @@ void main() {
     uint type = floatBitsToUint(fragType);
     vec4 pre = vec4(0, 0, 0, 1);
     if (fragSelected > 0.5f) {
+        pre[0] = intensity;
+        pre[1] = intensity;
         pre[2] = intensity;
     } else {
         pre[type] = type == 0 ? intensity : 1;

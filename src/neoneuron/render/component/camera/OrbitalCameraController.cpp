@@ -92,8 +92,8 @@ namespace neoneuron {
         auto force = -D * _radiusVelocity;
         _radiusVelocity += force * deltaTime;
         _position.radius += _radiusVelocity * deltaTime;
-        if (_position.radius < 1.0f) {
-            _position.radius = 1.0f;
+        if (_position.radius < 0.01f) {
+            _position.radius = 0.01f;
             _radiusVelocity = 0.0f;
         }
 
@@ -126,7 +126,7 @@ namespace neoneuron {
         _position.position = aabb.center;
         _position.radius = aabb.radius.length();
         _radiusScale = _position.radius / 10.0f;
-        _positionScale = _position.radius / 1000.0f;
+        _positionScale = _position.radius / 30000.0f;
         sendPosition();
     }
 

@@ -22,7 +22,7 @@ namespace neoneuron {
     }
 
     void ComplexGPUNeuron::generateJointInstances() {
-        auto* instanceData = _jointModel.lock()->getInstanceData(_segmentInstanceDataIndex);
+        auto* instanceData = _jointModel.lock()->getInstanceData(_jointInstanceDataIndex);
         for (auto& joints = _neuron->getJoints(); auto& joint: joints) {
             if (auto result = instanceData->createInstance(); result.isOk()) {
                 _jointInstances.push_back(result.getResult());
@@ -120,13 +120,15 @@ namespace neoneuron {
         for (size_t i = 0; i < _jointInstances.size(); ++i) {
             auto& joint = _neuron->getJoints()[i];
 
+            uint32_t parentInstance = *_segmentInstances[_neuron->findSegmentIndex(joint.getId()).value()].id;
+
             ComplexGPUNeuronJoint gpu{
-                joint.getId(),
+                parentInstance,
                 std::min(static_cast<uint32_t>(joint.getChildren().size()), 8u)
             };
 
             for (size_t c = 0; c < gpu.amount; ++c) {
-                gpu.connections[c] = joint.getChildren()[c];
+                gpu.connections[c] = *_segmentInstances[_neuron->findSegmentIndex(joint.getChildren()[c]).value()].id;
             }
 
             jointData->uploadData(_jointInstances[i], 0, gpu);
@@ -135,6 +137,12 @@ namespace neoneuron {
 
     std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findSegment(UID uid) const {
         auto id = _segmentInstancesByUID.find(uid);
+        if (id == _segmentInstancesByUID.end()) return {};
+        return id->second;
+    }
+
+    std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findJoint(UID uid) const {
+        auto id = _jointInstancesByUID.find(uid);
         if (id == _segmentInstancesByUID.end()) return {};
         return id->second;
     }

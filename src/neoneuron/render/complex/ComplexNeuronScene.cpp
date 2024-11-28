@@ -129,7 +129,7 @@ namespace neoneuron {
             return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
         };
 
-        _jointModel = std::make_shared<neon::Model>(app, "Neuron", modelCreateInfo);
+        _jointModel = std::make_shared<neon::Model>(app, "Joint", modelCreateInfo);
         _render->getRoom()->markUsingModel(_jointModel.get());
     }
 

@@ -3,9 +3,7 @@
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
-const float RADIUS_IMPACT = 0.2f;
 const float START_PERCENTAGE = 0.2f;
-const float END_PERCENTAGE = 0.2f;
 
 const int POINTS_PER_CIRCLE = 16;
 const int GROUPS_SIZE = POINTS_PER_CIRCLE * 2;
@@ -69,8 +67,6 @@ void main() {
     Section parent = sections[section.parent];
     Section grandParent = sections[parent.parent];
 
-    if(section.sectionId == parent.sectionId) return;
-
     bool isSelected = selected[td.section];
 
     vec3 end = section.endAndRadius.xyz;
@@ -88,13 +84,21 @@ void main() {
 
     vec3 unormDirection = end - start;
     vec3 direction = normalize(unormDirection);
+    vec3 parentDirection = normalize(start - parentStart);
 
-    vec3 p = cross(direction, vec3(0, 0, 1));
-    float radius = (first ? startRadius : endRadius) * RADIUS_IMPACT;
+    vec3 axis = cross(direction, parentDirection);
 
-    vec3 rotated = rotate(p, direction, angle);
+    vec3 thisP = cross(direction, vec3(0, 0, 1));
+    vec3 parentP = cross(parentDirection, vec3(0, 0, 1));
+    parentP *= sign(dot(thisP, parentP));
 
-    vec3 center = first ? (start + unormDirection * START_PERCENTAGE) : end - unormDirection * END_PERCENTAGE;
+    vec3 r = first ? parentDirection : direction;
+    vec3 p = first ? parentP : thisP;
+    float radius = (first ? startRadius : endRadius) * 0.2f;
+
+    vec3 rotated = rotate(p, r, angle);
+
+    vec3 center = first ? (start  + unormDirection * START_PERCENTAGE) : end;
 
     SetMeshOutputsEXT(GROUPS_SIZE, GROUPS_SIZE);
     vec3 point = center + rotated * radius;

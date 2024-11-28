@@ -48,6 +48,8 @@ namespace neoneuron {
         : Identifiable(std::move(other)),
           _segments(std::move(other._segments)),
           _segmentsByUID(std::move(other._segmentsByUID)),
+          _joints(std::move(other._joints)),
+          _jointsByUID(std::move(other._jointsByUID)),
           _boundingBox(std::move(other._boundingBox)) {}
 
     ComplexNeuron& ComplexNeuron::operator=(const ComplexNeuron& other) {
@@ -56,6 +58,8 @@ namespace neoneuron {
         Identifiable::operator =(other);
         _segments = other._segments;
         _segmentsByUID = other._segmentsByUID;
+        _joints = other._joints;
+        _jointsByUID = other._jointsByUID;
         _boundingBox = other._boundingBox;
         return *this;
     }
@@ -66,6 +70,8 @@ namespace neoneuron {
         Identifiable::operator =(std::move(other));
         _segments = std::move(other._segments);
         _segmentsByUID = std::move(other._segmentsByUID);
+        _joints = std::move(other._joints);
+        _jointsByUID = std::move(other._jointsByUID);
         _boundingBox = other._boundingBox;
         return *this;
     }

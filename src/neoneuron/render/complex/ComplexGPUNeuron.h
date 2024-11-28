@@ -89,6 +89,8 @@ namespace neoneuron {
 
         std::optional<neon::InstanceData::Instance> findSegment(UID uid) const;
 
+        std::optional<neon::InstanceData::Instance> findJoint(UID uid) const;
+
         ComplexGPUNeuron& operator=(ComplexGPUNeuron&& other) noexcept;
     };
 }

@@ -25,6 +25,7 @@ namespace neoneuron {
           _binding(binding) {}
 
     void ComplexNeuronSelector::setSelectionData(const Selection& selection) {
+
         auto* buffer = static_cast<ComplexGPUNeuronSelectionData*>(_uniformBuffer->fetchData(_binding));
 
         if (selection.clear) {
@@ -38,6 +39,8 @@ namespace neoneuron {
         for (auto& any: selection.selections) {
             if (any.type() != typeid(rush::Vec<2, UID>)) continue;
             auto pair = std::any_cast<rush::Vec<2, UID>>(any);
+
+            neon::Logger::defaultLogger()->debug(neon::MessageBuilder().print("Selected: ").print(pair));
 
             UID neuronId = pair[0];
             UID sectionId = pair[1];
