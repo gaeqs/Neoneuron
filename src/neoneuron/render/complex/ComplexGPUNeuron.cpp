@@ -124,7 +124,8 @@ namespace neoneuron {
 
             ComplexGPUNeuronJoint gpu{
                 parentInstance,
-                std::min(static_cast<uint32_t>(joint.getChildren().size()), 8u)
+                std::min(static_cast<uint32_t>(joint.getChildren().size()), 8u),
+                joint.getRotationIndex()
             };
 
             for (size_t c = 0; c < gpu.amount; ++c) {

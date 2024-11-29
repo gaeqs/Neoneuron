@@ -8,6 +8,7 @@
 #include <neoneuron/structure/Identifiable.h>
 
 namespace neoneuron {
+    class ComplexNeuron;
     /**
     * Represents a joint of several segments.
     * The UID of this joint must represent the UID
@@ -15,6 +16,7 @@ namespace neoneuron {
     */
     class ComplexJoint : public Identifiable {
         std::vector<UID> _children;
+        uint32_t _rotationIndex;
 
     public:
         ComplexJoint(UID id, std::vector<UID> children);
@@ -22,6 +24,10 @@ namespace neoneuron {
         [[nodiscard]] std::vector<UID>& getChildren();
 
         [[nodiscard]] const std::vector<UID>& getChildren() const;
+
+        [[nodiscard]] uint32_t getRotationIndex() const;
+
+        void computeRotationIndex(ComplexNeuron& neuron);
     };
 }
 

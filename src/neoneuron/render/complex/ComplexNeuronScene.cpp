@@ -102,6 +102,7 @@ namespace neoneuron {
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), shader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
         materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
+        materialCreateInfo.rasterizer.polygonMode = neon::PolygonMode::FILL;
         auto material = std::make_shared<neon::Material>(app, "Joint", materialCreateInfo);
 
         auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Joint", material);

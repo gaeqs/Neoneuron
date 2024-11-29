@@ -3,7 +3,7 @@
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
-const float RADIUS_IMPACT = 0.2f;
+const float RADIUS_IMPACT = 1.0f;
 const float START_PERCENTAGE = 0.2f;
 const float END_PERCENTAGE = 0.2f;
 

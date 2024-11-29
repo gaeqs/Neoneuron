@@ -50,6 +50,11 @@ namespace neoneuron {
         uint32_t amount;
 
         /**
+        * The amount of vertices the split will rotate.
+        */
+        uint32_t rotationIndex;
+
+        /**
          * The connections' positions in the storage buffer.
          */
         uint32_t connections[8];

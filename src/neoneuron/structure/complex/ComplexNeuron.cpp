@@ -42,6 +42,10 @@ namespace neoneuron {
                 }
             }
         }
+
+        for (auto& joint: _joints) {
+            joint.computeRotationIndex(*this);
+        }
     }
 
     ComplexNeuron::ComplexNeuron(ComplexNeuron&& other) noexcept
