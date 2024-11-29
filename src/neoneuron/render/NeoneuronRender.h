@@ -10,6 +10,7 @@
 #include <neoneuron/ui/NeoneuronUI.h>
 #include <neoneuron/render/component/camera/CameraData.h>
 #include <neoneuron/render/AbstractNeuronScene.h>
+#include <neoneuron/render/NeoneuronRenderData.h>
 
 
 namespace neoneuron {
@@ -28,6 +29,7 @@ namespace neoneuron {
         std::shared_ptr<neon::Room> _room;
         std::chrono::high_resolution_clock::time_point _startTime;
         std::unique_ptr<Components> _components;
+        NeoneuronRenderData _renderData;
 
         std::shared_ptr<neon::Render> initRender();
 
@@ -58,10 +60,13 @@ namespace neoneuron {
 
         [[nodiscard]] const NeoneuronUI& getUI() const;
 
-
         [[nodiscard]] CameraData& getCameraData();
 
         [[nodiscard]] const CameraData& getCameraData() const;
+
+        [[nodiscard]] NeoneuronRenderData& getRenderData();
+
+        [[nodiscard]] const NeoneuronRenderData& getRenderData() const;
 
         float getCurrentTime() const;
 

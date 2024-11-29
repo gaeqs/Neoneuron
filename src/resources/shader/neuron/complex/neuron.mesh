@@ -3,7 +3,6 @@
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
-const float RADIUS_IMPACT = 1.0f;
 const float START_PERCENTAGE = 0.2f;
 const float END_PERCENTAGE = 0.2f;
 
@@ -20,6 +19,13 @@ layout (set = 0, binding = 0) uniform Matrices {
     mat4 inverseProjection;
     float near;
     float far;
+};
+
+layout (set = 0, binding = 1) uniform GlobalData {
+    float currentTime;
+    float radiusStrength;
+    uint rotationIndexOffset;
+    uint childrenRotationIndexOffset;
 };
 
 struct Section {
@@ -90,7 +96,7 @@ void main() {
     vec3 direction = normalize(unormDirection);
 
     vec3 p = cross(direction, vec3(0, 0, 1));
-    float radius = (first ? startRadius : endRadius) * RADIUS_IMPACT;
+    float radius = (first ? startRadius : endRadius) * radiusStrength;
 
     vec3 rotated = rotate(p, direction, angle);
 

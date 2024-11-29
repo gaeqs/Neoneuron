@@ -4,6 +4,9 @@
 
 #include "ComplexNeuronSelector.h"
 
+#include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/render/component/camera/OrbitalCameraController.h>
+
 #include "ComplexNeuronScene.h"
 
 namespace neoneuron {
@@ -18,14 +21,13 @@ namespace neoneuron {
     ComplexNeuronSelector::ComplexNeuronSelector() : _scene(nullptr), _uniformBuffer(nullptr), _binding(0) {}
 
     ComplexNeuronSelector::ComplexNeuronSelector(ComplexNeuronScene* scene,
-                                               neon::ShaderUniformBuffer* uniformBuffer,
-                                               size_t binding)
+                                                 neon::ShaderUniformBuffer* uniformBuffer,
+                                                 size_t binding)
         : _scene(scene),
           _uniformBuffer(uniformBuffer),
           _binding(binding) {}
 
     void ComplexNeuronSelector::setSelectionData(const Selection& selection) {
-
         auto* buffer = static_cast<ComplexGPUNeuronSelectionData*>(_uniformBuffer->fetchData(_binding));
 
         if (selection.clear) {
@@ -35,6 +37,9 @@ namespace neoneuron {
             _selection.clear();
             _activeIndices.clear();
         }
+
+        rush::Vec3f center;
+        size_t centerAmount = 0;
 
         for (auto& any: selection.selections) {
             if (any.type() != typeid(rush::Vec<2, UID>)) continue;
@@ -58,6 +63,22 @@ namespace neoneuron {
             _selection[entry] = segment.value();
             _activeIndices.push_back(id);
             (buffer + id)->selected = true;
+
+            // Find segment data
+            auto realNeuron = _scene->findNeuron(neuronId);
+            if (!realNeuron.has_value()) continue;
+            auto realSegment = realNeuron.value()->findSegment(sectionId);
+            if (!realSegment.has_value()) continue;
+            center += realSegment.value()->getEnd();
+            ++centerAmount;
+        }
+
+        if (centerAmount != 0) {
+            center /= centerAmount;
+            auto c = _scene->getRender()->getCameraData().getCameraController();
+            if (auto orb = dynamic_cast<OrbitalCameraController*>(c.raw())) {
+                orb->setCenterKeepPosition(center);
+            }
         }
     }
 

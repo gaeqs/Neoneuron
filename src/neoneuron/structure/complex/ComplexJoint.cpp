@@ -13,6 +13,11 @@ namespace neoneuron {
     void ComplexJoint::computeRotationIndex(ComplexNeuron& neuron) {
         constexpr uint32_t INDICES = 16;
         constexpr float INDICES_F = static_cast<float>(INDICES);
+
+        if (_children.size() < 2) {
+            _rotationIndex = 0;
+            return;
+        }
         // Fetch the parent and all children.
         auto optParent = neuron.findSegment(getId());
         if (!optParent.has_value()) return;

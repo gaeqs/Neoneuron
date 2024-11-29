@@ -3,7 +3,6 @@
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
-const float RADIUS_IMPACT = 1.0f;
 const float START_PERCENTAGE = 0.2f;
 const float END_PERCENTAGE = 0.2f;
 
@@ -22,6 +21,13 @@ layout (set = 0, binding = 0) uniform Matrices {
     mat4 inverseProjection;
     float near;
     float far;
+};
+
+layout (set = 0, binding = 1) uniform GlobalData {
+    float currentTime;
+    float radiusStrength;
+    uint rotationIndexOffset;
+    uint childrenRotationIndexOffset;
 };
 
 struct Section {
@@ -95,7 +101,7 @@ uint startSectionId, uint endSectionId) {
 
     vec3 r = first ? startDirection : endDirection;
     vec3 p = first ? parentP : thisP;
-    float radius = (first ? startRadius : endRadius) * RADIUS_IMPACT;
+    float radius = (first ? startRadius : endRadius) * radiusStrength;
 
     vec3 rotated = rotate(p, r, angle);
 
@@ -135,16 +141,20 @@ void joint1(Joint joint) {
     generateTube(startCenter, endCenter, startDirection, endDirection, radius, radius, section.neuronId, parent.sectionId, section.sectionId);
 }
 
-vec3 generateCircle (uint start, uint rotationIndex, vec3 center, vec3 direction, float radius, uint neuronId, uint sectionId) {
+vec3 generateCircle (uint start, uint rotationIndex, vec3 center, vec3 direction,
+vec3 parentDirection, float radius, uint neuronId, uint sectionId) {
     float angle = float(gl_LocalInvocationID.x + rotationIndex) / float(POINTS_PER_CIRCLE) * 2.0f * M_PI;
     float cosA = cos(angle);
     float sinA = sin(angle);
 
+    vec3 parentP = cross(parentDirection, vec3(0, 0, 1));
     vec3 p = cross(direction, vec3(0, 0, 1));
+    p *= sign(dot(p, parentP));
+
     vec3 r = direction;
 
     vec3 rotated = rotate(p, r, angle);
-    vec3 point = center + rotated * radius * RADIUS_IMPACT;
+    vec3 point = center + rotated * radius * radiusStrength;
     pushVertex(start + gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuronId, sectionId, true);
 
     return point;
@@ -175,7 +185,8 @@ void joint2(Joint joint) {
     // Generate the parent's circle first.
     SetMeshOutputsEXT(POINTS_PER_CIRCLE * 3 + HALF_CIRCLE, POINTS_PER_CIRCLE * 4 + 2);
 
-    uint rotationIndex = joint.rotationIndex;
+    uint rotationIndex = (joint.rotationIndex + rotationIndexOffset) * POINTS_PER_CIRCLE / 16;
+    uint childrenRotationIndex = (joint.rotationIndex + rotationIndexOffset + childrenRotationIndexOffset) * POINTS_PER_CIRCLE / 16;
 
     Section parent = sections[joint.parent];
     Section grandParent = sections[parent.parent];
@@ -187,7 +198,7 @@ void joint2(Joint joint) {
 
     if (gl_LocalInvocationID.x < POINTS_PER_CIRCLE) {
         parentCircle[gl_LocalInvocationID.x] =
-        generateCircle(0, rotationIndex, startCenter, startDirection, radius, parent.neuronId, parent.sectionId);
+        generateCircle(0, rotationIndex, startCenter, startDirection, startDirection, radius, parent.neuronId, parent.sectionId);
     }
 
     // Generate the circles of all children.
@@ -199,7 +210,7 @@ void joint2(Joint joint) {
     vec3 endDirectionUnorm = section.endAndRadius.xyz - parent.endAndRadius.xyz;
     vec3 endDirection = normalize(endDirectionUnorm);
     vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * START_PERCENTAGE;
-    generateCircle(POINTS_PER_CIRCLE, rotationIndex, endCenter, endDirection, radius, section.neuronId, section.sectionId);
+    generateCircle(POINTS_PER_CIRCLE, childrenRotationIndex, endCenter, endDirection, startDirection, radius, section.neuronId, section.sectionId);
 
     // Wait, we need the information of the first circle!
     barrier();

@@ -200,4 +200,23 @@ namespace neoneuron {
     rush::Vec3f OrbitalCameraController::getCenter() const {
         return _position.position;
     }
+
+    rush::Vec3f OrbitalCameraController::getFinalPosition() const {
+        auto rotation = rush::Quatf::euler(rush::Vec3f(_position.rotation, 0.0f));
+        return _position.position + rotation * rush::Vec3f(0.0f, 0.0f, _position.radius);
+    }
+
+    void OrbitalCameraController::setCenterKeepPosition(rush::Vec3f center) {
+        auto position = getFinalPosition();
+        _position.position = center;
+        _position.radius = (position - center).length();
+
+        auto lookAt = (position - center).normalized();
+        float pitch = -std::asin(lookAt.y());
+        float yaw = std::atan2(lookAt.x(), lookAt.z());
+
+        _position.rotation = {pitch, yaw};
+
+        sendPosition();
+    }
 }

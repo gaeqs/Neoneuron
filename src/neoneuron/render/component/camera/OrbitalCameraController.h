@@ -72,7 +72,11 @@ namespace neoneuron {
 
         float getRadius() const;
 
-        rush::Vec3f getCenter() const;
+        [[nodiscard]] rush::Vec3f getCenter() const;
+
+        [[nodiscard]] rush::Vec3f getFinalPosition() const;
+
+        void setCenterKeepPosition(rush::Vec3f center);
     };
 }
 

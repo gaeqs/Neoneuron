@@ -18,10 +18,6 @@ namespace neoneuron {
         float far;
     };
 
-    struct Time {
-        float currentTime;
-    };
-
     struct Scene {
         rush::Vec3f sceneCenter;
         float dummy;

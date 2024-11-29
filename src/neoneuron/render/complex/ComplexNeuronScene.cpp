@@ -175,6 +175,14 @@ namespace neoneuron {
         }
     }
 
+    NeoneuronRender* ComplexNeuronScene::getRender() {
+        return _render;
+    }
+
+    const NeoneuronRender* ComplexNeuronScene::getRender() const {
+        return _render;
+    }
+
     const std::vector<ComplexNeuron>& ComplexNeuronScene::getNeurons() const {
         return _neurons;
     }

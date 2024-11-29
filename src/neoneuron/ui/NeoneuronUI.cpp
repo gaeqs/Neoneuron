@@ -13,6 +13,7 @@
 #include <neoneuron/ui/style/Fonts.h>
 
 #include <neoneuron/ui/components/NeoneuronUINeuronList.h>
+#include <neoneuron/ui/components/NeoneuronUIGlobalParameters.h>
 #include <neoneuron/ui/components/NeuronTexturePicker.h>
 
 namespace neoneuron {
@@ -27,6 +28,7 @@ namespace neoneuron {
         _gameObject->newComponent<neon::LogComponent>();
         _gameObject->newComponent<NeoneuronTopBar>(render);
         _gameObject->newComponent<NeoneuronUINeuronList>(render);
+        _gameObject->newComponent<NeoneuronUIGlobalParameters>(render);
         _gameObject->newComponent<NeuronTexturePicker>(render, _viewport);
 
         auto& fs = render->getFileSystem();
