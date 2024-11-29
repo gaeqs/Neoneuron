@@ -12,7 +12,7 @@
       },
       {
         "type": "uniform_buffer",
-        "size": 16
+        "size": 32
       },
       {
         "type": "uniform_buffer",

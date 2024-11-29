@@ -29,11 +29,7 @@ namespace neoneuron {
         auto parentDirection = (parent->getEnd() - grandparent->getEnd()).normalized();
         auto tangent = parentDirection.cross(rush::Vec3f(0.0f, 0.0f, -1.0f));
 
-        auto quatFromTo = rush::Quatf::fromTo(parentDirection, tangent);
-        auto identity = rush::Quatf();
-        auto desiredBaseDirection = identity.slerp(quatFromTo, 0.8f) * parentDirection;
-
-
+        auto desiredBaseDirection = tangent;
         std::vector<rush::Vec3f> children;
         children.reserve(_children.size());
         for (UID& childUID: _children) {
@@ -63,11 +59,10 @@ namespace neoneuron {
             auto angle = static_cast<float>(i) * 2.0f * std::numbers::pi_v<float> / INDICES_F;
             auto quat = rush::Quatf::angleAxis(angle, parentDirection);
             for (size_t c = 0; c < children.size(); ++c) {
-                auto currentDirection = quat * children[c];
-                auto localScore = currentDirection.dot(desiredDirections[c]);
-                score += localScore * localScore;
+                auto currentDirection = quat * desiredDirections[c];
+                auto localScore = currentDirection.dot(children[c]);
+                score += localScore;
             }
-
             if (score > bestScore) {
                 bestScore = score;
                 _rotationIndex = i;

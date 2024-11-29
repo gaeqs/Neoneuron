@@ -20,17 +20,7 @@ layout (set = 0, binding = 0) uniform Matrices {
 void main() {
     vec4 viewNormal = view * vec4(fragNormal, 0.0f);
     float intensity = viewNormal.z * 0.8f + 0.2f;
-
-    uint type = floatBitsToUint(fragType);
-    vec4 pre = vec4(0, 0, 0, 1);
-    if (fragSelected > 0.5f) {
-        pre[0] = intensity;
-        pre[1] = intensity;
-        pre[2] = intensity;
-    } else {
-        pre[type] = type == 0 ? intensity : 1;
-    }
-    color = pre;
+    color = vec4(intensity, 0, 0, 1);
 
     ids = vec3(1, fragNeuronId, fragSectionId);
 }

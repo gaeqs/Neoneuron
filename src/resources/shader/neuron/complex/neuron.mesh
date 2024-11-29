@@ -3,9 +3,6 @@
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
-const float START_PERCENTAGE = 0.2f;
-const float END_PERCENTAGE = 0.2f;
-
 const int POINTS_PER_CIRCLE = 16;
 const int GROUPS_SIZE = POINTS_PER_CIRCLE * 2;
 
@@ -24,6 +21,8 @@ layout (set = 0, binding = 0) uniform Matrices {
 layout (set = 0, binding = 1) uniform GlobalData {
     float currentTime;
     float radiusStrength;
+    float startClip;
+    float endClip;
     uint rotationIndexOffset;
     uint childrenRotationIndexOffset;
 };
@@ -83,8 +82,8 @@ void main() {
     vec3 start = parent.endAndRadius.xyz;
     vec3 parentStart = grandParent.endAndRadius.xyz;
 
-    float endRadius = section.endAndRadius.w;
-    float startRadius = parent.endAndRadius.w;
+    float startRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, startClip);
+    float endRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, 1.0f - endClip);
 
     float angle = float(gl_LocalInvocationID.x) / float(POINTS_PER_CIRCLE) * 2.0f * M_PI;
     float cosA = cos(angle);
@@ -95,12 +94,12 @@ void main() {
     vec3 unormDirection = end - start;
     vec3 direction = normalize(unormDirection);
 
-    vec3 p = cross(direction, vec3(0, 0, 1));
+    vec3 p = cross(direction, vec3(0, 0, -1));
     float radius = (first ? startRadius : endRadius) * radiusStrength;
 
     vec3 rotated = rotate(p, direction, angle);
 
-    vec3 center = first ? (start + unormDirection * START_PERCENTAGE) : end - unormDirection * END_PERCENTAGE;
+    vec3 center = first ? (start + unormDirection * startClip) : end - unormDirection * endClip;
 
     SetMeshOutputsEXT(GROUPS_SIZE, GROUPS_SIZE);
     vec3 point = center + rotated * radius;

@@ -3,10 +3,6 @@
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
-const float START_PERCENTAGE = 0.2f;
-const float END_PERCENTAGE = 0.2f;
-
-
 const uint POINTS_PER_CIRCLE = 16;
 const uint HALF_CIRCLE = POINTS_PER_CIRCLE / 2;
 const uint GROUPS_SIZE = POINTS_PER_CIRCLE * 2;
@@ -26,6 +22,10 @@ layout (set = 0, binding = 0) uniform Matrices {
 layout (set = 0, binding = 1) uniform GlobalData {
     float currentTime;
     float radiusStrength;
+    float startClip;
+    float endClip;
+    float splitHeight;
+    float splitArcStrength;
     uint rotationIndexOffset;
     uint childrenRotationIndexOffset;
 };
@@ -95,8 +95,8 @@ uint startSectionId, uint endSectionId) {
 
     bool first = gl_LocalInvocationID.x < POINTS_PER_CIRCLE;
 
-    vec3 thisP = cross(endDirection, vec3(0, 0, 1));
-    vec3 parentP = cross(startDirection, vec3(0, 0, 1));
+    vec3 thisP = cross(endDirection, vec3(0, 0, -1));
+    vec3 parentP = cross(startDirection, vec3(0, 0, -1));
     parentP *= sign(dot(thisP, parentP));
 
     vec3 r = first ? startDirection : endDirection;
@@ -109,7 +109,7 @@ uint startSectionId, uint endSectionId) {
     vec3 point = center + rotated * radius;
     uint sectionId = first ? startSectionId : endSectionId;
 
-    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuronId, sectionId, true);
+    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuronId, sectionId, false);
 
     uint a = gl_LocalInvocationID.x;
     uint b = (gl_LocalInvocationID.x + 1) % POINTS_PER_CIRCLE;
@@ -131,14 +131,15 @@ void joint1(Joint joint) {
     vec3 endDirectionUnorm = section.endAndRadius.xyz - parent.endAndRadius.xyz;
     vec3 endDirection = normalize(endDirectionUnorm);
 
-    vec3 startCenter = parent.endAndRadius.xyz - startDirectionUnorm * END_PERCENTAGE;
-    vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * START_PERCENTAGE;
+    vec3 startCenter = parent.endAndRadius.xyz - startDirectionUnorm * endClip;
+    vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * startClip;
 
-    float radius = parent.endAndRadius.w;
+    float startRadius = mix(grandParent.endAndRadius.w, parent.endAndRadius.w, 1.0f - endClip);
+    float endRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, startClip);
 
     vec3 parentStart = grandParent.endAndRadius.xyz;
 
-    generateTube(startCenter, endCenter, startDirection, endDirection, radius, radius, section.neuronId, parent.sectionId, section.sectionId);
+    generateTube(startCenter, endCenter, startDirection, endDirection, startRadius, endRadius, section.neuronId, parent.sectionId, section.sectionId);
 }
 
 vec3 generateCircle (uint start, uint rotationIndex, vec3 center, vec3 direction,
@@ -147,15 +148,14 @@ vec3 parentDirection, float radius, uint neuronId, uint sectionId) {
     float cosA = cos(angle);
     float sinA = sin(angle);
 
-    vec3 parentP = cross(parentDirection, vec3(0, 0, 1));
-    vec3 p = cross(direction, vec3(0, 0, 1));
-    p *= sign(dot(p, parentP));
+    vec3 parentP = cross(parentDirection, vec3(0, 0, -1));
+    vec3 p = cross(direction, vec3(0, 0, -1));
 
     vec3 r = direction;
 
     vec3 rotated = rotate(p, r, angle);
     vec3 point = center + rotated * radius * radiusStrength;
-    pushVertex(start + gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuronId, sectionId, true);
+    pushVertex(start + gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuronId, sectionId, false);
 
     return point;
 }
@@ -191,14 +191,15 @@ void joint2(Joint joint) {
     Section parent = sections[joint.parent];
     Section grandParent = sections[parent.parent];
 
-    float radius = parent.endAndRadius.w;
+    float parentRadius = mix(grandParent.endAndRadius.w, parent.endAndRadius.w, 1.0f - endClip);
+
     vec3 startDirectionUnorm = parent.endAndRadius.xyz - grandParent.endAndRadius.xyz;
     vec3 startDirection = normalize(startDirectionUnorm);
-    vec3 startCenter = parent.endAndRadius.xyz - startDirectionUnorm * END_PERCENTAGE;
+    vec3 startCenter = parent.endAndRadius.xyz - startDirectionUnorm * endClip;
 
     if (gl_LocalInvocationID.x < POINTS_PER_CIRCLE) {
         parentCircle[gl_LocalInvocationID.x] =
-        generateCircle(0, rotationIndex, startCenter, startDirection, startDirection, radius, parent.neuronId, parent.sectionId);
+        generateCircle(0, rotationIndex, startCenter, startDirection, startDirection, parentRadius, parent.neuronId, parent.sectionId);
     }
 
     // Generate the circles of all children.
@@ -209,8 +210,9 @@ void joint2(Joint joint) {
     Section section = sections[joint.connection[childIndex]];
     vec3 endDirectionUnorm = section.endAndRadius.xyz - parent.endAndRadius.xyz;
     vec3 endDirection = normalize(endDirectionUnorm);
-    vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * START_PERCENTAGE;
-    generateCircle(POINTS_PER_CIRCLE, childrenRotationIndex, endCenter, endDirection, startDirection, radius, section.neuronId, section.sectionId);
+    vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * startClip;
+    float endRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, startClip);
+    generateCircle(POINTS_PER_CIRCLE, childrenRotationIndex, endCenter, endDirection, startDirection, endRadius, section.neuronId, section.sectionId);
 
     // Wait, we need the information of the first circle!
     barrier();
@@ -232,8 +234,8 @@ void joint2(Joint joint) {
         float percentage = float(gl_LocalInvocationID.x) / float(HALF_CIRCLE - 1);
         vec3 position = mix(start, end, percentage);
 
-        vec3 strength = startDirectionUnorm * END_PERCENTAGE * 0.15f;
-        vec3 up = startDirectionUnorm * END_PERCENTAGE * 0.05f;
+        vec3 strength = startDirectionUnorm * endClip * splitArcStrength;
+        vec3 up = startDirectionUnorm * endClip * splitHeight;
 
         // Now we move the position to the center.
         position += (-4 * percentage * percentage + 4 * percentage) * strength + up;
@@ -244,7 +246,7 @@ void joint2(Joint joint) {
         // Finally, we can push the vertex
         uint index = POINTS_PER_CIRCLE * 3 + gl_LocalInvocationID.x;
 
-        pushVertex(index, vec4(position, 1), normal, 0, parent.neuronId, parent.sectionId, true);
+        pushVertex(index, vec4(position, 1), normal, 0, parent.neuronId, parent.sectionId, false);
     }
 
 
