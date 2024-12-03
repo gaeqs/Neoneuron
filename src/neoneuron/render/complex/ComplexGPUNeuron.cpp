@@ -102,10 +102,17 @@ namespace neoneuron {
                 parentIndex = *_segmentInstances[i].id;
             }
 
+            auto joint = _neuron->findJoint(segment.getId());
+
+            uint32_t metadata = static_cast<uint32_t>(segment.getType()) & 0b11111111;
+            if (joint.has_value()) {
+                metadata += (static_cast<uint32_t>(joint.value()->getChildren().size()) & 0b111) << 8;
+            }
+
             ComplexGPUNeuronSegment gpu(
                 _neuron->getId(),
                 segment.getId(),
-                static_cast<uint32_t>(segment.getType()),
+                metadata,
                 parentIndex,
                 rush::Vec4f(segment.getEnd(), segment.getEndRadius())
             );

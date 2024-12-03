@@ -23,8 +23,10 @@ namespace neoneuron {
 
         /**
         * The type of the segment.
+        * 0-7 -> Type
+        * 8 - 10 -> Amount of children.
         */
-        uint32_t type;
+        uint32_t metadata;
 
         /**
         * The position of the parent in the storage buffer.
@@ -57,7 +59,7 @@ namespace neoneuron {
         /**
          * The connections' positions in the storage buffer.
          */
-        uint32_t connections[8];
+        uint32_t connections[7];
     };
 
     class ComplexGPUNeuron {

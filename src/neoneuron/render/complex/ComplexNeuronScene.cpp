@@ -4,11 +4,22 @@
 
 #include "ComplexNeuronScene.h"
 
+#include <atk/atkutil.h>
+#include <neon/util/task/Coroutine.h>
 #include <neoneuron/render/NeoneuronRender.h>
 
 #include "ComplexNeuronSelector.h"
 
 CMRC_DECLARE(resources);
+
+namespace {
+    neon::Coroutine<> deleteCoroutine(std::vector<std::shared_ptr<neon::Material>> materials) {
+        for (size_t i = 0; i < 10; ++i) {
+            co_yield neon::WaitForNextFrame();
+        }
+        materials.clear();
+    }
+}
 
 namespace neoneuron {
     void ComplexNeuronScene::loadUniformBuffers() {
@@ -33,28 +44,56 @@ namespace neoneuron {
         _ubo = std::make_shared<neon::ShaderUniformBuffer>("neoneuron:complex_neuron_ubo", _uboDescriptor);
     }
 
+    void ComplexNeuronScene::loadNeuronShader() {
+        _neuronShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
+
+        auto fs = cmrc::resources::get_filesystem();
+        _neuronShader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/neuron.task"));
+        _neuronShader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/neuron.mesh"));
+        _neuronShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/neuron.frag"));
+
+        if (auto result = _neuronShader->compile(); result.has_value()) {
+            _render->getApplication().getLogger().error(result.value());
+        }
+    }
+
+    void ComplexNeuronScene::loadJointShader() {
+        _jointShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
+
+        auto fs = cmrc::resources::get_filesystem();
+        _jointShader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/joint.task"));
+        _jointShader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/joint.mesh"));
+        _jointShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/joint.frag"));
+
+        if (auto result = _jointShader->compile(); result.has_value()) {
+            _render->getApplication().getLogger().error(result.value());
+            return;
+        }
+    }
+
+    void ComplexNeuronScene::loadNeuronMaterial() {
+        auto* app = &_render->getApplication();
+        neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _neuronShader);
+        materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
+        materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
+        materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
+        _neuronMaterial = std::make_shared<neon::Material>(app, "Neuron", materialCreateInfo);
+    }
+
+    void ComplexNeuronScene::loadJointMaterial() {
+        auto* app = &_render->getApplication();
+        neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _jointShader);
+        materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
+        materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
+        materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
+        _jointMaterial = std::make_shared<neon::Material>(app, "Joint", materialCreateInfo);
+    }
+
     void ComplexNeuronScene::loadNeuronModel() {
         constexpr size_t INSTANCES = 10000000;
         auto* app = &_render->getApplication();
 
-        auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
-
-        auto fs = cmrc::resources::get_filesystem();
-        shader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/neuron.task"));
-        shader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/neuron.mesh"));
-        shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/neuron.frag"));
-
-        if (auto result = shader->compile(); result.has_value()) {
-            _render->getApplication().getLogger().error(result.value());
-            return;
-        }
-
-        neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), shader);
-        materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
-        materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
-        auto material = std::make_shared<neon::Material>(app, "Neuron", materialCreateInfo);
-
-        auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Neuron", material);
+        auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Neuron", _neuronMaterial);
         drawable->setGroupsSupplier([](const neon::Model& model) {
             return rush::Vec<3, uint32_t>{model.getInstanceData(0)->getInstanceAmount(), 1, 1};
         });
@@ -87,25 +126,7 @@ namespace neoneuron {
         constexpr size_t INSTANCES = 10000000;
         auto* app = &_render->getApplication();
 
-        auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
-
-        auto fs = cmrc::resources::get_filesystem();
-        shader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/joint.task"));
-        shader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/joint.mesh"));
-        shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/joint.frag"));
-
-        if (auto result = shader->compile(); result.has_value()) {
-            _render->getApplication().getLogger().error(result.value());
-            return;
-        }
-
-        neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), shader);
-        materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
-        materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
-        materialCreateInfo.rasterizer.polygonMode = neon::PolygonMode::FILL;
-        auto material = std::make_shared<neon::Material>(app, "Joint", materialCreateInfo);
-
-        auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Joint", material);
+        auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Joint", _jointMaterial);
         drawable->setGroupsSupplier([](const neon::Model& model) {
             return rush::Vec<3, uint32_t>{model.getInstanceData(0)->getInstanceAmount(), 1, 1};
         });
@@ -159,8 +180,22 @@ namespace neoneuron {
         _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
-    ComplexNeuronScene::ComplexNeuronScene(NeoneuronRender* render) : _render(render) {
+    void ComplexNeuronScene::reassignMaterials() const {
+        for (auto& mesh: _neuronModel->getMeshes()) {
+            mesh->setMaterial(_neuronMaterial);
+        }
+
+        for (auto& mesh: _jointModel->getMeshes()) {
+            mesh->setMaterial(_jointMaterial);
+        }
+    }
+
+    ComplexNeuronScene::ComplexNeuronScene(NeoneuronRender* render) : _render(render), _wireframe(false) {
         loadUniformBuffers();
+        loadNeuronShader();
+        loadJointShader();
+        loadNeuronMaterial();
+        loadJointMaterial();
         loadNeuronModel();
         loadJointModel();
         _selector = ComplexNeuronSelector(this, _ubo.get(), 2);
@@ -306,5 +341,23 @@ namespace neoneuron {
 
     rush::AABB<3, float> ComplexNeuronScene::getSceneBoundingBox() const {
         return _sceneBoundingBox;
+    }
+
+    bool ComplexNeuronScene::isWireframeMode() const {
+        return _wireframe;
+    }
+
+    void ComplexNeuronScene::setWireframeMode(bool wireframe) {
+        if (wireframe == _wireframe) return;
+
+
+        _wireframe = wireframe;
+        loadNeuronMaterial();
+        loadJointMaterial();
+        reassignMaterials();
+
+
+        std::vector materials = {_neuronMaterial, _jointMaterial};
+        _render->getApplication().getTaskRunner().launchCoroutine(deleteCoroutine(std::move(materials)));
     }
 }

@@ -15,6 +15,8 @@ namespace neoneuron {
         float splitArcStrength = 0.15f;
         uint32_t rotationIndexOffset = 0;
         uint32_t childrenRotationIndexOffset = 0;
+        uint32_t minChildrenForJoint = 2;
+        uint32_t verticesPerCircle = 16;
     };
 }
 #endif //NEONEURONRENDERDATA_H

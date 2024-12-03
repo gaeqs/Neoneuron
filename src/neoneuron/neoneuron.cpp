@@ -41,6 +41,7 @@ int main() {
     info.featuresConfigurator = [](const auto& device, neon::vulkan::VKPhysicalDeviceFeatures& features) {
         neon::vulkan::VKApplicationCreateInfo::defaultFeaturesConfigurer(device, features);
         features.basicFeatures.independentBlend = true;
+        features.basicFeatures.fillModeNonSolid = true;
         auto* mesh = features.findFeature<MeshFeature>(MESH_FEATURE).value();
         mesh->meshShader = true;
         mesh->taskShader = true;

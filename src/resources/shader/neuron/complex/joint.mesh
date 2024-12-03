@@ -3,13 +3,13 @@
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
-const uint POINTS_PER_CIRCLE = 16;
-const uint HALF_CIRCLE = POINTS_PER_CIRCLE / 2;
-const uint GROUPS_SIZE = POINTS_PER_CIRCLE * 2;
+const uint MAX_POINTS_PER_CIRCLE = 16;
+const uint MAX_HALF_CIRCLE = MAX_POINTS_PER_CIRCLE / 2;
+const uint GROUPS_SIZE = MAX_POINTS_PER_CIRCLE * 2;
 
 layout (local_size_x = GROUPS_SIZE, local_size_y = 1, local_size_z = 1) in;
 layout (triangles) out;
-layout (max_vertices = POINTS_PER_CIRCLE * 3 + HALF_CIRCLE, max_primitives = POINTS_PER_CIRCLE * 4 + 4) out;
+layout (max_vertices = MAX_POINTS_PER_CIRCLE * 3 + MAX_HALF_CIRCLE, max_primitives = MAX_POINTS_PER_CIRCLE * 4 + 4) out;
 
 layout (set = 0, binding = 0) uniform Matrices {
     mat4 view;
@@ -28,12 +28,14 @@ layout (set = 0, binding = 1) uniform GlobalData {
     float splitArcStrength;
     uint rotationIndexOffset;
     uint childrenRotationIndexOffset;
+    uint minChildrenForJoint;
+    uint verticesPerCircle;
 };
 
 struct Section {
     uint neuronId;
     uint sectionId;
-    uint type;
+    uint metadata;
     uint parent;// This is the index inside the sections array! It is not the id of the section.
     vec4 endAndRadius;
 };
@@ -42,7 +44,7 @@ struct Joint {
     uint parent;
     uint amount;
     uint rotationIndex;// Rotation index data will always be 0-15!
-    uint connection[8];
+    uint connection[7];
 };
 
 layout(std430, set = 2, binding = 0) buffer Data {
@@ -63,7 +65,7 @@ struct TaskData {
 
 taskPayloadSharedEXT TaskData td;
 
-shared vec3 parentCircle[POINTS_PER_CIRCLE];
+shared vec3 parentCircle[MAX_POINTS_PER_CIRCLE];
 
 layout(location = 0) out vec3 fragNormal[];
 layout(location = 1) flat out float fragType[];
@@ -87,33 +89,48 @@ vec3 rotate (vec3 v, vec3 n, float a) {
 
 void generateTube (vec3 startCenter, vec3 endCenter, vec3 startDirection, vec3 endDirection,
 float startRadius, float endRadius,
+uint rotationIndex, uint childrenRotationIndex,
 uint neuronId,
 uint startSectionId, uint endSectionId) {
-    float angle = float(gl_LocalInvocationID.x) / float(POINTS_PER_CIRCLE) * 2.0f * M_PI;
-    float cosA = cos(angle);
-    float sinA = sin(angle);
+    bool first = gl_LocalInvocationID.x < verticesPerCircle;
+    uint finalRotationIndex = first ? rotationIndex : childrenRotationIndex;
+    float angle = float(gl_LocalInvocationID.x + finalRotationIndex) / float(verticesPerCircle) * 2.0f * M_PI;
 
-    bool first = gl_LocalInvocationID.x < POINTS_PER_CIRCLE;
 
-    vec3 thisP = cross(endDirection, vec3(0, 0, -1));
-    vec3 parentP = cross(startDirection, vec3(0, 0, -1));
-    parentP *= sign(dot(thisP, parentP));
+    // Correctly align the initial basis for the start circle
+    vec3 tangent = first ? startDirection : endDirection;
 
-    vec3 r = first ? startDirection : endDirection;
-    vec3 p = first ? parentP : thisP;
-    float radius = (first ? startRadius : endRadius) * radiusStrength;
+    // Handle edge cases where the tangent might align with the default normal
+    vec3 initialNormal = vec3(0, 0, -1);
+    if (abs(dot(tangent, initialNormal)) > 0.99) {
+        initialNormal = vec3(0, 1, 0);// Use a different axis to avoid parallel vectors
+    }
 
-    vec3 rotated = rotate(p, r, angle);
+    vec3 normal = normalize(cross(tangent, initialNormal));
+    vec3 binormal = cross(tangent, normal);
+
+    // Smoothly transition basis along the tube.
+    // Here we want to generate the tube using the parent direction,
+    // but avoiding the candy-wrap effect.
+    if (!first) {
+        vec3 projectedNormal = normal - dot(normal, tangent) * tangent;// Project onto the tangent plane
+        normal = normalize(projectedNormal);
+        binormal = cross(tangent, normal);
+    }
+
+    // Compute the rotated position for each vertex
+    vec3 rotated = cos(angle) * normal + sin(angle) * binormal;
 
     vec3 center = first ? startCenter : endCenter;
+    float radius = (first ? startRadius : endRadius) * radiusStrength;
     vec3 point = center + rotated * radius;
     uint sectionId = first ? startSectionId : endSectionId;
 
     pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuronId, sectionId, false);
 
     uint a = gl_LocalInvocationID.x;
-    uint b = (gl_LocalInvocationID.x + 1) % POINTS_PER_CIRCLE;
-    uint c = (gl_LocalInvocationID.x + (first ? 0 : 1)) % POINTS_PER_CIRCLE + POINTS_PER_CIRCLE;
+    uint b = (gl_LocalInvocationID.x + 1) % verticesPerCircle;
+    uint c = (gl_LocalInvocationID.x + (first ? 0 : 1)) % verticesPerCircle + verticesPerCircle;
     gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(a, b, c);
 }
 
@@ -125,6 +142,9 @@ void joint1(Joint joint) {
     Section parent = sections[joint.parent];
     Section section = sections[joint.connection[0]];
     Section grandParent = sections[parent.parent];
+
+    uint rotationIndex = (joint.rotationIndex + rotationIndexOffset) * verticesPerCircle / 16;
+    uint childrenRotationIndex = (joint.rotationIndex + rotationIndexOffset + childrenRotationIndexOffset) * verticesPerCircle / 16;
 
     vec3 startDirectionUnorm = parent.endAndRadius.xyz - grandParent.endAndRadius.xyz;
     vec3 startDirection = normalize(startDirectionUnorm);
@@ -139,21 +159,32 @@ void joint1(Joint joint) {
 
     vec3 parentStart = grandParent.endAndRadius.xyz;
 
-    generateTube(startCenter, endCenter, startDirection, endDirection, startRadius, endRadius, section.neuronId, parent.sectionId, section.sectionId);
+    generateTube(startCenter, endCenter, startDirection, endDirection, startRadius, endRadius, rotationIndex, childrenRotationIndex, section.neuronId, parent.sectionId, section.sectionId);
 }
 
 vec3 generateCircle (uint start, uint rotationIndex, vec3 center, vec3 direction,
 vec3 parentDirection, float radius, uint neuronId, uint sectionId) {
-    float angle = float(gl_LocalInvocationID.x + rotationIndex) / float(POINTS_PER_CIRCLE) * 2.0f * M_PI;
-    float cosA = cos(angle);
-    float sinA = sin(angle);
+    float angle = float(gl_LocalInvocationID.x + rotationIndex) / float(verticesPerCircle) * 2.0f * M_PI;
 
-    vec3 parentP = cross(parentDirection, vec3(0, 0, -1));
-    vec3 p = cross(direction, vec3(0, 0, -1));
+    // Correctly align the initial basis for the start circle
+    vec3 tangent = direction;
 
-    vec3 r = direction;
+    // Handle edge cases where the tangent might align with the default normal
+    vec3 initialNormal = vec3(0, 0, -1);
+    if (abs(dot(tangent, initialNormal)) > 0.99) {
+        initialNormal = vec3(0, 1, 0); // Use a different axis to avoid parallel vectors
+    }
 
-    vec3 rotated = rotate(p, r, angle);
+    vec3 normal = normalize(cross(tangent, initialNormal));
+    vec3 binormal = cross(tangent, normal);
+
+    // Smoothly transition basis along the tube.
+    vec3 projectedNormal = normal - dot(normal, tangent) * tangent;// Project onto the tangent plane
+    normal = normalize(projectedNormal);
+    binormal = cross(tangent, normal);
+
+    // Compute the rotated position for each vertex
+    vec3 rotated = cos(angle) * normal + sin(angle) * binormal;
     vec3 point = center + rotated * radius * radiusStrength;
     pushVertex(start + gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuronId, sectionId, false);
 
@@ -162,10 +193,10 @@ vec3 parentDirection, float radius, uint neuronId, uint sectionId) {
 
 uint toParentIndex2(uint index, uint childIndex) {
     if (childIndex == 0) {
-        if (index < HALF_CIRCLE) return index;
-        else return POINTS_PER_CIRCLE * 3 + index - HALF_CIRCLE;
+        if (index < verticesPerCircle / 2) return index;
+        else return verticesPerCircle * 3 + index - verticesPerCircle / 2;
     } else {
-        if (index < HALF_CIRCLE) return POINTS_PER_CIRCLE * 3 + (HALF_CIRCLE - index - 1);
+        if (index < verticesPerCircle / 2) return verticesPerCircle * 3 + (verticesPerCircle / 2 - index - 1);
         else return index;
     }
 }
@@ -175,18 +206,19 @@ void joint2(Joint joint) {
     // - Parent circle: 16 vertices.
     // - Children circles: 16 vertices each -> 32 vertices.
     // - Split: 8 vertices. (16 / 2)
-    // Total: 56 vertices. (POINTS_PER_CIRCLE * 3 + HALF_CIRCLE)
+    // Total: 56 vertices. (POINTS_PER_CIRCLE * 3 + HALF_CIRCLE (ceil))
 
     // We are gonna generate the following triangles:
     // - Children: 32 triangles each -> 64 faces.
     // - 2 extra faces to fill the gaps.
     // Total: 68 faces. (POINTS_PER_CIRCLE * 4 + 2)
 
+    uint slipVerticesAmount = verticesPerCircle / 2 + ((verticesPerCircle & 1) == 0 ? 0 : 1);
+    SetMeshOutputsEXT(verticesPerCircle * 3 + slipVerticesAmount, verticesPerCircle * 4 + 2);
     // Generate the parent's circle first.
-    SetMeshOutputsEXT(POINTS_PER_CIRCLE * 3 + HALF_CIRCLE, POINTS_PER_CIRCLE * 4 + 2);
 
-    uint rotationIndex = (joint.rotationIndex + rotationIndexOffset) * POINTS_PER_CIRCLE / 16;
-    uint childrenRotationIndex = (joint.rotationIndex + rotationIndexOffset + childrenRotationIndexOffset) * POINTS_PER_CIRCLE / 16;
+    uint rotationIndex = uint(ceil((joint.rotationIndex + rotationIndexOffset) * verticesPerCircle / 16.0f));
+    uint childrenRotationIndex = uint(ceil((joint.rotationIndex + rotationIndexOffset + childrenRotationIndexOffset) * verticesPerCircle / 16.0f));
 
     Section parent = sections[joint.parent];
     Section grandParent = sections[parent.parent];
@@ -197,22 +229,25 @@ void joint2(Joint joint) {
     vec3 startDirection = normalize(startDirectionUnorm);
     vec3 startCenter = parent.endAndRadius.xyz - startDirectionUnorm * endClip;
 
-    if (gl_LocalInvocationID.x < POINTS_PER_CIRCLE) {
+    if (gl_LocalInvocationID.x < verticesPerCircle) {
         parentCircle[gl_LocalInvocationID.x] =
         generateCircle(0, rotationIndex, startCenter, startDirection, startDirection, parentRadius, parent.neuronId, parent.sectionId);
     }
 
-    // Generate the circles of all children.
-    // (Yes, this will generate both circles).
-    uint childIndex = gl_LocalInvocationID.x / POINTS_PER_CIRCLE;
-    uint localIndex = gl_LocalInvocationID.x % POINTS_PER_CIRCLE;
+    uint childIndex = gl_LocalInvocationID.x / verticesPerCircle;
+    uint localIndex = gl_LocalInvocationID.x % verticesPerCircle;
+    Section section = parent;
 
-    Section section = sections[joint.connection[childIndex]];
-    vec3 endDirectionUnorm = section.endAndRadius.xyz - parent.endAndRadius.xyz;
-    vec3 endDirection = normalize(endDirectionUnorm);
-    vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * startClip;
-    float endRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, startClip);
-    generateCircle(POINTS_PER_CIRCLE, childrenRotationIndex, endCenter, endDirection, startDirection, endRadius, section.neuronId, section.sectionId);
+    if (gl_LocalInvocationID.x < verticesPerCircle * 2) {
+        // Generate the circles of all children.
+        // (Yes, this will generate both circles).
+        section = sections[joint.connection[childIndex]];
+        vec3 endDirectionUnorm = section.endAndRadius.xyz - parent.endAndRadius.xyz;
+        vec3 endDirection = normalize(endDirectionUnorm);
+        vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * startClip;
+        float endRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, startClip);
+        generateCircle(verticesPerCircle, childrenRotationIndex, endCenter, endDirection, startDirection, endRadius, section.neuronId, section.sectionId);
+    }
 
     // Wait, we need the information of the first circle!
     barrier();
@@ -225,13 +260,13 @@ void joint2(Joint joint) {
     // - POINTS_PER_CIRCLE / 2 - 1
     // The split will contain half the amount of vertices inside a circle.
     // We start from half the circle and end on the start.
-    if (gl_LocalInvocationID.x < HALF_CIRCLE) {
-        vec3 start = (parentCircle[HALF_CIRCLE] + parentCircle[HALF_CIRCLE - 1]) / 2;
-        vec3 end = (parentCircle[0] + parentCircle[POINTS_PER_CIRCLE - 1]) / 2;
+    if (gl_LocalInvocationID.x < slipVerticesAmount) {
+        vec3 start = (parentCircle[verticesPerCircle / 2] + parentCircle[verticesPerCircle / 2 - 1]) / 2;
+        vec3 end = (parentCircle[0] + parentCircle[verticesPerCircle - 1]) / 2;
         vec3 center = (start + end) / 2;
 
         // We calculate the percentage (0.0 - 1.0)
-        float percentage = float(gl_LocalInvocationID.x) / float(HALF_CIRCLE - 1);
+        float percentage = float(gl_LocalInvocationID.x) / float(slipVerticesAmount - 1);
         vec3 position = mix(start, end, percentage);
 
         vec3 strength = startDirectionUnorm * endClip * splitArcStrength;
@@ -244,33 +279,33 @@ void joint2(Joint joint) {
         vec3 normal = normalize(position - center);
 
         // Finally, we can push the vertex
-        uint index = POINTS_PER_CIRCLE * 3 + gl_LocalInvocationID.x;
+        uint index = verticesPerCircle * 3 + gl_LocalInvocationID.x;
 
         pushVertex(index, vec4(position, 1), normal, 0, parent.neuronId, parent.sectionId, false);
     }
 
+    if (gl_LocalInvocationID.x < verticesPerCircle * 2) {
+        // Generate the triangles.
+        // The tricky part here is to fetch the corresponding vertex from the parent circle.
+        // Each local thread will generate one two triangles.
+        uint start = verticesPerCircle + childIndex * verticesPerCircle;
+        uint child1 = localIndex + start;
+        uint child2 = ((localIndex + 1) % verticesPerCircle) + start;
 
-    // Generate the triangles.
-    // The tricky part here is to fetch the corresponding vertex from the parent circle.
-    // Each local thread will generate one two triangles.
-    uint start = POINTS_PER_CIRCLE + childIndex * POINTS_PER_CIRCLE;
-    uint child1 = localIndex + start;
-    uint child2 = ((localIndex + 1) % POINTS_PER_CIRCLE) + start;
+        uint parent1 = toParentIndex2(localIndex, childIndex);
+        uint parent2 = toParentIndex2((localIndex + 1) % verticesPerCircle, childIndex);
 
-    uint parent1 = toParentIndex2(localIndex, childIndex);
-    uint parent2 = toParentIndex2((localIndex + 1) % POINTS_PER_CIRCLE, childIndex);
+        gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(child1, child2, parent1);
+        gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x + verticesPerCircle * 2] = uvec3(parent1, parent2, child2);
 
-    gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(child1, child2, parent1);
-    gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x + POINTS_PER_CIRCLE * 2] = uvec3(parent1, parent2, child2);
+        // Now we have to fill the gaps at the edge.
+        if (gl_LocalInvocationID.x == 0) {
+            uint gapStart = verticesPerCircle * 3;
+            uint start = verticesPerCircle * 4;
 
-    // Now we have to fill the gaps at the edge.
-    if (gl_LocalInvocationID.x == 0) {
-        uint gapStart = POINTS_PER_CIRCLE * 3;
-
-
-        uint start = POINTS_PER_CIRCLE * 4;
-        gl_PrimitiveTriangleIndicesEXT[start] = uvec3(HALF_CIRCLE, HALF_CIRCLE - 1, gapStart);
-        gl_PrimitiveTriangleIndicesEXT[start + 1] = uvec3(0, POINTS_PER_CIRCLE - 1, gapStart + HALF_CIRCLE - 1);
+            gl_PrimitiveTriangleIndicesEXT[start] = uvec3(verticesPerCircle / 2, verticesPerCircle / 2 - 1, gapStart);
+            gl_PrimitiveTriangleIndicesEXT[start + 1] = uvec3(0, verticesPerCircle - 1, gapStart + verticesPerCircle / 2 - 1);
+        }
     }
 }
 

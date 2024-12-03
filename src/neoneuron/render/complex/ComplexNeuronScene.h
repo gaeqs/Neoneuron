@@ -23,13 +23,28 @@ namespace neoneuron {
         std::shared_ptr<neon::ShaderUniformDescriptor> _uboDescriptor;
         std::shared_ptr<neon::ShaderUniformBuffer> _ubo;
 
+        std::shared_ptr<neon::ShaderProgram> _neuronShader;
+        std::shared_ptr<neon::ShaderProgram> _jointShader;
+        std::shared_ptr<neon::Material> _neuronMaterial;
+        std::shared_ptr<neon::Material> _jointMaterial;
         std::shared_ptr<neon::Model> _neuronModel;
         std::shared_ptr<neon::Model> _jointModel;
+
         std::vector<ComplexNeuron> _neurons;
         std::vector<ComplexGPUNeuron> _gpuNeurons;
         rush::AABB<3, float> _sceneBoundingBox;
 
+        bool _wireframe;
+
         void loadUniformBuffers();
+
+        void loadNeuronShader();
+
+        void loadJointShader();
+
+        void loadNeuronMaterial();
+
+        void loadJointMaterial();
 
         void loadNeuronModel();
 
@@ -38,6 +53,8 @@ namespace neoneuron {
         void combineBoundingBoxes(const rush::AABB<3, float>& aabb);
 
         void recalculateBoundingBox();
+
+        void reassignMaterials() const;
 
     public:
         explicit ComplexNeuronScene(NeoneuronRender* render);
@@ -73,6 +90,10 @@ namespace neoneuron {
         bool removeNeuron(UID neuronId) override;
 
         [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
+
+        [[nodiscard]] bool isWireframeMode() const;
+
+        void setWireframeMode(bool wireframe);
     };
 }
 

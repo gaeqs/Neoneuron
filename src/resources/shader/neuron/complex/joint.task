@@ -3,6 +3,30 @@
 
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
+layout (set = 0, binding = 1) uniform GlobalData {
+    float currentTime;
+    float radiusStrength;
+    float startClip;
+    float endClip;
+    float splitHeight;
+    float splitArcStrength;
+    uint rotationIndexOffset;
+    uint childrenRotationIndexOffset;
+    uint minChildrenForJoint;
+    uint verticesPerCircle;
+};
+
+struct Joint {
+    uint parent;
+    uint amount;
+    uint rotationIndex;// Rotation index data will always be 0-15!
+    uint connection[7];
+};
+
+layout(std430, set = 2, binding = 1) buffer Joints {
+    Joint joints[];
+};
+
 struct TaskData {
     uint instance;
 };
@@ -10,7 +34,10 @@ struct TaskData {
 taskPayloadSharedEXT TaskData td;
 
 void main() {
-    td.instance = gl_WorkGroupID.x;
-    EmitMeshTasksEXT(1, 1, 1);
+    Joint joint = joints[gl_WorkGroupID.x];
+    if(joint.amount >= minChildrenForJoint) {
+        td.instance = gl_WorkGroupID.x;
+        EmitMeshTasksEXT(1, 1, 1);
+    }
 }
     
