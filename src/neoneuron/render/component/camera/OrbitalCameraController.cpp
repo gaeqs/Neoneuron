@@ -118,7 +118,9 @@ namespace neoneuron {
 
     OrbitalCameraController::~OrbitalCameraController() {
         for (auto guide: _guides) {
-            guide->destroy();
+            if (guide.isValid()) {
+                guide->destroy();
+            }
         }
     }
 

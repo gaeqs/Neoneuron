@@ -18,7 +18,7 @@ layout (set = 0, binding = 0) uniform Matrices {
 };
 
 void main() {
-    vec4 viewNormal = view * vec4(fragNormal, 0.0f);
+    vec4 viewNormal = view * vec4(normalize(fragNormal), 0.0f);
     float intensity = viewNormal.z * 0.8f + 0.2f;
     color = vec4(intensity, 0, 0, 1);
 

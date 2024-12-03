@@ -65,6 +65,8 @@ namespace neoneuron {
     void NeoneuronTopBar::onStart() {}
 
     void NeoneuronTopBar::onPreDraw() {
+        bool openSettings = false;
+
         ImGui::ShowDemoWindow();
         fonts::imGuiPushFont(fonts::SS3_20);
         if (ImGui::BeginMainMenuBar()) {
@@ -73,6 +75,9 @@ namespace neoneuron {
                 if (ImGui::MenuItem("Open SWC File", "Ctrl+O")) {
                     openFile();
                 }
+                if (ImGui::MenuItem("Settings", "Ctrl+S")) {
+                    openSettings = true;
+                }
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
@@ -80,8 +85,31 @@ namespace neoneuron {
         }
         ImGui::PopFont();
 
+        if (openSettings) {
+            ImGui::OpenPopup("Settings");
+        }
+        ImGui::SetNextWindowSizeConstraints(ImVec2(200, 200), ImVec2(FLT_MAX, FLT_MAX));
+        if (ImGui::BeginPopupModal("Settings")) {
+            ImGui::BeginChild("settings_content", ImVec2(0, ImGui::GetContentRegionMax().y - 100.0f));
+
+            for (size_t i = 0; i < 100; ++i) {
+                ImGui::Text("Hello there! %d", i);
+            }
+            ImGui::EndChild();
+
+            ImGui::Separator();
+            ImGui::SetCursorPosY(ImGui::GetContentRegionMax().y - 40.0f);
+            ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 140.0f);
+            if (ImGui::Button("Close", ImVec2(120, 0))) {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+
         ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings |
+                                        ImGuiWindowFlags_MenuBar;
         float height = ImGui::GetFrameHeight();
 
         if (ImGui::BeginViewportSideBar("##Status", viewport, ImGuiDir_Down, height, window_flags)) {
