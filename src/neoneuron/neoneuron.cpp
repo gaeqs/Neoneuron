@@ -11,6 +11,8 @@
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/loader/SWCLoader.h>
 
+#include "application/NeoneuronApplication.h"
+
 
 CMRC_DECLARE(resources);
 
@@ -50,7 +52,8 @@ int main() {
 
     info.vSync = false;
 
-    neoneuron::NeoneuronRender render(info);
-
-    return render.renderLoop() ? 0 : 1;
+    neoneuron::NeoneuronApplication app(info);
+    bool result = app.getRender().renderLoop();
+    app.saveSettings();
+    return result ? 0 : 1;
 }

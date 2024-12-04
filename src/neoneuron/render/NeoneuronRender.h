@@ -14,6 +14,8 @@
 
 
 namespace neoneuron {
+    class NeoneuronApplication;
+
     class NeoneuronRender {
         struct Components {
             std::unique_ptr<AbstractNeuronScene> neuronScene;
@@ -23,6 +25,7 @@ namespace neoneuron {
             Components(NeoneuronRender* render);
         };
 
+        NeoneuronApplication* _neoneuronApplication;
         neon::Application _application;
         neon::CMRCFileSystem _fileSystem;
         std::shared_ptr<neon::FrameBuffer> _renderFrameBuffer;
@@ -38,9 +41,14 @@ namespace neoneuron {
     public:
         NeoneuronRender(const NeoneuronRender& other) = delete;
 
-        explicit NeoneuronRender(const neon::vulkan::VKApplicationCreateInfo& createInfo);
+        explicit NeoneuronRender(NeoneuronApplication* neoneuron,
+                                 const neon::vulkan::VKApplicationCreateInfo& createInfo);
 
         ~NeoneuronRender();
+
+        [[nodiscard]] NeoneuronApplication* getNeoneuronApplication();
+
+        [[nodiscard]] const NeoneuronApplication* getNeoneuronApplication() const;
 
         [[nodiscard]] neon::Application& getApplication();
 

@@ -15,6 +15,7 @@
 
 #include <neoneuron/render/NeoneuronRender.h>
 
+#include "settings/NeoneuronUiSettings.h"
 #include "style/Fonts.h"
 
 namespace neoneuron {
@@ -90,20 +91,7 @@ namespace neoneuron {
         }
         ImGui::SetNextWindowSizeConstraints(ImVec2(200, 200), ImVec2(FLT_MAX, FLT_MAX));
         if (ImGui::BeginPopupModal("Settings")) {
-            ImGui::BeginChild("settings_content", ImVec2(0, ImGui::GetContentRegionMax().y - 100.0f));
-
-            for (size_t i = 0; i < 100; ++i) {
-                ImGui::Text("Hello there! %d", i);
-            }
-            ImGui::EndChild();
-
-            ImGui::Separator();
-            ImGui::SetCursorPosY(ImGui::GetContentRegionMax().y - 40.0f);
-            ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 140.0f);
-            if (ImGui::Button("Close", ImVec2(120, 0))) {
-                ImGui::CloseCurrentPopup();
-            }
-
+            settings::settingsDialog();
             ImGui::EndPopup();
         }
 

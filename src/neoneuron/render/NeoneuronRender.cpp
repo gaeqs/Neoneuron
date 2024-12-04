@@ -38,9 +38,12 @@ namespace neoneuron {
         parameterUpdaterGO->newComponent<GlobalParametersUpdaterComponent>(*this);
     }
 
-    NeoneuronRender::NeoneuronRender(const neon::vulkan::VKApplicationCreateInfo& createInfo)
-        : _application(std::make_unique<neon::vulkan::VKApplication>(createInfo)),
-          _fileSystem(cmrc::resources::get_filesystem()) {
+    NeoneuronRender::NeoneuronRender(NeoneuronApplication* neoneuron,
+                                     const neon::vulkan::VKApplicationCreateInfo& createInfo)
+        :
+        _neoneuronApplication(neoneuron),
+        _application(std::make_unique<neon::vulkan::VKApplication>(createInfo)),
+        _fileSystem(cmrc::resources::get_filesystem()) {
         _application.init();
         _application.setRender(initRender());
 
@@ -55,6 +58,14 @@ namespace neoneuron {
     }
 
     NeoneuronRender::~NeoneuronRender() = default;
+
+    NeoneuronApplication* NeoneuronRender::getNeoneuronApplication() {
+        return _neoneuronApplication;
+    }
+
+    const NeoneuronApplication* NeoneuronRender::getNeoneuronApplication() const {
+        return _neoneuronApplication;
+    }
 
     neon::Application& NeoneuronRender::getApplication() {
         return _application;
