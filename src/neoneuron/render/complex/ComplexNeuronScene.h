@@ -30,6 +30,7 @@ namespace neoneuron {
         std::shared_ptr<neon::Model> _neuronModel;
         std::shared_ptr<neon::Model> _jointModel;
 
+        std::vector<PrototypeNeuron> _prototypes;
         std::vector<ComplexNeuron> _neurons;
         std::vector<ComplexGPUNeuron> _gpuNeurons;
         rush::AABB<3, float> _sceneBoundingBox;
@@ -73,6 +74,8 @@ namespace neoneuron {
 
         [[nodiscard]] size_t getNeuronsAmount() override;
 
+        [[nodiscard]] const std::vector<PrototypeNeuron>& getPrototypeNeurons() const override;
+
         [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(UID uid);
 
         [[nodiscard]] std::optional<const ComplexNeuron*> findNeuron(UID uid) const;
@@ -82,10 +85,6 @@ namespace neoneuron {
         [[nodiscard]] std::optional<const ComplexGPUNeuron*> findGPUNeuron(UID uid) const;
 
         bool addNeuron(const PrototypeNeuron& neuron) override;
-
-        void addNeuron(const ComplexNeuron& neuron);
-
-        void addNeuron(ComplexNeuron&& neuron);
 
         bool removeNeuron(UID neuronId) override;
 

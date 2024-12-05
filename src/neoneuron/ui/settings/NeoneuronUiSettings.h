@@ -5,9 +5,15 @@
 #ifndef NEONEURONUISETTINGS_H
 #define NEONEURONUISETTINGS_H
 
+#include <string>
+#include <neoneuron/application/NeoneuronApplication.h>
 
 namespace neoneuron::settings {
-    void settingsDialog();
+    void settingsSection(const std::string& name);
+
+    void settingsTheme(NeoneuronApplication* app);
+
+    void settingsDialog(NeoneuronApplication* app);
 }
 
 #endif //NEONEURONUISETTINGS_H

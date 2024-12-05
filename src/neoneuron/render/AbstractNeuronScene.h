@@ -20,6 +20,8 @@ namespace neoneuron {
 
         [[nodiscard]] virtual size_t getNeuronsAmount() = 0;
 
+        [[nodiscard]] virtual const std::vector<PrototypeNeuron>& getPrototypeNeurons() const = 0;
+
         virtual bool addNeuron(const PrototypeNeuron& neuron) = 0;
 
         virtual bool removeNeuron(UID neuronId) = 0;

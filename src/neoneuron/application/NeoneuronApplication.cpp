@@ -32,8 +32,16 @@ namespace neoneuron {
         return _settings;
     }
 
-    void NeoneuronApplication::registerSettingsListener(const hey::Listener<std::string>& listener) {
+    void NeoneuronApplication::registerSettingsListener(const hey::Listener<std::string>& listener) const {
         _settingsNodeChange.addListener(listener);
+    }
+
+    void NeoneuronApplication::unregisterSettingsListener(const hey::Listener<std::string>& listener) const {
+        _settingsNodeChange.removeListener(listener);
+    }
+
+    void NeoneuronApplication::signalSettingsChange(std::string node) const {
+        _settingsNodeChange.invoke(std::move(node));
     }
 
     void NeoneuronApplication::saveSettings() const {

@@ -15,6 +15,10 @@ namespace neoneuron {
 
         void openFile() const;
 
+        void toolsMenu() const;
+
+        void demo() const;
+
     public:
         explicit NeoneuronTopBar(NeoneuronRender* render);
 

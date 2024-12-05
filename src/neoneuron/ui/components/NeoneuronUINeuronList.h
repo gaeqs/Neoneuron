@@ -13,9 +13,9 @@ namespace neoneuron {
     class NeoneuronUINeuronList : public neon::Component {
         NeoneuronRender* _render;
 
-        void neuronRow(const std::vector<SimpleNeuron>& neurons, size_t row, size_t elements, float size);
+        void neuronRow(const std::vector<PrototypeNeuron>& neurons, size_t row, size_t elements, float size);
 
-        void neuronSection(const SimpleNeuron& neuron, size_t id, float size) const;
+        void neuronSection(const PrototypeNeuron& neuron, size_t id, float size) const;
 
     public:
         NeoneuronUINeuronList(NeoneuronRender* render);

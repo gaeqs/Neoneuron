@@ -11,7 +11,7 @@
 
 
 namespace neoneuron {
-    void NeoneuronUINeuronList::neuronRow(const std::vector<SimpleNeuron>& neurons,
+    void NeoneuronUINeuronList::neuronRow(const std::vector<PrototypeNeuron>& neurons,
                                           size_t row, size_t elements, float size) {
         for (size_t i = 0; i < elements; ++i) {
             size_t id = row * elements + i;
@@ -22,7 +22,7 @@ namespace neoneuron {
         }
     }
 
-    void NeoneuronUINeuronList::neuronSection(const SimpleNeuron& neuron, size_t id, float size) const {
+    void NeoneuronUINeuronList::neuronSection(const PrototypeNeuron& neuron, size_t id, float size) const {
         std::string name = "Neuron " + std::to_string(id) + "##" + std::to_string(id);
 
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg));
@@ -49,29 +49,26 @@ namespace neoneuron {
 
         if (ImGui::Begin("Neurons")) {
             float maxSize = ImGui::GetContentRegionAvail().x;
+            auto* render = _render->getNeuronScene().get();
+            auto& neurons = render->getPrototypeNeurons();
 
-            auto* render = dynamic_cast<SimpleNeuronScene*>(_render->getNeuronScene().get());
-            if (render != nullptr) {
-                auto& neurons = render->getNeurons();
+            int elements = 0;
+            float totalSize = MIN_SIZE;
 
-                int elements = 0;
-                float totalSize = MIN_SIZE;
+            while (totalSize < maxSize) {
+                totalSize += spacing + MIN_SIZE;
+                ++elements;
+            }
+            if (elements == 0) ++elements;
 
-                while (totalSize < maxSize) {
-                    totalSize += spacing + MIN_SIZE;
-                    ++elements;
-                }
-                if (elements == 0) ++elements;
+            float sizePerElement = (maxSize - spacing * elements) / elements;
 
-                float sizePerElement = (maxSize - spacing * elements) / elements;
+            ImGuiListClipper clipper;
+            clipper.Begin(neurons.size() / elements + (neurons.size() % elements > 0 ? 1 : 0));
 
-                ImGuiListClipper clipper;
-                clipper.Begin(neurons.size() / elements + (neurons.size() % elements > 0 ? 1 : 0));
-
-                while (clipper.Step()) {
-                    for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-                        neuronRow(neurons, row, elements, sizePerElement);
-                    }
+            while (clipper.Step()) {
+                for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+                    neuronRow(neurons, row, elements, sizePerElement);
                 }
             }
         }

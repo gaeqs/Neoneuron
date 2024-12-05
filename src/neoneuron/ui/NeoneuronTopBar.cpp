@@ -60,6 +60,45 @@ namespace neoneuron {
         _render->focusScene();
     }
 
+    void NeoneuronTopBar::toolsMenu() const {
+        static const auto GLOBAL_PARAMS = NeoneuronApplication::SETTINGS_TOOL_GLOBAL_PARAMETERS;
+        static const auto DEBUG = NeoneuronApplication::SETTINGS_TOOL_DEBUG;
+        static const auto DEMO = NeoneuronApplication::SETTINGS_TOOL_DEMO;
+        auto& s = _render->getNeoneuronApplication()->getSettings();
+
+        bool globalParameters = s.value(GLOBAL_PARAMS, false);
+        bool debug = s.value(DEBUG, false);
+        bool demo = s.value(DEMO, false);
+
+        if (ImGui::MenuItem("Global parameters", nullptr, &globalParameters)) {
+            s[GLOBAL_PARAMS] = globalParameters;
+            _render->getNeoneuronApplication()->signalSettingsChange(GLOBAL_PARAMS);
+        }
+
+        if (ImGui::MenuItem("Debug", nullptr, &debug)) {
+            s[DEBUG] = debug;
+            _render->getNeoneuronApplication()->signalSettingsChange(DEBUG);
+        }
+
+        if (ImGui::MenuItem("ImGUI Demo", nullptr, &demo)) {
+            s[DEMO] = demo;
+            _render->getNeoneuronApplication()->signalSettingsChange(DEMO);
+        }
+    }
+
+    void NeoneuronTopBar::demo() const {
+        auto& s = _render->getNeoneuronApplication()->getSettings();
+        bool opened = s.value(NeoneuronApplication::SETTINGS_TOOL_DEMO, false);
+        bool keepOpen = true;
+        if (opened) {
+            ImGui::ShowDemoWindow(&keepOpen);
+        }
+        if (opened && !keepOpen) {
+            s[NeoneuronApplication::SETTINGS_TOOL_DEMO] = false;
+            _render->getNeoneuronApplication()->signalSettingsChange(NeoneuronApplication::SETTINGS_TOOL_DEMO);
+        }
+    }
+
     NeoneuronTopBar::NeoneuronTopBar(NeoneuronRender* render)
         : _render(render) {}
 
@@ -68,7 +107,6 @@ namespace neoneuron {
     void NeoneuronTopBar::onPreDraw() {
         bool openSettings = false;
 
-        ImGui::ShowDemoWindow();
         fonts::imGuiPushFont(fonts::SS3_20);
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
@@ -82,6 +120,12 @@ namespace neoneuron {
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
+            if (ImGui::BeginMenu("Tools")) {
+                fonts::imGuiPushFont(fonts::SS3_18);
+                toolsMenu();
+                ImGui::PopFont();
+                ImGui::EndMenu();
+            }
             ImGui::EndMainMenuBar();
         }
         ImGui::PopFont();
@@ -91,9 +135,11 @@ namespace neoneuron {
         }
         ImGui::SetNextWindowSizeConstraints(ImVec2(200, 200), ImVec2(FLT_MAX, FLT_MAX));
         if (ImGui::BeginPopupModal("Settings")) {
-            settings::settingsDialog();
+            settings::settingsDialog(_render->getNeoneuronApplication());
             ImGui::EndPopup();
         }
+
+        demo();
 
         ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings |

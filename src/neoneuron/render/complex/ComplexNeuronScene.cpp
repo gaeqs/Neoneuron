@@ -234,6 +234,10 @@ namespace neoneuron {
         return _neurons.size();
     }
 
+    const std::vector<PrototypeNeuron>& ComplexNeuronScene::getPrototypeNeurons() const {
+        return _prototypes;
+    }
+
     std::optional<ComplexNeuron*> ComplexNeuronScene::findNeuron(UID uid) {
         auto it = std::find_if(
             _neurons.begin(), _neurons.end(),
@@ -283,36 +287,22 @@ namespace neoneuron {
     }
 
     bool ComplexNeuronScene::addNeuron(const PrototypeNeuron& neuron) {
+        _prototypes.push_back(neuron);
         auto result = ComplexNeuron::fromPrototype(neuron);
         if (result.isOk()) {
-            addNeuron(std::move(result.getResult()));
+            auto bb = result.getResult().getBoundingBox();
+            _neurons.push_back(std::move(result.getResult()));
+            _gpuNeurons.emplace_back(_neuronModel, _jointModel, 0, 0, &_neurons.back());
+            if (_neurons.size() == 1) {
+                _sceneBoundingBox = bb;
+            } else {
+                combineBoundingBoxes(bb);
+            }
             return true;
         }
 
         neon::Logger::defaultLogger()->error(result.getError());
         return false;
-    }
-
-    void ComplexNeuronScene::addNeuron(const ComplexNeuron& neuron) {
-        _neurons.push_back(neuron);
-        _gpuNeurons.emplace_back(_neuronModel, _jointModel, 0, 0, &_neurons.back());
-
-        if (_neurons.size() == 1) {
-            _sceneBoundingBox = neuron.getBoundingBox();
-        } else {
-            combineBoundingBoxes(neuron.getBoundingBox());
-        }
-    }
-
-    void ComplexNeuronScene::addNeuron(ComplexNeuron&& neuron) {
-        auto bb = neuron.getBoundingBox();
-        _neurons.push_back(std::move(neuron));
-        _gpuNeurons.emplace_back(_neuronModel, _jointModel, 0, 0, &_neurons.back());
-        if (_neurons.size() == 1) {
-            _sceneBoundingBox = bb;
-        } else {
-            combineBoundingBoxes(bb);
-        }
     }
 
     bool ComplexNeuronScene::removeNeuron(UID neuronId) {
@@ -328,6 +318,7 @@ namespace neoneuron {
         ptrdiff_t index = it - _neurons.begin();
         _neurons.erase(_neurons.begin() + index);
         _gpuNeurons.erase(_gpuNeurons.begin() + index);
+        _prototypes.erase(_prototypes.begin() + index);
         for (auto& gpuNeuron: _gpuNeurons) {
             gpuNeuron.refreshGPUData();
         }
