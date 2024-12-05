@@ -17,18 +17,27 @@ layout (set = 0, binding = 0) uniform Matrices {
     float far;
 };
 
+layout (set = 0, binding = 1) uniform GlobalData {
+    float currentTime;
+    float radiusStrength;
+    float startClip;
+    float endClip;
+    float splitHeight;
+    float splitArcStrength;
+    uint rotationIndexOffset;
+    uint childrenRotationIndexOffset;
+    uint minChildrenForJoint;
+    uint verticesPerCircle;
+    vec4 defaultColor;
+    vec4 selectedColor;
+};
+
 void main() {
     vec4 viewNormal = view * vec4(normalize(fragNormal), 0.0f);
     float intensity = viewNormal.z * 0.8f + 0.2f;
 
     uint type = floatBitsToUint(fragType);
-    vec4 pre = vec4(0, 0, 0, 1);
-    if (fragSelected > 0.5f) {
-        pre[2] = intensity;
-    } else {
-        pre[type] = type == 0 ? intensity : 1;
-    }
-    color = pre;
-
+    vec4 pre = fragSelected > 0.5f ? selectedColor : defaultColor;
+    color = vec4(pre.xyz * intensity, pre.w);
     ids = vec3(1, fragNeuronId, fragSectionId);
 }

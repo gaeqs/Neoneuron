@@ -17,10 +17,25 @@ layout (set = 0, binding = 0) uniform Matrices {
     float far;
 };
 
+layout (set = 0, binding = 1) uniform GlobalData {
+    float currentTime;
+    float radiusStrength;
+    float startClip;
+    float endClip;
+    float splitHeight;
+    float splitArcStrength;
+    uint rotationIndexOffset;
+    uint childrenRotationIndexOffset;
+    uint minChildrenForJoint;
+    uint verticesPerCircle;
+    vec4 defaultColor;
+    vec4 selectedColor;
+};
+
 void main() {
     vec4 viewNormal = view * vec4(normalize(fragNormal), 0.0f);
     float intensity = viewNormal.z * 0.8f + 0.2f;
-    color = vec4(intensity, 0, 0, 1);
+    color = vec4(defaultColor.xyz * intensity, defaultColor.w);
 
     ids = vec3(1, fragNeuronId, fragSectionId);
 }

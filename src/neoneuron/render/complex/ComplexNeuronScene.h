@@ -76,6 +76,10 @@ namespace neoneuron {
 
         [[nodiscard]] const std::vector<PrototypeNeuron>& getPrototypeNeurons() const override;
 
+        [[nodiscard]] std::optional<PrototypeNeuron*> findPrototypeNeuron(UID uid) override;
+
+        [[nodiscard]] std::optional<const PrototypeNeuron*> findPrototypeNeuron(UID uid) const override;
+
         [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(UID uid);
 
         [[nodiscard]] std::optional<const ComplexNeuron*> findNeuron(UID uid) const;

@@ -238,6 +238,28 @@ namespace neoneuron {
         return _prototypes;
     }
 
+    std::optional<PrototypeNeuron*> ComplexNeuronScene::findPrototypeNeuron(UID uid) {
+        auto it = std::find_if(
+            _prototypes.begin(), _prototypes.end(),
+            [uid](const PrototypeNeuron& neuron) {
+                return uid == neuron.getId();
+            }
+        );
+        if (it == _prototypes.end()) return {};
+        return {&*it};
+    }
+
+    std::optional<const PrototypeNeuron*> ComplexNeuronScene::findPrototypeNeuron(UID uid) const {
+        auto it = std::find_if(
+            _prototypes.cbegin(), _prototypes.cend(),
+            [uid](const PrototypeNeuron& neuron) {
+                return uid == neuron.getId();
+            }
+        );
+        if (it == _prototypes.cend()) return {};
+        return {&*it};
+    }
+
     std::optional<ComplexNeuron*> ComplexNeuronScene::findNeuron(UID uid) {
         auto it = std::find_if(
             _neurons.begin(), _neurons.end(),

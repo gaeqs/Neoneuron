@@ -17,6 +17,10 @@ namespace neoneuron {
         uint32_t childrenRotationIndexOffset = 0;
         uint32_t minChildrenForJoint = 2;
         uint32_t verticesPerCircle = 16;
+        uint32_t dummy0 = 0;
+        uint32_t dummy1 = 0;
+        rush::Vec4f defaultColor = rush::Vec4f(1.0f, 0.0f, 0.0f, 1.0f);
+        rush::Vec4f selectedColor = rush::Vec4f(0.0f, 0.0f, 1.0f, 1.0f);
     };
 }
 #endif //NEONEURONRENDERDATA_H

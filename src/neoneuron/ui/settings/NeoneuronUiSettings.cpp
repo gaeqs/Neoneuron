@@ -43,11 +43,14 @@ namespace neoneuron::settings {
     void settingsDialog(NeoneuronApplication* app) {
         ImGui::BeginChild("settings_content", ImVec2(0, ImGui::GetContentRegionMax().y - 100.0f));
 
-        ImGui::SetCursorPosX(20.0f);
+        ImGui::Indent();
         settingsSection("Display");
-
-        ImGui::SetCursorPosX(30.0f);
+        ImGui::Indent();
         settingsTheme(app);
+
+        ImGui::Unindent();
+        ImGui::Unindent();
+
 
         ImGui::EndChild();
 

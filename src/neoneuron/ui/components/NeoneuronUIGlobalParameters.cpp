@@ -21,7 +21,7 @@ namespace neoneuron {
         auto* scene = _render->getNeuronScene().get();
         if (opened) {
             if (ImGui::Begin("Global parameters", &keepOpen)) {
-                ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
+                ImGui::PushItemWidth(ImGui::GetFontSize() * -16);
 
                 ImGui::SliderFloat("Radius strength", &d.radiusStrength, 0.01f, 3.0f);
                 ImGui::SliderFloat("Start clip", &d.startClip, 0.01f, 0.5f);
@@ -44,6 +44,9 @@ namespace neoneuron {
                 aux = static_cast<int>(d.verticesPerCircle);
                 ImGui::SliderInt("Vertices per circle", &aux, 1, 16);
                 d.verticesPerCircle = static_cast<uint32_t>(aux);
+
+                ImGui::ColorEdit3("Default color", d.defaultColor.toPointer());
+                ImGui::ColorEdit3("Selected color", d.selectedColor.toPointer());
 
                 if (auto* complexScene = dynamic_cast<ComplexNeuronScene*>(scene)) {
                     bool wireframe = complexScene->isWireframeMode();

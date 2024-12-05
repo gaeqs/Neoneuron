@@ -12,13 +12,16 @@
 namespace neoneuron {
     class NeoneuronUINeuronList : public neon::Component {
         NeoneuronRender* _render;
+        std::optional<UID> _selectedNeuron;
 
-        void neuronRow(const std::vector<PrototypeNeuron>& neurons, size_t row, size_t elements, float size);
+        void neuronSection(const PrototypeNeuron& neuron, size_t id);
 
-        void neuronSection(const PrototypeNeuron& neuron, size_t id, float size) const;
+        void neuronList();
+
+        void neuronInformation();
 
     public:
-        NeoneuronUINeuronList(NeoneuronRender* render);
+        explicit NeoneuronUINeuronList(NeoneuronRender* render);
 
         void onPreDraw() override;
     };

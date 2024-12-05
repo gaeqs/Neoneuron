@@ -22,6 +22,10 @@ namespace neoneuron {
 
         [[nodiscard]] virtual const std::vector<PrototypeNeuron>& getPrototypeNeurons() const = 0;
 
+        [[nodiscard]] virtual std::optional<PrototypeNeuron*> findPrototypeNeuron(UID uid) = 0;
+
+        [[nodiscard]] virtual std::optional<const PrototypeNeuron*> findPrototypeNeuron(UID uid) const = 0;
+
         virtual bool addNeuron(const PrototypeNeuron& neuron) = 0;
 
         virtual bool removeNeuron(UID neuronId) = 0;

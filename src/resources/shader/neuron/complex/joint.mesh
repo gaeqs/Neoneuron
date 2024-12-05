@@ -30,6 +30,8 @@ layout (set = 0, binding = 1) uniform GlobalData {
     uint childrenRotationIndexOffset;
     uint minChildrenForJoint;
     uint verticesPerCircle;
+    vec4 defaultColor;
+    vec4 selectedColor;
 };
 
 struct Section {
@@ -172,7 +174,7 @@ vec3 parentDirection, float radius, uint neuronId, uint sectionId) {
     // Handle edge cases where the tangent might align with the default normal
     vec3 initialNormal = vec3(0, 0, -1);
     if (abs(dot(tangent, initialNormal)) > 0.99) {
-        initialNormal = vec3(0, 1, 0); // Use a different axis to avoid parallel vectors
+        initialNormal = vec3(0, 1, 0);// Use a different axis to avoid parallel vectors
     }
 
     vec3 normal = normalize(cross(tangent, initialNormal));

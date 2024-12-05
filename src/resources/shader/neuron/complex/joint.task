@@ -14,6 +14,8 @@ layout (set = 0, binding = 1) uniform GlobalData {
     uint childrenRotationIndexOffset;
     uint minChildrenForJoint;
     uint verticesPerCircle;
+    vec4 defaultColor;
+    vec4 selectedColor;
 };
 
 struct Joint {
