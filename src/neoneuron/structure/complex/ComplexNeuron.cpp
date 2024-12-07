@@ -29,6 +29,11 @@ namespace neoneuron {
 
         for (auto& segment: _segments) {
             if (segment.getParentId().has_value()) {
+                auto parent = _segmentsByUID.find(segment.getParentId().value());
+                if (parent == _segmentsByUID.end()) continue;
+                // Avoid adding somas!
+                if (_segments[parent->second].getType() == SegmentType::SOMA) continue;
+
                 auto it = _jointsByUID.find(segment.getParentId().value());
                 if (it == _jointsByUID.end()) {
                     ComplexJoint joint(
@@ -48,12 +53,35 @@ namespace neoneuron {
         }
     }
 
+    void ComplexNeuron::calculateSomas() {
+        _somas.clear();
+        _somasByUID.clear();
+
+        // Find somas
+        for (auto& segment: _segments) {
+            if (segment.getType() == SegmentType::SOMA) {
+                _somasByUID.insert({segment.getId(), _somas.size()});
+                _somas.emplace_back(segment.getId());
+            }
+        }
+
+        // Find children
+        for (auto& segment: _segments) {
+            if (!segment.getParentId().has_value()) continue;
+            auto it = _somasByUID.find(segment.getParentId().value());
+            if (it == _somasByUID.end()) continue;
+            _somas[it->second].getChildren().push_back(segment.getId());
+        }
+    }
+
     ComplexNeuron::ComplexNeuron(ComplexNeuron&& other) noexcept
         : Identifiable(std::move(other)),
           _segments(std::move(other._segments)),
           _segmentsByUID(std::move(other._segmentsByUID)),
           _joints(std::move(other._joints)),
           _jointsByUID(std::move(other._jointsByUID)),
+          _somas(std::move(other._somas)),
+          _somasByUID(std::move(other._somasByUID)),
           _boundingBox(std::move(other._boundingBox)) {}
 
     ComplexNeuron& ComplexNeuron::operator=(const ComplexNeuron& other) {
@@ -64,6 +92,8 @@ namespace neoneuron {
         _segmentsByUID = other._segmentsByUID;
         _joints = other._joints;
         _jointsByUID = other._jointsByUID;
+        _somas = other._somas;
+        _somasByUID = other._somasByUID;
         _boundingBox = other._boundingBox;
         return *this;
     }
@@ -76,6 +106,8 @@ namespace neoneuron {
         _segmentsByUID = std::move(other._segmentsByUID);
         _joints = std::move(other._joints);
         _jointsByUID = std::move(other._jointsByUID);
+        _somas = std::move(other._somas);
+        _somasByUID = std::move(other._somasByUID);
         _boundingBox = other._boundingBox;
         return *this;
     }
@@ -136,10 +168,26 @@ namespace neoneuron {
         return it->second;
     }
 
+    const std::vector<ComplexSoma>& ComplexNeuron::getSomas() const {
+        return _somas;
+    }
+
+    std::optional<const ComplexSoma*> ComplexNeuron::findSoma(UID uid) const {
+        auto it = _somasByUID.find(uid);
+        if (it == _somasByUID.end()) return {};
+        return &_somas[it->second];
+    }
+
+    std::optional<size_t> ComplexNeuron::findSomaIndex(UID uid) const {
+        auto it = _somasByUID.find(uid);
+        if (it == _somasByUID.end()) return {};
+        return it->second;
+    }
 
     void ComplexNeuron::recalculateMetadata() {
         calculateBoundingBox();
         calculateJoints();
+        calculateSomas();
     }
 
     neon::Result<ComplexNeuron, std::string> ComplexNeuron::fromPrototype(const PrototypeNeuron& prototype) {

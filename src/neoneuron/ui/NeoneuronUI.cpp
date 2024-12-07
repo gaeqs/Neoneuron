@@ -16,6 +16,7 @@
 #include <neoneuron/ui/components/NeoneuronUINeuronList.h>
 #include <neoneuron/ui/components/NeoneuronUIGlobalParameters.h>
 #include <neoneuron/ui/components/NeuronTexturePicker.h>
+#include <vulkan/util/component/VulkanInfoCompontent.h>
 
 namespace neoneuron {
     void NeoneuronUI::initStyle(NeoneuronRender* render) {
@@ -67,6 +68,7 @@ namespace neoneuron {
         _gameObject->newComponent<NeoneuronUINeuronList>(render);
         _gameObject->newComponent<NeoneuronUIGlobalParameters>(render);
         _gameObject->newComponent<NeuronTexturePicker>(render, _viewport);
+        _gameObject->newComponent<neon::vulkan::VulkanInfoCompontent>();
 
         initDebugToggle();
 

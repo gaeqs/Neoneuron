@@ -59,18 +59,40 @@ namespace neoneuron {
         /**
          * The connections' positions in the storage buffer.
          */
-        uint32_t connections[7];
+        uint32_t connections[8];
+    };
+
+    struct ComplexGPUNeuronSoma {
+
+        /*
+        * The index of the representing section in the storage buffer.
+        */
+        uint32_t sectionIndex;
+
+        /**
+        * The amount of connections.
+        */
+        uint32_t amount;
+
+        /**
+         * The connections' positions in the storage buffer.
+         */
+        uint32_t connections[8];
     };
 
     class ComplexGPUNeuron {
         std::weak_ptr<neon::Model> _segmentModel;
         std::weak_ptr<neon::Model> _jointModel;
+        std::weak_ptr<neon::Model> _somaModel;
         size_t _segmentInstanceDataIndex;
         size_t _jointInstanceDataIndex;
+        size_t _somaInstanceDataIndex;
         std::vector<neon::InstanceData::Instance> _segmentInstances;
         std::unordered_map<UID, neon::InstanceData::Instance> _segmentInstancesByUID;
         std::vector<neon::InstanceData::Instance> _jointInstances;
         std::unordered_map<UID, neon::InstanceData::Instance> _jointInstancesByUID;
+        std::vector<neon::InstanceData::Instance> _somaInstances;
+        std::unordered_map<UID, neon::InstanceData::Instance> _somaInstancesByUID;
         const ComplexNeuron* _neuron;
         bool _valid;
 
@@ -79,6 +101,14 @@ namespace neoneuron {
 
         void generateJointInstances();
 
+        void generateSomaInstances();
+
+        void refreshSegments() const;
+
+        void refreshJoints() const;
+
+        void refreshSomas() const;
+
     public:
         ComplexGPUNeuron(ComplexGPUNeuron&& other) noexcept;
 
@@ -86,8 +116,10 @@ namespace neoneuron {
 
         ComplexGPUNeuron(std::weak_ptr<neon::Model> neuronModel,
                          std::weak_ptr<neon::Model> jointModel,
+                         std::weak_ptr<neon::Model> somaModel,
                          size_t segmentInstanceDataIndex,
                          size_t jointInstanceDataIndex,
+                         size_t somaInstanceDataIndex,
                          const ComplexNeuron* neuron);
 
         ~ComplexGPUNeuron();

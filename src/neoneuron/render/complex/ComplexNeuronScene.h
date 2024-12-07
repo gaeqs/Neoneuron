@@ -25,10 +25,13 @@ namespace neoneuron {
 
         std::shared_ptr<neon::ShaderProgram> _neuronShader;
         std::shared_ptr<neon::ShaderProgram> _jointShader;
+        std::shared_ptr<neon::ShaderProgram> _somaShader;
         std::shared_ptr<neon::Material> _neuronMaterial;
         std::shared_ptr<neon::Material> _jointMaterial;
+        std::shared_ptr<neon::Material> _somaMaterial;
         std::shared_ptr<neon::Model> _neuronModel;
         std::shared_ptr<neon::Model> _jointModel;
+        std::shared_ptr<neon::Model> _somaModel;
 
         std::vector<PrototypeNeuron> _prototypes;
         std::vector<ComplexNeuron> _neurons;
@@ -43,13 +46,19 @@ namespace neoneuron {
 
         void loadJointShader();
 
+        void loadSomaShader();
+
         void loadNeuronMaterial();
 
         void loadJointMaterial();
 
+        void loadSomaMaterial();
+
         void loadNeuronModel();
 
         void loadJointModel();
+
+        void loadSomaModel();
 
         void combineBoundingBoxes(const rush::AABB<3, float>& aabb);
 

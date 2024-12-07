@@ -1,0 +1,203 @@
+#version 460
+#extension GL_EXT_mesh_shader: enable
+
+const float M_PI = 3.1415926535897932384626433832795f;
+
+// Latitudes = groups.
+const uint numLongDivs = 32;// Number of longitude divisions
+
+// Define the maximum vertices and primitives for the mesh shader
+const uint maxVertices = numLongDivs * 2;
+const uint maxPrimitives = numLongDivs * 2;
+
+layout (local_size_x = numLongDivs, local_size_y = 1, local_size_z = 1) in;
+layout (triangles) out;
+layout(max_vertices = maxVertices, max_primitives = maxPrimitives) out;
+
+layout (set = 0, binding = 0) uniform Matrices {
+    mat4 view;
+    mat4 viewProjection;
+    mat4 inverseProjection;
+    float near;
+    float far;
+};
+
+layout (set = 0, binding = 1) uniform GlobalData {
+    float currentTime;
+    float radiusStrength;
+    float startClip;
+    float endClip;
+    float splitHeight;
+    float splitArcStrength;
+    uint rotationIndexOffset;
+    uint childrenRotationIndexOffset;
+    uint minChildrenForJoint;
+    uint verticesPerCircle;
+    vec4 defaultColor;
+    vec4 selectedColor;
+};
+
+struct Section {
+    uint neuronId;
+    uint sectionId;
+    uint metadata;
+    uint parent;// This is the index inside the sections array! It is not the id of the section.
+    vec4 endAndRadius;
+};
+
+struct Soma {
+    uint sectionIndex;
+    uint amount;
+    uint connection[8];
+};
+
+layout(std430, set = 2, binding = 0) buffer Data {
+    Section sections[];
+};
+
+layout(std430, set = 2, binding = 2) buffer Somas {
+    Soma somas[];
+};
+
+layout(std430, set = 2, binding = 3) buffer Selection {
+    bool selected[];
+};
+
+struct TaskData {
+    uint section;
+};
+
+taskPayloadSharedEXT TaskData td;
+
+layout(location = 0) out vec3 fragNormal[];
+layout(location = 1) flat out float fragType[];
+layout(location = 2) flat out float fragNeuronId[];
+layout(location = 3) flat out float fragSectionId[];
+layout(location = 4) flat out float fragSelected[];
+
+vec3 closestPointInSegment(vec3 from, vec3 to, vec3 point) {
+    vec3 v = point - from;
+    vec3 dir = to - from;
+    float l2 = dot(dir, dir);
+    float d = clamp(dot(v, dir) / l2, 0, 1);
+    return from + d * dir;
+}
+
+bool isInsideSphere(vec3 center, float radius, vec3 point) {
+    vec3 l = point - center;
+    return dot(l, l) <= radius * radius;
+}
+
+vec3 projectToSphere (vec3 center, float radius, vec3 point) {
+    return center + normalize(point - center) * radius;
+}
+
+bool sphereIntersectsTriangle(vec3 a, vec3 b, vec3 c, vec3 center, float radius) {
+    // Step 1: Triangle plane normal
+    vec3 n = normalize(cross(b - a, c - a));
+
+    // Step 2: Signed distance from sphere center to plane
+    float d = abs(dot(center - a, n));
+    if (d > radius) return false;
+
+    // Step 3: Project sphere center onto triangle plane
+    vec3 p = center - n * dot(center - a, n);
+
+    // Step 4: Check if the projected point lies inside the triangle
+    vec3 edge0 = b - a, edge1 = c - b, edge2 = a - c;
+    vec3 c0 = cross(edge0, n);
+    vec3 c1 = cross(edge1, n);
+    vec3 c2 = cross(edge2, n);
+    if (dot(p - a, c0) >= 0.0f && dot(p - b, c1) >= 0.0f && dot(p - c, c2) >= 0.0f) {
+        return true;
+    }
+
+    // Step 5: Check sphere-edge intersection
+    vec3 closestAB = closestPointInSegment(a, b, center);
+    vec3 closestBC = closestPointInSegment(b, c, center);
+    vec3 closestCA = closestPointInSegment(c, a, center);
+    if (dot(center - closestAB, center - closestAB) <= radius * radius ||
+    dot(center - closestBC, center - closestBC) <= radius * radius ||
+    dot(center - closestCA, center - closestCA) <= radius * radius) {
+        return true;
+    }
+
+    return dot(center - a, center - a) <= radius * radius ||
+    dot(center - b, center - b) <= radius * radius ||
+    dot(center - c, center - c) <= radius * radius;
+}
+
+void checkSegmentCollisions (vec3 position, out uint projectedSection, out vec3 projectedPosition) {
+    Soma soma = somas[td.section];
+    Section somaSection = sections[soma.sectionIndex];
+    vec3 from = somaSection.endAndRadius.xyz;
+    projectedPosition = position;
+    projectedSection = 8;
+    for (uint i = 0; i < soma.amount; ++i) {
+        Section section = sections[soma.connection[i]];
+        vec3 to = section.endAndRadius.xyz;
+        vec3 center = closestPointInSegment(from, to, position);
+        if (isInsideSphere(center, section.endAndRadius.w, position)) {
+            projectedPosition = projectToSphere(center, section.endAndRadius.w, position);
+            projectedSection = i;
+            break;
+        }
+    }
+}
+
+void pushVertex(uint i, vec3 position, vec3 normal, uint type, uint neuronId, uint sectionId, bool sel) {
+    uint section;
+    vec3 projectedPosition;
+    checkSegmentCollisions(position, section, projectedPosition);
+    gl_MeshVerticesEXT[i].gl_Position = viewProjection * vec4(projectedPosition, 1.0f);
+    fragNormal[i] = normal;
+    fragType[i] = uintBitsToFloat(type);
+    fragNeuronId[i] = uintBitsToFloat(neuronId);
+    fragSectionId[i] = uintBitsToFloat(sectionId);
+    fragSelected[i] = section < 8 ? 1.0f : 0.0f;//sel ? 1.0f : 0.0f;
+}
+
+void main() {
+    uint numLatDivs = gl_NumWorkGroups.x;
+
+    Soma soma = somas[td.section];
+    Section section = sections[soma.sectionIndex];
+    bool isSelected = selected[soma.sectionIndex];
+
+    SetMeshOutputsEXT(maxVertices, maxPrimitives);
+
+    float radius = section.endAndRadius.w;
+    vec3 center = section.endAndRadius.xyz;
+
+    // Workgroup ID and total number of threads
+    uint latIndex = gl_WorkGroupID.x;
+    uint longIndex = gl_LocalInvocationID.x;
+
+    float phi = float(longIndex) / float(numLongDivs) * 2.0 * M_PI;// Longitude angle (0 to 2π)
+    float thetaTop = float(latIndex) / float(numLatDivs) * M_PI;// Latitude angle (0 to π)
+    float thetaBot = float(latIndex + 1) / float(numLatDivs) * M_PI;// Latitude angle (0 to π)
+
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+    float cosThetaBot = cos(thetaBot);
+    float sinThetaBot = sin(thetaBot);
+    float cosThetaTop = cos(thetaTop);
+    float sinThetaTop = sin(thetaTop);
+
+    vec3 top = vec3(sinThetaTop * cosPhi, cosThetaTop, sinThetaTop * sinPhi) * radius;
+    vec3 bot = vec3(sinThetaBot * cosPhi, cosThetaBot, sinThetaBot * sinPhi) * radius;
+    vec3 normalTop = normalize(top);
+    vec3 normalBot = normalize(bot);
+
+    pushVertex(longIndex, top + center, normalTop, 0, section.neuronId, section.sectionId, isSelected);
+    pushVertex(longIndex + numLongDivs, bot + center, normalBot, 0, section.neuronId, section.sectionId, isSelected);
+
+
+    uint a = longIndex;
+    uint b = (a + 1) % numLongDivs;
+    uint c = a + numLongDivs;
+    uint d = b + numLongDivs;
+
+    gl_PrimitiveTriangleIndicesEXT[longIndex * 2 + 0] = uvec3(a, b, c);
+    gl_PrimitiveTriangleIndicesEXT[longIndex * 2 + 1] = uvec3(c, b, d);
+}

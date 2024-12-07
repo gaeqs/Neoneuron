@@ -15,7 +15,7 @@ namespace neoneuron {
     class SWCLoader final : public Loader {
         struct SWCSegment {
             UID id;
-            uint8_t type;
+            uint32_t type;
             rush::Vec3f end;
             float radius;
             int64_t parent;

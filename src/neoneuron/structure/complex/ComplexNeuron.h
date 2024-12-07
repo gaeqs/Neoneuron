@@ -15,6 +15,7 @@
 #include <neoneuron/structure/prototype/PrototypeNeuron.h>
 
 #include "ComplexJoint.h"
+#include "ComplexSoma.h"
 
 namespace neoneuron {
     class ComplexNeuron : public Identifiable {
@@ -22,11 +23,15 @@ namespace neoneuron {
         std::unordered_map<UID, size_t> _segmentsByUID;
         std::vector<ComplexJoint> _joints;
         std::unordered_map<UID, size_t> _jointsByUID;
+        std::vector<ComplexSoma> _somas;
+        std::unordered_map<UID, size_t> _somasByUID;
         rush::AABB<3, float> _boundingBox;
 
         void calculateBoundingBox();
 
         void calculateJoints();
+
+        void calculateSomas();
 
     public:
         ComplexNeuron(const ComplexNeuron& other) = default;
@@ -47,15 +52,21 @@ namespace neoneuron {
 
         [[nodiscard]] const std::vector<ComplexNeuronSegment>& getSegments() const;
 
-        std::optional<const ComplexNeuronSegment*> findSegment(UID uid) const;
+        [[nodiscard]] std::optional<const ComplexNeuronSegment*> findSegment(UID uid) const;
 
-        std::optional<size_t> findSegmentIndex(UID uid) const;
+        [[nodiscard]] std::optional<size_t> findSegmentIndex(UID uid) const;
 
         [[nodiscard]] const std::vector<ComplexJoint>& getJoints() const;
 
-        std::optional<const ComplexJoint*> findJoint(UID uid) const;
+        [[nodiscard]] std::optional<const ComplexJoint*> findJoint(UID uid) const;
 
-        std::optional<size_t> findJointIndex(UID uid) const;
+        [[nodiscard]] std::optional<size_t> findJointIndex(UID uid) const;
+
+        [[nodiscard]] const std::vector<ComplexSoma>& getSomas() const;
+
+        [[nodiscard]] std::optional<const ComplexSoma*> findSoma(UID uid) const;
+
+        [[nodiscard]] std::optional<size_t> findSomaIndex(UID uid) const;
 
         void recalculateMetadata();
 

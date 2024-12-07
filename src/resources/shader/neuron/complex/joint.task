@@ -22,7 +22,7 @@ struct Joint {
     uint parent;
     uint amount;
     uint rotationIndex;// Rotation index data will always be 0-15!
-    uint connection[7];
+    uint connection[8];
 };
 
 layout(std430, set = 2, binding = 1) buffer Joints {
