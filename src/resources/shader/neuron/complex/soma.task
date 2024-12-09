@@ -1,16 +1,223 @@
 #version 460
 #extension GL_EXT_mesh_shader: enable
 
-layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+const float M_PI = 3.1415926535897932384626433832795f;
+
+const uint MAX_SOMA_CONNECTIONS = 8;
+
+const uint MAX_LAT_VERTICES = 32;
+const uint MAX_LONG_VERTICES = 32;
+const uint MAX_VERTICES = MAX_LAT_VERTICES * MAX_LONG_VERTICES;
+const uint STORAGE_PER_SOMA = MAX_VERTICES;
+
+const uint LAT_VERTICES = 16;
+const uint LONG_VERTICES = 32;
+const uint VERTICES = LAT_VERTICES * LONG_VERTICES;
+
+layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
 struct TaskData {
     uint instance;
 };
 
+struct Section {
+    uint neuronId;
+    uint sectionId;
+    uint metadata;
+    uint parent;// This is the index inside the sections array! It is not the id of the section.
+    vec4 endAndRadius;
+};
+
+struct Soma {
+    uint sectionIndex;
+    uint amount;
+    uint connection[MAX_SOMA_CONNECTIONS];
+};
+
+layout(std430, set = 2, binding = 0) buffer Data {
+    Section sections[];
+};
+
+layout(std430, set = 2, binding = 2) buffer Somas {
+    Soma somas[];
+};
+
+layout(std430, set = 2, binding = 4) buffer SomaGPUData {
+    uint packedConnection[];
+};
+
 taskPayloadSharedEXT TaskData td;
 
+shared vec3 vertices[MAX_VERTICES];
+shared uint connection[MAX_VERTICES];
+
+vec3 closestPointInSegmentToPlane(vec3 from, vec3 to, vec3 n, float d) {
+    vec3 ab = to - from;
+    float na = dot(n, from);
+    float nab = dot(n, ab);
+    float t = clamp((d - na) / nab, 0.0f, 1.0f);
+    return from + t * ab;
+}
+
+vec3 closestPointToSegment(vec3 from, vec3 to, vec3 p) {
+    vec3 l = to - from;
+    float t = clamp(dot(p - from, l) / dot(l, l), 0.0f, 1.0f);
+    return from + t * l;
+}
+
+bool pointInTriangle(vec3 a, vec3 b, vec3 c, vec3 p) {
+    vec3 la = a - p;
+    vec3 lb = b - p;
+    vec3 lc = c - p;
+    vec3 bc = cross(lb, lc);
+    vec3 ca = cross(lc, la);
+    vec3 ab = cross(la, lb);
+    return dot(bc, ca) >= 0.0f && dot(bc, ab) >= 0.0f;
+}
+
+void planeFromTriangle(vec3 a, vec3 b, vec3 c, out vec3 normal, out float d) {
+    normal = normalize(cross(b - a, c - a));
+    d = dot(normal, a);
+}
+
+vec3 closestPointToPlane(vec3 n, float d, vec3 p) {
+    float distance = dot(n, p) - d;
+    return p - distance * n;
+}
+
+vec3 closestPointToTriangle(vec3 a, vec3 b, vec3 c, vec3 p) {
+    vec3 n;
+    float d;
+    planeFromTriangle(a, b, c, n, d);
+
+    vec3 closest = closestPointToPlane(n, d, p);
+    if (pointInTriangle(a, b, c, closest)) return closest;
+
+    vec3 c1 = closestPointToSegment(a, b, p);
+    vec3 c2 = closestPointToSegment(b, c, p);
+    vec3 c3 = closestPointToSegment(c, a, p);
+
+    float m1 = dot(c1, c1);
+    float m2 = dot(c2, c2);
+    float m3 = dot(c3, c3);
+
+    if (m1 < m2 && m1 < m3) return c1;
+    if (m2 < m1 && m2 < m3) return c2;
+    return c3;
+}
+
+bool triangleSphereIntersection(vec3 a, vec3 b, vec3 c, vec3 center, float radius) {
+    vec3 closest = closestPointToTriangle(a, b, c, center);
+    vec3 distance = closest - center;
+    return dot(distance, distance) < radius * radius;
+}
+
+bool capsuleTriangleIntersection(vec3 p1, vec3 p2, float radius, vec3 a, vec3 b, vec3 c) {
+    // First, let's get the closest point inside the segment to the plane that represents the triangle.
+    vec3 n;
+    float d;
+    planeFromTriangle(a, b, c, n, d);
+
+    vec3 center = closestPointInSegmentToPlane(p1, p2, n, d);
+
+    // Next, we just have to use the intersection between a sphere and a triangle.
+    return triangleSphereIntersection(a, b, c, center, radius);
+}
+
+bool checkSegmentCollisions (vec3 a, vec3 b, vec3 c, out uint intersectedSegment) {
+    Soma soma = somas[gl_WorkGroupID.x];
+    Section somaSegment = sections[soma.sectionIndex];
+    vec3 from = somaSegment.endAndRadius.xyz;
+    intersectedSegment = MAX_SOMA_CONNECTIONS;
+    for (uint i = 0; i < soma.amount; ++i) {
+        Section segment = sections[soma.connection[i]];
+        vec3 to = segment.endAndRadius.xyz;
+        if (capsuleTriangleIntersection(from, to, segment.endAndRadius.w, a, b, c)) {
+            intersectedSegment = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+void generateSomaGPUData() {
+    Soma soma = somas[gl_WorkGroupID.x];
+    Section section = sections[soma.sectionIndex];
+
+    uint startIndex = gl_WorkGroupID.x * STORAGE_PER_SOMA;
+
+    float radius = section.endAndRadius.w;
+    vec3 center = section.endAndRadius.xyz;
+
+    // First, let's generate the vertex.
+    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES; vertexIndex += gl_WorkGroupSize.x) {
+        uint latitude = vertexIndex / LONG_VERTICES;
+        uint longitude = vertexIndex % LONG_VERTICES;
+
+        float phi = float(longitude) / float(LONG_VERTICES) * 2.0 * M_PI;// Longitude angle (0 to 2π)
+        float theta = float(latitude) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
+
+        float cosPhi = cos(phi);
+        float sinPhi = sin(phi);
+        float cosTheta = cos(theta);
+        float sinTheta = sin(theta);
+        vertices[vertexIndex] = vec3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi) * radius + center;
+    }
+
+    barrier();
+
+    // Fill connection buffer with MAX_SOMA_CONNECTIONS
+    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES; vertexIndex += gl_WorkGroupSize.x) {
+        connection[vertexIndex] = MAX_SOMA_CONNECTIONS;
+    }
+
+    barrier();
+
+    // Now, let's fetch the triangles and generate check for connections!
+    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES - LONG_VERTICES; vertexIndex += gl_WorkGroupSize.x) {
+        uint a = vertexIndex;
+        uint b = (a + 1) % LONG_VERTICES;
+        uint c = a + LONG_VERTICES;
+        uint d = b + LONG_VERTICES;
+
+        vec3 va = vertices[a];
+        vec3 vb = vertices[b];
+        vec3 vc = vertices[c];
+        vec3 vd = vertices[d];
+
+        uint segment;
+        if (checkSegmentCollisions(va, vb, vc, segment)) {
+            connection[a] = segment;
+            connection[b] = segment;
+            connection[c] = segment;
+        }
+        if (checkSegmentCollisions(vc, vb, vd, segment)) {
+            connection[c] = segment;
+            connection[b] = segment;
+            connection[d] = segment;
+        }
+    }
+
+    barrier();
+
+
+    // Finally, pack the data!
+    uint elements = VERTICES / 4 + (VERTICES % 4 == 0 ? 0 : 1);
+    for (uint i = gl_LocalInvocationID.x; i < elements; i += gl_WorkGroupSize.x) {
+        uint start = i * 4;
+        uint a = connection[start++];
+        uint b = start < VERTICES ? connection[start++] : 0;
+        uint c = start < VERTICES ? connection[start++] : 0;
+        uint d = start < VERTICES ? connection[start] : 0;
+        packedConnection[startIndex + i] = a + (b << 8) + (c << 16) + (d << 24);
+    }
+}
+
 void main() {
-    td.instance = gl_WorkGroupID.x;
-    EmitMeshTasksEXT(16, 1, 1);
+    generateSomaGPUData();
+    if (gl_LocalInvocationID.x == 0) {
+        td.instance = gl_WorkGroupID.x;
+        EmitMeshTasksEXT(LAT_VERTICES - 1, 1, 1);
+    }
 }
     

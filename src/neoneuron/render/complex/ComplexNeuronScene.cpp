@@ -25,7 +25,7 @@ namespace neoneuron {
     void ComplexNeuronScene::loadUniformBuffers() {
         constexpr size_t INSTANCES = 10000000;
         constexpr size_t SOMA_INSTANCES = 100000;
-
+        constexpr size_t STORAGE_PER_SOMA = 32 * 32;
 
         auto* app = &_render->getApplication();
 
@@ -37,7 +37,9 @@ namespace neoneuron {
             // SOMAS
             neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSoma) * SOMA_INSTANCES),
             // SELECTION
-            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSelectionData) * INSTANCES)
+            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSelectionData) * INSTANCES),
+            // SOMA GPU DATA
+            neon::ShaderUniformBinding::storageBuffer(STORAGE_PER_SOMA * SOMA_INSTANCES)
         };
 
         _uboDescriptor = std::make_shared<neon::ShaderUniformDescriptor>(
@@ -109,7 +111,7 @@ namespace neoneuron {
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _somaShader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
         materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
-        materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
+        materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::POINT : neon::PolygonMode::FILL;
         _somaMaterial = std::make_shared<neon::Material>(app, "Soma", materialCreateInfo);
     }
 

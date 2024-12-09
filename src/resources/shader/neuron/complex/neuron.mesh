@@ -87,7 +87,7 @@ void main() {
     bool parentSoma = parentType == 1;
 
     // If is soma or has no children...
-    if (sectionType == 1 || parentSoma || section.sectionId == parent.sectionId) {
+    if (sectionType == 1 || /*parentSoma ||*/ section.sectionId == parent.sectionId) {
         SetMeshOutputsEXT(0, 0);
         return;
     }

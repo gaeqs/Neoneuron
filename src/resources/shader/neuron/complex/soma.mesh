@@ -3,16 +3,24 @@
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
-// Latitudes = groups.
-const uint numLongDivs = 32;// Number of longitude divisions
+const uint MAX_SOMA_CONNECTIONS = 8;
+
+const uint MAX_LAT_VERTICES = 32;
+const uint MAX_LONG_VERTICES = 32;
+const uint MAX_VERTICES = MAX_LAT_VERTICES * MAX_LONG_VERTICES;
+const uint STORAGE_PER_SOMA = MAX_VERTICES;
+
+const uint LAT_VERTICES = 16;
+const uint LONG_VERTICES = 32;
+const uint VERTICES = LAT_VERTICES * LONG_VERTICES;
 
 // Define the maximum vertices and primitives for the mesh shader
-const uint maxVertices = numLongDivs * 2;
-const uint maxPrimitives = numLongDivs * 2;
+const uint GROUP_VERTICES = LONG_VERTICES * 2;
+const uint GROUP_PRIMITIVES = LONG_VERTICES * 2;
 
-layout (local_size_x = numLongDivs, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = LONG_VERTICES, local_size_y = 1, local_size_z = 1) in;
 layout (triangles) out;
-layout(max_vertices = maxVertices, max_primitives = maxPrimitives) out;
+layout(max_vertices = GROUP_VERTICES, max_primitives = GROUP_PRIMITIVES) out;
 
 layout (set = 0, binding = 0) uniform Matrices {
     mat4 view;
@@ -48,7 +56,7 @@ struct Section {
 struct Soma {
     uint sectionIndex;
     uint amount;
-    uint connection[8];
+    uint connection[MAX_SOMA_CONNECTIONS];
 };
 
 layout(std430, set = 2, binding = 0) buffer Data {
@@ -63,13 +71,15 @@ layout(std430, set = 2, binding = 3) buffer Selection {
     bool selected[];
 };
 
+layout(std430, set = 2, binding = 4) buffer SomaGPUData {
+    uint packedConnection[];
+};
+
 struct TaskData {
     uint section;
 };
 
 taskPayloadSharedEXT TaskData td;
-
-shared vec3 vertices[maxVertices];
 
 layout(location = 0) out vec3 fragNormal[];
 layout(location = 1) flat out float fragType[];
@@ -90,7 +100,7 @@ bool isInsideSphere(vec3 center, float radius, vec3 point) {
     return dot(l, l) <= radius * radius;
 }
 
-vec3 projectToSphere (vec3 center, float radius, vec3 point) {
+vec3 projectToSphere(vec3 center, float radius, vec3 point) {
     return center + normalize(point - center) * radius;
 }
 
@@ -99,76 +109,11 @@ vec3 projectToCapsule(vec3 from, vec3 to, float radius, vec3 point) {
     return projectToSphere(center, radius, point);
 }
 
-float segmentToSegmentDistanceSquared(vec3 p1, vec3 q1, vec3 p2, vec3 q2) {
-    vec3 d1 = q1 - p1;
-    vec3 d2 = q2 - p2;
-    vec3 r = p1 - p2;
-
-    float a = dot(d1, d1);
-    float e = dot(d2, d2);
-    float f = dot(d2, r);
-
-    float c = dot(d1, r);
-    float b = dot(d1, d2);
-    float denom = a * e - b * b;
-    float s = clamp((b * f - c * e) / denom, 0.0f, 1.0f);
-    float t = (b * s + f) / e;
-
-    if (t < 0.0) {
-        t = 0.0;
-        s = clamp(-c / a, 0.0f, 1.0f);
-    } else if (t > 1.0) {
-        t = 1.0;
-        s = clamp((b - c) / a, 0.0f, 1.0f);
-    }
-
-    vec3 closestPoint1 = p1 + s * d1;
-    vec3 closestPoint2 = p2 + t * d2;
-    vec3 p1p2 = closestPoint1 - closestPoint2;
-    return dot(p1p2, p1p2);
-}
-
-bool capsuleTriangleIntersection(vec3 p1, vec3 p2, float radius, vec3 a, vec3 b, vec3 c) {
-    float r2 = radius * radius;
-
-    if (segmentToSegmentDistanceSquared(p1, p2, a, b) < r2) return true;
-    if (segmentToSegmentDistanceSquared(p1, p2, b, c) < r2) return true;
-    if (segmentToSegmentDistanceSquared(p1, p2, c, a) < r2) return true;
-
-    vec3 normal = normalize(cross(b - a, c - a));
-    float d1 = dot(normal, p1 - a);
-    float d2 = dot(normal, p2 - a);
-    if (d1 * d2 > 0) return false;
-
-    float t = d1 / (d1 - d2);
-    vec3 intersection = p1 + (p2 - p1) * t;
-
-    vec3 c0 = cross(b - a, intersection - a);
-    if (dot(normal, c0) < 0) return false;
-
-    vec3 c1 = cross(c - b, intersection - b);
-    if (dot(normal, c1) < 0) return false;
-
-    vec3 c2 = cross(a - c, intersection - c);
-    if (dot(normal, c2) < 0) return false;
-
-    return true;
-}
-
-bool checkSegmentCollisions (vec3 a, vec3 b, vec3 c, out Section intersectedSegment) {
-    Soma soma = somas[td.section];
-    Section somaSegment = sections[soma.sectionIndex];
-    vec3 from = somaSegment.endAndRadius.xyz;
-    intersectedSegment = somaSegment;
-    for (uint i = 0; i < soma.amount; ++i) {
-        Section segment = sections[soma.connection[i]];
-        vec3 to = segment.endAndRadius.xyz;
-        if (capsuleTriangleIntersection(from, to, segment.endAndRadius.w, a, b, c)) {
-            intersectedSegment = segment;
-            return true;
-        }
-    }
-    return false;
+uint fetchConnection(uint vertex) {
+    uint index = td.section * STORAGE_PER_SOMA + vertex / 4;
+    uint subindex = vertex % 4;
+    uint packed = packedConnection[index];
+    return (packed >> (subindex * 8u)) & 255u;
 }
 
 void pushVertex(uint i, vec3 position, vec3 normal, uint type, uint neuronId, uint sectionId, bool sel) {
@@ -181,24 +126,22 @@ void pushVertex(uint i, vec3 position, vec3 normal, uint type, uint neuronId, ui
 }
 
 void main() {
-    uint numLatDivs = gl_NumWorkGroups.x;
-
     Soma soma = somas[td.section];
     Section section = sections[soma.sectionIndex];
     bool isSelected = selected[soma.sectionIndex];
 
-    SetMeshOutputsEXT(maxVertices, maxPrimitives);
+    SetMeshOutputsEXT(GROUP_VERTICES, GROUP_PRIMITIVES);
 
     float radius = section.endAndRadius.w;
     vec3 center = section.endAndRadius.xyz;
 
     // Workgroup ID and total number of threads
-    uint latIndex = gl_WorkGroupID.x;
-    uint longIndex = gl_LocalInvocationID.x;
+    uint latitude = gl_WorkGroupID.x;
+    uint longitude = gl_LocalInvocationID.x;
 
-    float phi = float(longIndex) / float(numLongDivs) * 2.0 * M_PI;// Longitude angle (0 to 2π)
-    float thetaTop = float(latIndex) / float(numLatDivs) * M_PI;// Latitude angle (0 to π)
-    float thetaBot = float(latIndex + 1) / float(numLatDivs) * M_PI;// Latitude angle (0 to π)
+    float phi = float(longitude) / float(LONG_VERTICES) * 2.0 * M_PI;// Longitude angle (0 to 2π)
+    float thetaTop = float(latitude) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
+    float thetaBot = float(latitude + 1) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
 
     float cosPhi = cos(phi);
     float sinPhi = sin(phi);
@@ -207,51 +150,35 @@ void main() {
     float cosThetaTop = cos(thetaTop);
     float sinThetaTop = sin(thetaTop);
 
-    vec3 top = vec3(sinThetaTop * cosPhi, cosThetaTop, sinThetaTop * sinPhi) * radius;
-    vec3 bot = vec3(sinThetaBot * cosPhi, cosThetaBot, sinThetaBot * sinPhi) * radius;
-    vertices[longIndex] = top + center;
-    vertices[longIndex + numLongDivs] = bot + center;
-    //pushVertex(longIndex, top + center, normalTop, 0, section.neuronId, section.sectionId, isSelected);
-    //pushVertex(longIndex + numLongDivs, bot + center, normalBot, 0, section.neuronId, section.sectionId, isSelected);
+    vec3 top = vec3(sinThetaTop * cosPhi, cosThetaTop, sinThetaTop * sinPhi) * radius + center;
+    vec3 bot = vec3(sinThetaBot * cosPhi, cosThetaBot, sinThetaBot * sinPhi) * radius + center;
 
-    barrier();
+    uint topIndex = latitude * LONG_VERTICES + longitude;
+    uint botIndex = (latitude + 1) * LONG_VERTICES + longitude;
+    uint topConnection = fetchConnection(topIndex);
+    uint botConnection = fetchConnection(botIndex);
 
-    uint a = longIndex;
-    uint b = (a + 1) % numLongDivs;
-    uint c = a + numLongDivs;
-    uint d = b + numLongDivs;
+    //if (topConnection < MAX_SOMA_CONNECTIONS) {
+    //    Section segment = sections[soma.connection[topConnection]];
+    //    top = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, top);
+    //}
 
-    vec3 va = vertices[a];
-    vec3 vb = vertices[b];
-    vec3 vc = vertices[c];
-    vec3 vd = vertices[d];
+    //if (botConnection < MAX_SOMA_CONNECTIONS) {
+    //    Section segment = sections[soma.connection[botConnection]];
+    //    bot = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, bot);
+    //}
 
-    vec3 fa = va;
-    vec3 fb = vb;
-    vec3 fc = vc;
-    vec3 fd = vd;
+    vec3 normalTop = normalize(top - center);
+    vec3 normalBot = normalize(bot - center);
 
-    //Section segment;
-    if (checkSegmentCollisions(va, vb, vc, segment)) {
-        fa = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, va);
-        fb = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, vb);
-        fc = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, vc);
-    } else {
-    }
+    pushVertex(longitude, top, normalTop, 0, section.neuronId, section.sectionId, topConnection < MAX_SOMA_CONNECTIONS);
+    pushVertex(longitude + LONG_VERTICES, bot, normalBot, 0, section.neuronId, section.sectionId, botConnection < MAX_SOMA_CONNECTIONS);
 
-    if (checkSegmentCollisions(vc, vb, vd, segment)) {
-        fc = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, vc);
-        fb = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, vb);
-        fd = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, vd);
-    } else {
-    }
+    uint a = longitude;
+    uint b = (a + 1) % LONG_VERTICES;
+    uint c = a + LONG_VERTICES;
+    uint d = b + LONG_VERTICES;
 
-    gl_PrimitiveTriangleIndicesEXT[longIndex * 2 + 0] = uvec3(a, b, c);
-    gl_PrimitiveTriangleIndicesEXT[longIndex * 2 + 1] = uvec3(c, b, d);
-
-
-    pushVertex(a, fa, normalize(fa - center), 0, section.neuronId, section.sectionId, isSelected);
-    pushVertex(b, fb, normalize(fb - center), 0, section.neuronId, section.sectionId, isSelected);
-    pushVertex(c, fc, normalize(fc - center), 0, section.neuronId, section.sectionId, isSelected);
-    pushVertex(d, fd, normalize(fd - center), 0, section.neuronId, section.sectionId, isSelected);
+    gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 0] = uvec3(a, b, c);
+    gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 1] = uvec3(c, b, d);
 }
