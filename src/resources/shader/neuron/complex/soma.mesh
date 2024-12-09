@@ -69,6 +69,8 @@ struct TaskData {
 
 taskPayloadSharedEXT TaskData td;
 
+shared vec3 vertices[maxVertices];
+
 layout(location = 0) out vec3 fragNormal[];
 layout(location = 1) flat out float fragType[];
 layout(location = 2) flat out float fragNeuronId[];
@@ -92,69 +94,90 @@ vec3 projectToSphere (vec3 center, float radius, vec3 point) {
     return center + normalize(point - center) * radius;
 }
 
-bool sphereIntersectsTriangle(vec3 a, vec3 b, vec3 c, vec3 center, float radius) {
-    // Step 1: Triangle plane normal
-    vec3 n = normalize(cross(b - a, c - a));
-
-    // Step 2: Signed distance from sphere center to plane
-    float d = abs(dot(center - a, n));
-    if (d > radius) return false;
-
-    // Step 3: Project sphere center onto triangle plane
-    vec3 p = center - n * dot(center - a, n);
-
-    // Step 4: Check if the projected point lies inside the triangle
-    vec3 edge0 = b - a, edge1 = c - b, edge2 = a - c;
-    vec3 c0 = cross(edge0, n);
-    vec3 c1 = cross(edge1, n);
-    vec3 c2 = cross(edge2, n);
-    if (dot(p - a, c0) >= 0.0f && dot(p - b, c1) >= 0.0f && dot(p - c, c2) >= 0.0f) {
-        return true;
-    }
-
-    // Step 5: Check sphere-edge intersection
-    vec3 closestAB = closestPointInSegment(a, b, center);
-    vec3 closestBC = closestPointInSegment(b, c, center);
-    vec3 closestCA = closestPointInSegment(c, a, center);
-    if (dot(center - closestAB, center - closestAB) <= radius * radius ||
-    dot(center - closestBC, center - closestBC) <= radius * radius ||
-    dot(center - closestCA, center - closestCA) <= radius * radius) {
-        return true;
-    }
-
-    return dot(center - a, center - a) <= radius * radius ||
-    dot(center - b, center - b) <= radius * radius ||
-    dot(center - c, center - c) <= radius * radius;
+vec3 projectToCapsule(vec3 from, vec3 to, float radius, vec3 point) {
+    vec3 center = closestPointInSegment(from, to, point);
+    return projectToSphere(center, radius, point);
 }
 
-void checkSegmentCollisions (vec3 position, out uint projectedSection, out vec3 projectedPosition) {
+float segmentToSegmentDistanceSquared(vec3 p1, vec3 q1, vec3 p2, vec3 q2) {
+    vec3 d1 = q1 - p1;
+    vec3 d2 = q2 - p2;
+    vec3 r = p1 - p2;
+
+    float a = dot(d1, d1);
+    float e = dot(d2, d2);
+    float f = dot(d2, r);
+
+    float c = dot(d1, r);
+    float b = dot(d1, d2);
+    float denom = a * e - b * b;
+    float s = clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+    float t = (b * s + f) / e;
+
+    if (t < 0.0) {
+        t = 0.0;
+        s = clamp(-c / a, 0.0f, 1.0f);
+    } else if (t > 1.0) {
+        t = 1.0;
+        s = clamp((b - c) / a, 0.0f, 1.0f);
+    }
+
+    vec3 closestPoint1 = p1 + s * d1;
+    vec3 closestPoint2 = p2 + t * d2;
+    vec3 p1p2 = closestPoint1 - closestPoint2;
+    return dot(p1p2, p1p2);
+}
+
+bool capsuleTriangleIntersection(vec3 p1, vec3 p2, float radius, vec3 a, vec3 b, vec3 c) {
+    float r2 = radius * radius;
+
+    if (segmentToSegmentDistanceSquared(p1, p2, a, b) < r2) return true;
+    if (segmentToSegmentDistanceSquared(p1, p2, b, c) < r2) return true;
+    if (segmentToSegmentDistanceSquared(p1, p2, c, a) < r2) return true;
+
+    vec3 normal = normalize(cross(b - a, c - a));
+    float d1 = dot(normal, p1 - a);
+    float d2 = dot(normal, p2 - a);
+    if (d1 * d2 > 0) return false;
+
+    float t = d1 / (d1 - d2);
+    vec3 intersection = p1 + (p2 - p1) * t;
+
+    vec3 c0 = cross(b - a, intersection - a);
+    if (dot(normal, c0) < 0) return false;
+
+    vec3 c1 = cross(c - b, intersection - b);
+    if (dot(normal, c1) < 0) return false;
+
+    vec3 c2 = cross(a - c, intersection - c);
+    if (dot(normal, c2) < 0) return false;
+
+    return true;
+}
+
+bool checkSegmentCollisions (vec3 a, vec3 b, vec3 c, out Section intersectedSegment) {
     Soma soma = somas[td.section];
-    Section somaSection = sections[soma.sectionIndex];
-    vec3 from = somaSection.endAndRadius.xyz;
-    projectedPosition = position;
-    projectedSection = 8;
+    Section somaSegment = sections[soma.sectionIndex];
+    vec3 from = somaSegment.endAndRadius.xyz;
+    intersectedSegment = somaSegment;
     for (uint i = 0; i < soma.amount; ++i) {
-        Section section = sections[soma.connection[i]];
-        vec3 to = section.endAndRadius.xyz;
-        vec3 center = closestPointInSegment(from, to, position);
-        if (isInsideSphere(center, section.endAndRadius.w, position)) {
-            projectedPosition = projectToSphere(center, section.endAndRadius.w, position);
-            projectedSection = i;
-            break;
+        Section segment = sections[soma.connection[i]];
+        vec3 to = segment.endAndRadius.xyz;
+        if (capsuleTriangleIntersection(from, to, segment.endAndRadius.w, a, b, c)) {
+            intersectedSegment = segment;
+            return true;
         }
     }
+    return false;
 }
 
 void pushVertex(uint i, vec3 position, vec3 normal, uint type, uint neuronId, uint sectionId, bool sel) {
-    uint section;
-    vec3 projectedPosition;
-    checkSegmentCollisions(position, section, projectedPosition);
-    gl_MeshVerticesEXT[i].gl_Position = viewProjection * vec4(projectedPosition, 1.0f);
+    gl_MeshVerticesEXT[i].gl_Position = viewProjection * vec4(position, 1.0f);
     fragNormal[i] = normal;
     fragType[i] = uintBitsToFloat(type);
     fragNeuronId[i] = uintBitsToFloat(neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
-    fragSelected[i] = section < 8 ? 1.0f : 0.0f;//sel ? 1.0f : 0.0f;
+    fragSelected[i] = sel ? 1.0f : 0.0f;
 }
 
 void main() {
@@ -186,18 +209,49 @@ void main() {
 
     vec3 top = vec3(sinThetaTop * cosPhi, cosThetaTop, sinThetaTop * sinPhi) * radius;
     vec3 bot = vec3(sinThetaBot * cosPhi, cosThetaBot, sinThetaBot * sinPhi) * radius;
-    vec3 normalTop = normalize(top);
-    vec3 normalBot = normalize(bot);
+    vertices[longIndex] = top + center;
+    vertices[longIndex + numLongDivs] = bot + center;
+    //pushVertex(longIndex, top + center, normalTop, 0, section.neuronId, section.sectionId, isSelected);
+    //pushVertex(longIndex + numLongDivs, bot + center, normalBot, 0, section.neuronId, section.sectionId, isSelected);
 
-    pushVertex(longIndex, top + center, normalTop, 0, section.neuronId, section.sectionId, isSelected);
-    pushVertex(longIndex + numLongDivs, bot + center, normalBot, 0, section.neuronId, section.sectionId, isSelected);
-
+    barrier();
 
     uint a = longIndex;
     uint b = (a + 1) % numLongDivs;
     uint c = a + numLongDivs;
     uint d = b + numLongDivs;
 
+    vec3 va = vertices[a];
+    vec3 vb = vertices[b];
+    vec3 vc = vertices[c];
+    vec3 vd = vertices[d];
+
+    vec3 fa = va;
+    vec3 fb = vb;
+    vec3 fc = vc;
+    vec3 fd = vd;
+
+    //Section segment;
+    if (checkSegmentCollisions(va, vb, vc, segment)) {
+        fa = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, va);
+        fb = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, vb);
+        fc = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, vc);
+    } else {
+    }
+
+    if (checkSegmentCollisions(vc, vb, vd, segment)) {
+        fc = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, vc);
+        fb = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, vb);
+        fd = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, vd);
+    } else {
+    }
+
     gl_PrimitiveTriangleIndicesEXT[longIndex * 2 + 0] = uvec3(a, b, c);
     gl_PrimitiveTriangleIndicesEXT[longIndex * 2 + 1] = uvec3(c, b, d);
+
+
+    pushVertex(a, fa, normalize(fa - center), 0, section.neuronId, section.sectionId, isSelected);
+    pushVertex(b, fb, normalize(fb - center), 0, section.neuronId, section.sectionId, isSelected);
+    pushVertex(c, fc, normalize(fc - center), 0, section.neuronId, section.sectionId, isSelected);
+    pushVertex(d, fd, normalize(fd - center), 0, section.neuronId, section.sectionId, isSelected);
 }
