@@ -97,9 +97,9 @@ vec3 closestPointToTriangle(vec3 a, vec3 b, vec3 c, vec3 p) {
     vec3 c2 = closestPointToSegment(b, c, p);
     vec3 c3 = closestPointToSegment(c, a, p);
 
-    float m1 = dot(c1, c1);
-    float m2 = dot(c2, c2);
-    float m3 = dot(c3, c3);
+    float m1 = dot(p - c1, p - c1);
+    float m2 = dot(p - c2, p - c2);
+    float m3 = dot(p - c3, p - c3);
 
     if (m1 < m2 && m1 < m3) return c1;
     if (m2 < m1 && m2 < m3) return c2;
@@ -132,7 +132,10 @@ bool checkSegmentCollisions (vec3 a, vec3 b, vec3 c, out uint intersectedSegment
     for (uint i = 0; i < soma.amount; ++i) {
         Section segment = sections[soma.connection[i]];
         vec3 to = segment.endAndRadius.xyz;
-        if (capsuleTriangleIntersection(from, to, segment.endAndRadius.w, a, b, c)) {
+        vec3 d = normalize(to - from);
+        vec3 realFrom = from + d * somaSegment.endAndRadius.w * 0.5f;
+
+        if (capsuleTriangleIntersection(realFrom, to, segment.endAndRadius.w, a, b, c)) {
             intersectedSegment = i;
             return true;
         }

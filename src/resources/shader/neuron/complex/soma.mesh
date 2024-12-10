@@ -171,8 +171,8 @@ void main() {
     vec3 normalTop = normalize(top - center);
     vec3 normalBot = normalize(bot - center);
 
-    pushVertex(longitude, top, normalTop, 0, section.neuronId, section.sectionId, topConnection < MAX_SOMA_CONNECTIONS);
-    pushVertex(longitude + LONG_VERTICES, bot, normalBot, 0, section.neuronId, section.sectionId, botConnection < MAX_SOMA_CONNECTIONS);
+    pushVertex(longitude, top, normalTop, topConnection, section.neuronId, section.sectionId, false);
+    pushVertex(longitude + LONG_VERTICES, bot, normalBot, botConnection, section.neuronId, section.sectionId, false);
 
     uint a = longitude;
     uint b = (a + 1) % LONG_VERTICES;

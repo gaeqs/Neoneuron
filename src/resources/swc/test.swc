@@ -1,7 +1,7 @@
 # SWC Conversion from CATMAID through Matlab
 # Morphology of handle-A a1 as described in Ohyama et al. Nature 2015
 
-1 1 0 0 0 0.2 -1
+1 1 0 0 0 5 -1
 2 3 1 10 0 0.2 1
 3 3 10 20 0 0.7 2
 4 3 -10 20 0 0.7 2

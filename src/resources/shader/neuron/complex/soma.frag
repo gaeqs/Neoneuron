@@ -37,7 +37,25 @@ void main() {
     float intensity = viewNormal.z * 0.8f + 0.2f;
 
     uint type = floatBitsToUint(fragType);
-    vec4 pre = fragSelected > 0.5f ? selectedColor : defaultColor;
-    color = vec4(pre.xyz * intensity, pre.w);
+    vec3 color3 = defaultColor.xyz;
+    if(type == 0) {
+        color3 = vec3(0, 1, 0);
+    } else if(type == 1) {
+        color3 = vec3(0, 0, 1);
+    } else if (type == 2) {
+        color3 = vec3(1, 1, 0);
+    } else if(type == 3) {
+        color3 = vec3(1, 1, 1);
+    } else if(type == 4) {
+        color3 = vec3(0.5f, 0.5f, 0.5f);
+    } else if(type == 5) {
+        color3 = vec3(1, 0.5f, 0.5f);
+    } else if(type == 6) {
+        color3 = vec3(0.5f, 1, 0.5f);
+    } else if(type == 7) {
+        color3 = vec3(0.5f, 0.5f, 1);
+    }
+
+    color = vec4(color3 * intensity, 1.0f);
     ids = vec3(1, fragNeuronId, fragSectionId);
 }
