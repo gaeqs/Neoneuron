@@ -109,7 +109,7 @@ namespace neoneuron {
           _interpolator(std::move(interpolator)),
           _position(rush::Vec3f(), rush::Vec2f(), 10.0f),
           _radiusVelocity(0),
-          _radiusScale(_position.radius / 100.0f),
+          _radiusScale(_position.radius / 10.0f),
           _positionScale(_position.radius / 1000.0f),
           _dragPosition(false),
           _dragRotation(false) {
@@ -127,7 +127,7 @@ namespace neoneuron {
     void OrbitalCameraController::focusOn(const rush::AABB<3, float>& aabb) {
         _position.position = aabb.center;
         _position.radius = aabb.radius.length();
-        _radiusScale = _position.radius / 100.0f;
+        _radiusScale = _position.radius / 10.0f;
         _positionScale = _position.radius / 30000.0f;
         sendPosition();
     }

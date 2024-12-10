@@ -4,6 +4,7 @@
 const float M_PI = 3.1415926535897932384626433832795f;
 
 const uint MAX_SOMA_CONNECTIONS = 8;
+const uint MAX_CONNECTION_VERTICES = 32;
 
 const uint MAX_LAT_VERTICES = 32;
 const uint MAX_LONG_VERTICES = 32;
@@ -76,7 +77,7 @@ layout(std430, set = 2, binding = 4) buffer SomaGPUData {
 };
 
 struct TaskData {
-    uint section;
+    uint somaIndex;
 };
 
 taskPayloadSharedEXT TaskData td;
@@ -87,11 +88,14 @@ layout(location = 2) flat out float fragNeuronId[];
 layout(location = 3) flat out float fragSectionId[];
 layout(location = 4) flat out float fragSelected[];
 
+
+shared uint connectionVertices[MAX_CONNECTION_VERTICES];
+
 vec3 closestPointInSegment(vec3 from, vec3 to, vec3 point) {
     vec3 v = point - from;
     vec3 dir = to - from;
     float l2 = dot(dir, dir);
-    float d = clamp(dot(v, dir) / l2, 0, 1);
+    float d = clamp(dot(v, dir) / l2, 0.0f, 1.0f);
     return from + d * dir;
 }
 
@@ -110,7 +114,7 @@ vec3 projectToCapsule(vec3 from, vec3 to, float radius, vec3 point) {
 }
 
 uint fetchConnection(uint vertex) {
-    uint index = td.section * STORAGE_PER_SOMA + vertex / 4;
+    uint index = td.somaIndex * STORAGE_PER_SOMA + vertex / 4;
     uint subindex = vertex % 4;
     uint packed = packedConnection[index];
     return (packed >> (subindex * 8u)) & 255u;
@@ -123,29 +127,29 @@ void pushVertex(uint i, vec3 position, vec3 normal, uint type, uint neuronId, ui
     fragSectionId[i] = uintBitsToFloat(sectionId);
     fragSelected[i] = sel ? 1.0f : 0.0f;
 
-    if(type == 0) {
+    if (type == 0) {
         fragColor[i] = vec3(0, 1, 0);
-    } else if(type == 1) {
+    } else if (type == 1) {
         fragColor[i] = vec3(0, 0, 1);
     } else if (type == 2) {
         fragColor[i] = vec3(1, 1, 0);
-    } else if(type == 3) {
+    } else if (type == 3) {
         fragColor[i] = vec3(1, 1, 1);
-    } else if(type == 4) {
+    } else if (type == 4) {
         fragColor[i] = vec3(0.5f, 0.5f, 0.5f);
-    } else if(type == 5) {
+    } else if (type == 5) {
         fragColor[i] = vec3(1, 0.5f, 0.5f);
-    } else if(type == 6) {
+    } else if (type == 6) {
         fragColor[i] = vec3(0.5f, 1, 0.5f);
-    } else if(type == 7) {
+    } else if (type == 7) {
         fragColor[i] = vec3(0.5f, 0.5f, 1);
     } else {
         fragColor[i] = defaultColor.xyz;
     }
 }
 
-void main() {
-    Soma soma = somas[td.section];
+void generateSomaPart () {
+    Soma soma = somas[td.somaIndex];
     Section section = sections[soma.sectionIndex];
     bool isSelected = selected[soma.sectionIndex];
 
@@ -159,8 +163,8 @@ void main() {
     uint longitude = gl_LocalInvocationID.x;
 
     float phi = float(longitude) / float(LONG_VERTICES) * 2.0 * M_PI;// Longitude angle (0 to 2π)
-    float thetaTop = float(latitude + 0.5f) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
-    float thetaBot = float(latitude + 1.5f) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
+    float thetaTop = float(latitude) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
+    float thetaBot = float(latitude + 1) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
 
     float cosPhi = cos(phi);
     float sinPhi = sin(phi);
@@ -177,15 +181,15 @@ void main() {
     uint topConnection = fetchConnection(topIndex);
     uint botConnection = fetchConnection(botIndex);
 
-    //if (topConnection < MAX_SOMA_CONNECTIONS) {
-    //    Section segment = sections[soma.connection[topConnection]];
-    //    top = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, top);
-    //}
+    if (topConnection < MAX_SOMA_CONNECTIONS) {
+        Section segment = sections[soma.connection[topConnection]];
+        top = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, top);
+    }
 
-    //if (botConnection < MAX_SOMA_CONNECTIONS) {
-    //    Section segment = sections[soma.connection[botConnection]];
-    //    bot = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, bot);
-    //}
+    if (botConnection < MAX_SOMA_CONNECTIONS) {
+        Section segment = sections[soma.connection[botConnection]];
+        bot = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w, bot);
+    }
 
     vec3 normalTop = normalize(top - center);
     vec3 normalBot = normalize(bot - center);
@@ -198,6 +202,46 @@ void main() {
     uint c = a + LONG_VERTICES;
     uint d = b + LONG_VERTICES;
 
-    gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 0] = uvec3(a, b, c);
-    gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 1] = uvec3(c, b, d);
+    uint ia = fetchConnection(latitude * LONG_VERTICES + a);
+    uint ib = fetchConnection(latitude * LONG_VERTICES + b);
+    uint ic = fetchConnection(latitude * LONG_VERTICES + c);
+    uint id = fetchConnection(latitude * LONG_VERTICES + d);
+
+    if (ia != ib || ia != ic || ia == MAX_SOMA_CONNECTIONS) {
+        gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 0] = uvec3(a, b, c);
+    } else {
+        gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 0] = uvec3(a, a, a);
+    }
+    if (id != ib || id != ic || id == MAX_SOMA_CONNECTIONS) {
+        gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 1] = uvec3(c, b, d);
+    } else {
+        gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 1] = uvec3(d, d, d);
+    }
+}
+
+void generateConnection () {
+    // Find the indices of all vertices that have been selected by this connection.
+    uint currentConnection = gl_WorkGroupID.x - LAT_VERTICES;
+
+    uint verticesAmount = 0;
+    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES - LONG_VERTICES; vertexIndex += gl_WorkGroupSize.x) {
+        uint connection = fetchConnection(vertexIndex);
+        bool connected = connection == currentConnection;
+        uvec4 vote = subgroupBallot(connected);
+        uint arrayId = verticesAmount + subgroupBallotExclusiveBitCount(vote);
+        if (connected) {
+            connectionVertices[arrayId] = vertexIndex;
+        }
+
+        uint amount = subgroupBallotBitCount(vote);
+    }
+
+}
+
+void main() {
+    if (gl_WorkGroupID.x < LAT_VERTICES) {
+        generateSomaPart();
+    } else {
+        generateConnection();
+    }
 }

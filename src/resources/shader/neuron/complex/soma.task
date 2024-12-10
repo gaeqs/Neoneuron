@@ -16,8 +16,23 @@ const uint VERTICES = LAT_VERTICES * LONG_VERTICES;
 
 layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
+layout (set = 0, binding = 1) uniform GlobalData {
+    float currentTime;
+    float radiusStrength;
+    float startClip;
+    float endClip;
+    float splitHeight;
+    float splitArcStrength;
+    uint rotationIndexOffset;
+    uint childrenRotationIndexOffset;
+    uint minChildrenForJoint;
+    uint verticesPerCircle;
+    vec4 defaultColor;
+    vec4 selectedColor;
+};
+
 struct TaskData {
-    uint instance;
+    uint somaIndex;
 };
 
 struct Section {
@@ -92,7 +107,7 @@ bool pointInTriangle(vec3 a, vec3 b, vec3 c, vec3 p) {
 
 void planeFromTriangle(vec3 a, vec3 b, vec3 c, out vec3 normal, out float d) {
     normal = normalize(cross(b - a, c - a));
-    d = -dot(normal, a);
+    d = dot(normal, a);
 }
 
 vec3 closestPointToPlane(vec3 n, float d, vec3 p) {
@@ -173,7 +188,7 @@ void generateSomaGPUData() {
         uint longitude = vertexIndex % LONG_VERTICES;
 
         float phi = float(longitude) / float(LONG_VERTICES) * 2.0 * M_PI;// Longitude angle (0 to 2π)
-        float theta = float(latitude + 0.5f) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
+        float theta = float(latitude) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
 
         float cosPhi = cos(phi);
         float sinPhi = sin(phi);
@@ -193,8 +208,12 @@ void generateSomaGPUData() {
 
     // Now, let's fetch the triangles and generate check for connections!
     for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES - LONG_VERTICES; vertexIndex += gl_WorkGroupSize.x) {
+        uint latitude = vertexIndex / LONG_VERTICES;
+        uint longitude = vertexIndex % LONG_VERTICES;
+
+
         uint a = vertexIndex;
-        uint b = (a + 1) % LONG_VERTICES;
+        uint b = latitude * LONG_VERTICES + (longitude + 1) % LONG_VERTICES;
         uint c = a + LONG_VERTICES;
         uint d = b + LONG_VERTICES;
 
@@ -232,10 +251,11 @@ void generateSomaGPUData() {
 }
 
 void main() {
+    Soma soma = somas[gl_WorkGroupID.x];
     generateSomaGPUData();
     if (gl_LocalInvocationID.x == 0) {
-        td.instance = gl_WorkGroupID.x;
-        EmitMeshTasksEXT(LAT_VERTICES - 1, 1, 1);
+        td.somaIndex = gl_WorkGroupID.x;
+        EmitMeshTasksEXT(LAT_VERTICES - 1 + soma.amount, 1, 1);
     }
 }
     
