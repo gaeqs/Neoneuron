@@ -100,7 +100,7 @@ void main() {
     bool hasStartJoint = parentChildren >= minChildrenForJoint;
     bool hasEndJoint = sectionChildren >= minChildrenForJoint;
 
-    float sClip = parentSoma ? 0.5f : (hasStartJoint ? startClip : 0.0f);
+    float sClip = parentSoma ? 0.1f : (hasStartJoint ? startClip : 0.0f);
     float eClip = hasEndJoint ? endClip : 0.0f;
 
     vec3 end = section.endAndRadius.xyz;

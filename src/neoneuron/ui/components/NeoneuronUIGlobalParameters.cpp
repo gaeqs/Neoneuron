@@ -52,6 +52,10 @@ namespace neoneuron {
                     bool wireframe = complexScene->isWireframeMode();
                     ImGui::Checkbox("Wireframe", &wireframe);
                     complexScene->setWireframeMode(wireframe);
+
+                    if (ImGui::Button("Reload shaders")) {
+                        complexScene->reloadShader();
+                    }
                 }
 
                 ImGui::PopItemWidth();

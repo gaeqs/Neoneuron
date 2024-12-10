@@ -54,7 +54,16 @@ shared uint connection[MAX_VERTICES];
 vec3 closestPointInSegmentToPlane(vec3 from, vec3 to, vec3 n, float d) {
     vec3 ab = to - from;
     float na = dot(n, from);
+
     float nab = dot(n, ab);
+
+    if (abs(nab) < 1e-6f) {
+        // Compare distances of `from` and `to` to the plane
+        float distFrom = abs(dot(n, from) - d);
+        float distTo = abs(dot(n, to) - d);
+        return (distFrom < distTo) ? from : to;
+    }
+
     float t = clamp((d - na) / nab, 0.0f, 1.0f);
     return from + t * ab;
 }
@@ -66,18 +75,24 @@ vec3 closestPointToSegment(vec3 from, vec3 to, vec3 p) {
 }
 
 bool pointInTriangle(vec3 a, vec3 b, vec3 c, vec3 p) {
-    vec3 la = a - p;
-    vec3 lb = b - p;
-    vec3 lc = c - p;
-    vec3 bc = cross(lb, lc);
-    vec3 ca = cross(lc, la);
-    vec3 ab = cross(la, lb);
-    return dot(bc, ca) >= 0.0f && dot(bc, ab) >= 0.0f;
+    vec3 v0 = b - a, v1 = c - a, v2 = p - a;
+    float d00 = dot(v0, v0);
+    float d01 = dot(v0, v1);
+    float d11 = dot(v1, v1);
+    float d20 = dot(v2, v0);
+    float d21 = dot(v2, v1);
+
+    float denom = d00 * d11 - d01 * d01;
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.0f - v - w;
+
+    return u >= -1e-6f && v >= -1e-6f && w >= -1e-6f;
 }
 
 void planeFromTriangle(vec3 a, vec3 b, vec3 c, out vec3 normal, out float d) {
     normal = normalize(cross(b - a, c - a));
-    d = dot(normal, a);
+    d = -dot(normal, a);
 }
 
 vec3 closestPointToPlane(vec3 n, float d, vec3 p) {
@@ -133,7 +148,7 @@ bool checkSegmentCollisions (vec3 a, vec3 b, vec3 c, out uint intersectedSegment
         Section segment = sections[soma.connection[i]];
         vec3 to = segment.endAndRadius.xyz;
         vec3 d = normalize(to - from);
-        vec3 realFrom = from + d * somaSegment.endAndRadius.w * 0.5f;
+        vec3 realFrom = from + d * somaSegment.endAndRadius.w * 1.0f;
 
         if (capsuleTriangleIntersection(realFrom, to, segment.endAndRadius.w, a, b, c)) {
             intersectedSegment = i;
@@ -158,7 +173,7 @@ void generateSomaGPUData() {
         uint longitude = vertexIndex % LONG_VERTICES;
 
         float phi = float(longitude) / float(LONG_VERTICES) * 2.0 * M_PI;// Longitude angle (0 to 2π)
-        float theta = float(latitude) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
+        float theta = float(latitude + 0.5f) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
 
         float cosPhi = cos(phi);
         float sinPhi = sin(phi);

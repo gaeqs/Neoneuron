@@ -106,6 +106,8 @@ namespace neoneuron {
         [[nodiscard]] bool isWireframeMode() const;
 
         void setWireframeMode(bool wireframe);
+
+        void reloadShader();
     };
 }
 

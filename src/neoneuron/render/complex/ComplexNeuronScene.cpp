@@ -76,15 +76,29 @@ namespace neoneuron {
     }
 
     void ComplexNeuronScene::loadSomaShader() {
-        _somaShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
+        auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
 
-        auto fs = cmrc::resources::get_filesystem();
-        _somaShader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/soma.task"));
-        _somaShader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/soma.mesh"));
-        _somaShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/soma.frag"));
 
-        if (auto result = _somaShader->compile(); result.has_value()) {
+        auto fs = neon::DirectoryFileSystem(std::filesystem::current_path());
+
+        auto task = fs.readFile("/home/gaeqs/CLionProjects/neoneuron/src/resources/shader/neuron/complex/soma.task");
+        auto mesh = fs.readFile("/home/gaeqs/CLionProjects/neoneuron/src/resources/shader/neuron/complex/soma.mesh");
+        auto frag = fs.readFile("/home/gaeqs/CLionProjects/neoneuron/src/resources/shader/neuron/complex/soma.frag");
+
+        if (task.has_value()) {
+            shader->addShader(neon::ShaderType::TASK, task.value().toString());
+        }
+        if (mesh.has_value()) {
+            shader->addShader(neon::ShaderType::MESH, mesh.value().toString());
+        }
+        if (frag.has_value()) {
+            shader->addShader(neon::ShaderType::FRAGMENT, frag.value().toString());
+        }
+
+        if (auto result = shader->compile(); result.has_value()) {
             _render->getApplication().getLogger().error(result.value());
+        } else {
+            _somaShader = std::move(shader);
         }
     }
 
@@ -111,7 +125,7 @@ namespace neoneuron {
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _somaShader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
         materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
-        materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::POINT : neon::PolygonMode::FILL;
+        materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
         _somaMaterial = std::make_shared<neon::Material>(app, "Soma", materialCreateInfo);
     }
 
@@ -441,6 +455,16 @@ namespace neoneuron {
 
         loadNeuronMaterial();
         loadJointMaterial();
+        loadSomaMaterial();
+        reassignMaterials();
+
+        _render->getApplication().getTaskRunner().launchCoroutine(deleteCoroutine(std::move(materials)));
+    }
+
+    void ComplexNeuronScene::reloadShader() {
+        std::vector materials = {_neuronMaterial, _jointMaterial, _somaMaterial};
+
+        loadSomaShader();
         loadSomaMaterial();
         reassignMaterials();
 

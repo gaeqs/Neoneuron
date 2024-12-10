@@ -82,7 +82,7 @@ struct TaskData {
 taskPayloadSharedEXT TaskData td;
 
 layout(location = 0) out vec3 fragNormal[];
-layout(location = 1) flat out float fragType[];
+layout(location = 1) out vec3 fragColor[];
 layout(location = 2) flat out float fragNeuronId[];
 layout(location = 3) flat out float fragSectionId[];
 layout(location = 4) flat out float fragSelected[];
@@ -119,10 +119,29 @@ uint fetchConnection(uint vertex) {
 void pushVertex(uint i, vec3 position, vec3 normal, uint type, uint neuronId, uint sectionId, bool sel) {
     gl_MeshVerticesEXT[i].gl_Position = viewProjection * vec4(position, 1.0f);
     fragNormal[i] = normal;
-    fragType[i] = uintBitsToFloat(type);
     fragNeuronId[i] = uintBitsToFloat(neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
     fragSelected[i] = sel ? 1.0f : 0.0f;
+
+    if(type == 0) {
+        fragColor[i] = vec3(0, 1, 0);
+    } else if(type == 1) {
+        fragColor[i] = vec3(0, 0, 1);
+    } else if (type == 2) {
+        fragColor[i] = vec3(1, 1, 0);
+    } else if(type == 3) {
+        fragColor[i] = vec3(1, 1, 1);
+    } else if(type == 4) {
+        fragColor[i] = vec3(0.5f, 0.5f, 0.5f);
+    } else if(type == 5) {
+        fragColor[i] = vec3(1, 0.5f, 0.5f);
+    } else if(type == 6) {
+        fragColor[i] = vec3(0.5f, 1, 0.5f);
+    } else if(type == 7) {
+        fragColor[i] = vec3(0.5f, 0.5f, 1);
+    } else {
+        fragColor[i] = defaultColor.xyz;
+    }
 }
 
 void main() {
@@ -140,8 +159,8 @@ void main() {
     uint longitude = gl_LocalInvocationID.x;
 
     float phi = float(longitude) / float(LONG_VERTICES) * 2.0 * M_PI;// Longitude angle (0 to 2π)
-    float thetaTop = float(latitude) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
-    float thetaBot = float(latitude + 1) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
+    float thetaTop = float(latitude + 0.5f) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
+    float thetaBot = float(latitude + 1.5f) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
 
     float cosPhi = cos(phi);
     float sinPhi = sin(phi);
