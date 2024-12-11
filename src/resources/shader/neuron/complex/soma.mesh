@@ -1,5 +1,6 @@
 #version 460
 #extension GL_EXT_mesh_shader: enable
+#extension GL_KHR_shader_subgroup_ballot: enable
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
@@ -89,7 +90,9 @@ layout(location = 3) flat out float fragSectionId[];
 layout(location = 4) flat out float fragSelected[];
 
 
-shared uint connectionVertices[MAX_CONNECTION_VERTICES];
+shared uint connectionVerticesIndices[MAX_CONNECTION_VERTICES];
+shared vec3 connectionVertices[MAX_CONNECTION_VERTICES];
+shared float connectionVerticesAngles[MAX_CONNECTION_VERTICES];
 
 vec3 closestPointInSegment(vec3 from, vec3 to, vec3 point) {
     vec3 v = point - from;
@@ -118,6 +121,43 @@ uint fetchConnection(uint vertex) {
     uint subindex = vertex % 4;
     uint packed = packedConnection[index];
     return (packed >> (subindex * 8u)) & 255u;
+}
+
+void swapVertices(uint i, uint j) {
+    float tempAngle = connectionVerticesAngles[i];
+    uint tempIndex = connectionVerticesIndices[i];
+    vec3 tempVertex = connectionVertices[i];
+
+    connectionVerticesAngles[i] = connectionVerticesAngles[j];
+    connectionVerticesIndices[i] = connectionVerticesIndices[j];
+    connectionVertices[i] = connectionVertices[j];
+
+
+    connectionVerticesAngles[j] = tempAngle;
+    connectionVerticesIndices[j] = tempIndex;
+    connectionVertices[j] = tempVertex;
+}
+
+void verticesBitonicSort(uint verticesAmount) {
+    for (uint k = 2; k <= LONG_VERTICES; k *= 2) {
+        for (uint j = k / 2; j > 0; j /= 2) {
+            uint idx = gl_LocalInvocationID.x;
+
+            uint i = idx ^ j;
+            if (i > idx) {
+                if ((idx & k) == 0) {
+                    if (connectionVerticesAngles[idx] > connectionVerticesAngles[i]) {
+                        swapVertices(idx, i);
+                    }
+                } else {
+                    if (connectionVerticesAngles[idx] < connectionVerticesAngles[i]) {
+                        swapVertices(idx, i);
+                    }
+                }
+            }
+            barrier();
+        }
+    }
 }
 
 void pushVertex(uint i, vec3 position, vec3 normal, uint type, uint neuronId, uint sectionId, bool sel) {
@@ -220,22 +260,73 @@ void generateSomaPart () {
 }
 
 void generateConnection () {
-    // Find the indices of all vertices that have been selected by this connection.
     uint currentConnection = gl_WorkGroupID.x - LAT_VERTICES;
 
+    Soma soma = somas[td.somaIndex];
+    Section somaSection = sections[soma.sectionIndex];
+    Section connectionSection = sections[soma.connection[currentConnection]];
+
+    // Find the indices of all vertices that have been selected by this connection.
+
     uint verticesAmount = 0;
-    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES - LONG_VERTICES; vertexIndex += gl_WorkGroupSize.x) {
+    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES; vertexIndex += gl_WorkGroupSize.x) {
         uint connection = fetchConnection(vertexIndex);
         bool connected = connection == currentConnection;
         uvec4 vote = subgroupBallot(connected);
         uint arrayId = verticesAmount + subgroupBallotExclusiveBitCount(vote);
         if (connected) {
-            connectionVertices[arrayId] = vertexIndex;
+            connectionVerticesIndices[arrayId] = vertexIndex;
         }
 
-        uint amount = subgroupBallotBitCount(vote);
+        verticesAmount += subgroupBallotBitCount(vote);
     }
 
+    barrier();
+
+    float radius = somaSection.endAndRadius.w;
+    vec3 somaCenter = somaSection.endAndRadius.xyz;
+    vec3 direction = normalize(connectionSection.endAndRadius.xyz - somaCenter);
+    vec3 center = somaCenter + direction * radius;
+
+    vec3 initialNormal = vec3(0, 0, -1);
+    if (abs(dot(direction, initialNormal)) > 0.99) {
+        initialNormal = vec3(0, 1, 0);// Use a different axis to avoid parallel vectors
+    }
+
+    vec3 tangent = cross(direction, initialNormal);
+    vec3 bitangent = cross(direction, tangent);
+
+    // Generate the vertices.
+    for (uint i = gl_LocalInvocationID.x; i < verticesAmount; i += gl_WorkGroupSize.x) {
+        uint vertexIndex = connectionVerticesIndices[i];
+        uint latitude = vertexIndex / LONG_VERTICES;
+        uint longitude = vertexIndex % LONG_VERTICES;
+
+        float phi = float(longitude) / float(LONG_VERTICES) * 2.0 * M_PI;// Longitude angle (0 to 2π)
+        float theta = float(latitude) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
+
+        float cosPhi = cos(phi);
+        float sinPhi = sin(phi);
+        float cosTheta = cos(theta);
+        float sinTheta = sin(theta);
+
+        vec3 vertex = vec3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi) * radius + center;
+        connectionVertices[i] = vertex;
+
+        vec3 localVertex = vertex - center;
+        float angle = atan(dot(localVertex, bitangent), dot(localVertex, tangent));
+        if (angle < 0.0f) angle += 2.0f * M_PI;
+        connectionVerticesAngles[i] = angle;
+    }
+
+    barrier();
+    verticesBitonicSort(); // Sort already does a barrier.
+
+    packedConnection[150 + currentConnection] = verticesAmount;
+
+    for (uint i = gl_LocalInvocationID.x; i < verticesAmount; i += gl_WorkGroupSize.x) {
+        packedConnection[200 + 100 * currentConnection + i] = uint(connectionVerticesAngles[i] * 180.f / M_PI);
+    }
 }
 
 void main() {
