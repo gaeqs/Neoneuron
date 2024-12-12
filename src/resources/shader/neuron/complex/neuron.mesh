@@ -145,8 +145,8 @@ void main() {
 
     vec3 center = first ? (start + unormDirection * sClip) : end - unormDirection * eClip;
 
-    SetMeshOutputsEXT(verticesPerCircle * 2, verticesPerCircle * 2);
     vec3 point = center + rotated * radius;
+    SetMeshOutputsEXT(verticesPerCircle * 2, verticesPerCircle * 2);
     pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, section.neuronId, section.sectionId, isSelected);
 
     uint a = gl_LocalInvocationID.x;

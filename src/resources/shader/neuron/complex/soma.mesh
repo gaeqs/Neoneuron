@@ -5,7 +5,6 @@
 const float M_PI = 3.1415926535897932384626433832795f;
 
 const uint MAX_SOMA_CONNECTIONS = 8;
-const uint MAX_CONNECTION_VERTICES = 32;
 
 const uint MAX_LAT_VERTICES = 32;
 const uint MAX_LONG_VERTICES = 32;
@@ -13,8 +12,11 @@ const uint MAX_VERTICES = MAX_LAT_VERTICES * MAX_LONG_VERTICES;
 const uint STORAGE_PER_SOMA = MAX_VERTICES;
 
 const uint LAT_VERTICES = 16;
-const uint LONG_VERTICES = 32;
+const uint LONG_VERTICES = 16;
 const uint VERTICES = LAT_VERTICES * LONG_VERTICES;
+
+const uint MAX_CONNECTION_VERTICES = LONG_VERTICES;
+const int MAX_POINTS_PER_CIRCLE = 16;
 
 // Define the maximum vertices and primitives for the mesh shader
 const uint GROUP_VERTICES = LONG_VERTICES * 2;
@@ -112,15 +114,34 @@ vec3 projectToSphere(vec3 center, float radius, vec3 point) {
 }
 
 vec3 projectToCapsule(vec3 from, vec3 to, float radius, vec3 point) {
-    vec3 center = closestPointInSegment(from, to, point);
-    return projectToSphere(center, radius, point);
+    vec3 position = mix(point, to, 0.8f);
+    vec3 center = closestPointInSegment(from, to, position);
+    return projectToSphere(center, radius, position);
 }
 
 uint fetchConnection(uint vertex) {
     uint index = td.somaIndex * STORAGE_PER_SOMA + vertex / 4;
     uint subindex = vertex % 4;
     uint packed = packedConnection[index];
-    return (packed >> (subindex * 8u)) & 255u;
+    return (packed >> (subindex * 8u)) & 15u;
+}
+
+bool fetchInside(uint vertex) {
+    uint index = td.somaIndex * STORAGE_PER_SOMA + vertex / 4;
+    uint subindex = vertex % 4;
+    uint packed = packedConnection[index];
+    uint raw = packed >> (subindex * 8u);
+    return ((raw >> 4) & 1u) == 1u;
+}
+
+
+void fetchPackedData(uint vertex, out uint connection, out bool inside) {
+    uint index = td.somaIndex * STORAGE_PER_SOMA + vertex / 4;
+    uint subindex = vertex % 4;
+    uint packed = packedConnection[index];
+    uint raw = packed >> (subindex * 8u);
+    connection = raw & 15u;
+    inside = ((raw >> 4) & 1u) == 1u;
 }
 
 void swapVertices(uint i, uint j) {
@@ -138,26 +159,28 @@ void swapVertices(uint i, uint j) {
     connectionVertices[j] = tempVertex;
 }
 
-void verticesBitonicSort(uint verticesAmount) {
-    for (uint k = 2; k <= LONG_VERTICES; k *= 2) {
-        for (uint j = k / 2; j > 0; j /= 2) {
-            uint idx = gl_LocalInvocationID.x;
+void sortVertices(uint verticesAmount) {
+    uint i = gl_LocalInvocationID.x;
+    if (i < verticesAmount) {
+        float angle = connectionVerticesAngles[i];
+        uint index = connectionVerticesIndices[i];
+        vec3 vertex = connectionVertices[i];
 
-            uint i = idx ^ j;
-            if (i > idx) {
-                if ((idx & k) == 0) {
-                    if (connectionVerticesAngles[idx] > connectionVerticesAngles[i]) {
-                        swapVertices(idx, i);
-                    }
-                } else {
-                    if (connectionVerticesAngles[idx] < connectionVerticesAngles[i]) {
-                        swapVertices(idx, i);
-                    }
-                }
+        uint sortedPosition = 0;
+        for (uint n = 0; n < verticesAmount; ++n) {
+            if (n == i) continue;
+            float comparing = connectionVerticesAngles[n];
+            if (angle > comparing || (angle == comparing && i > n)) {
+                ++sortedPosition;
             }
-            barrier();
         }
+
+        connectionVerticesAngles[sortedPosition] = angle;
+        connectionVerticesIndices[sortedPosition] = index;
+        connectionVertices[sortedPosition] = vertex;
     }
+
+    barrier();
 }
 
 void pushVertex(uint i, vec3 position, vec3 normal, uint type, uint neuronId, uint sectionId, bool sel) {
@@ -186,6 +209,40 @@ void pushVertex(uint i, vec3 position, vec3 normal, uint type, uint neuronId, ui
     } else {
         fragColor[i] = defaultColor.xyz;
     }
+}
+
+
+void generateConnectionVertices(uint offset, Section soma, Section connection) {
+    if (gl_LocalInvocationID.x >= verticesPerCircle) return;
+
+    uint sectionChildren = (connection.metadata >> 8u) & 7u;
+    bool hasEndJoint = sectionChildren >= minChildrenForJoint;
+    float eClip = hasEndJoint ? endClip : 0.0f;
+
+    float radius = connection.endAndRadius.w * radiusStrength;
+    float angle = float(gl_LocalInvocationID.x) / float(verticesPerCircle) * 2.0f * M_PI;
+
+    vec3 unormDirection = connection.endAndRadius.xyz - soma.endAndRadius.xyz;
+    vec3 direction = normalize(unormDirection);
+
+    // Correctly align the initial basis for the start circle
+    vec3 tangent = direction;
+
+    // Handle edge cases where the tangent might align with the default normal
+    vec3 initialNormal = vec3(0, 0, -1);
+    if (abs(dot(tangent, initialNormal)) > 0.99) {
+        initialNormal = vec3(0, 1, 0);// Use a different axis to avoid parallel vectors
+    }
+
+    vec3 normal = normalize(cross(tangent, initialNormal));
+    vec3 binormal = cross(tangent, normal);
+
+    // Compute the rotated position for each vertex
+    vec3 rotated = cos(angle) * normal + sin(angle) * binormal;
+    vec3 center = connection.endAndRadius.xyz - unormDirection * eClip;
+    vec3 point = center + rotated * radius;
+
+    pushVertex(offset + gl_LocalInvocationID.x, point, rotated, 0, connection.neuronId, connection.sectionId, false);
 }
 
 void generateSomaPart () {
@@ -218,8 +275,12 @@ void generateSomaPart () {
 
     uint topIndex = latitude * LONG_VERTICES + longitude;
     uint botIndex = (latitude + 1) * LONG_VERTICES + longitude;
-    uint topConnection = fetchConnection(topIndex);
-    uint botConnection = fetchConnection(botIndex);
+    uint topConnection;
+    uint botConnection;
+    bool topInside;
+    bool botInside;
+    fetchPackedData(topIndex, topConnection, topInside);
+    fetchPackedData(botIndex, botConnection, botInside);
 
     if (topConnection < MAX_SOMA_CONNECTIONS) {
         Section segment = sections[soma.connection[topConnection]];
@@ -234,8 +295,8 @@ void generateSomaPart () {
     vec3 normalTop = normalize(top - center);
     vec3 normalBot = normalize(bot - center);
 
-    pushVertex(longitude, top, normalTop, topConnection, section.neuronId, section.sectionId, false);
-    pushVertex(longitude + LONG_VERTICES, bot, normalBot, botConnection, section.neuronId, section.sectionId, false);
+    pushVertex(longitude, top, normalTop, topConnection+ ( topInside ? 1 : 0), section.neuronId, section.sectionId, false);
+    pushVertex(longitude + LONG_VERTICES, bot, normalBot, botConnection + (botInside ? 1 : 0), section.neuronId, section.sectionId, false);
 
     uint a = longitude;
     uint b = (a + 1) % LONG_VERTICES;
@@ -260,7 +321,7 @@ void generateSomaPart () {
 }
 
 void generateConnection () {
-    uint currentConnection = gl_WorkGroupID.x - LAT_VERTICES;
+    uint currentConnection = gl_WorkGroupID.x - LAT_VERTICES + 1;
 
     Soma soma = somas[td.somaIndex];
     Section somaSection = sections[soma.sectionIndex];
@@ -270,8 +331,11 @@ void generateConnection () {
 
     uint verticesAmount = 0;
     for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES; vertexIndex += gl_WorkGroupSize.x) {
-        uint connection = fetchConnection(vertexIndex);
-        bool connected = connection == currentConnection;
+        uint connection;
+        bool inside;
+        fetchPackedData(vertexIndex, connection, inside);
+
+        bool connected = connection == currentConnection && !inside;
         uvec4 vote = subgroupBallot(connected);
         uint arrayId = verticesAmount + subgroupBallotExclusiveBitCount(vote);
         if (connected) {
@@ -279,6 +343,11 @@ void generateConnection () {
         }
 
         verticesAmount += subgroupBallotBitCount(vote);
+    }
+
+    if(verticesAmount < 1) {
+        SetMeshOutputsEXT(0, 0);
+        return;
     }
 
     barrier();
@@ -310,29 +379,93 @@ void generateConnection () {
         float cosTheta = cos(theta);
         float sinTheta = sin(theta);
 
-        vec3 vertex = vec3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi) * radius + center;
-        connectionVertices[i] = vertex;
+        vec3 vertex = vec3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi) * radius + somaCenter;
+        vec3 projected = projectToCapsule(somaCenter, connectionSection.endAndRadius.xyz, connectionSection.endAndRadius.w, vertex);
+        connectionVertices[i] = projected;
 
-        vec3 localVertex = vertex - center;
+        vec3 localVertex = projected - center;
         float angle = atan(dot(localVertex, bitangent), dot(localVertex, tangent));
         if (angle < 0.0f) angle += 2.0f * M_PI;
         connectionVerticesAngles[i] = angle;
     }
 
     barrier();
-    verticesBitonicSort(); // Sort already does a barrier.
+    sortVertices(verticesAmount);// Sort already does a barrier.
 
-    packedConnection[150 + currentConnection] = verticesAmount;
-
+    // Push soma vertices
     for (uint i = gl_LocalInvocationID.x; i < verticesAmount; i += gl_WorkGroupSize.x) {
-        packedConnection[200 + 100 * currentConnection + i] = uint(connectionVerticesAngles[i] * 180.f / M_PI);
+        vec3 v = connectionVertices[i];
+        vec3 normal = normalize(v - center);
+        pushVertex(i, v, normal, 0, connectionSection.neuronId, connectionSection.sectionId, false);
     }
+
+    // Push connection vertices
+    generateConnectionVertices(verticesAmount, somaSection, connectionSection);
+
+    // Generate the triangles!
+    float somaPerConnection = min(float(verticesAmount) / float(verticesPerCircle), 1.0f);
+    float connectionPerSoma = min(float(verticesPerCircle) / float(verticesAmount), 1.0f);
+
+    for (uint i = gl_LocalInvocationID.x; i < max(verticesAmount, verticesPerCircle); i += gl_WorkGroupSize.x) {
+        uint somaIndex = uint(somaPerConnection * i);
+        uint somaIndex2 = uint(somaPerConnection * (i + 1)) % verticesAmount;
+
+        uint connectionIndex = uint(connectionPerSoma * i);
+        uint connectionIndex2 = uint(connectionPerSoma * (i + 1)) % verticesPerCircle;
+
+        uint a = somaIndex;
+        uint b = somaIndex2;
+        uint c = connectionIndex + verticesAmount;
+        uint d = connectionIndex2 + verticesAmount;
+        gl_PrimitiveTriangleIndicesEXT[i * 2 + 0] = uvec3(a, b, c);
+        gl_PrimitiveTriangleIndicesEXT[i * 2 + 1] = uvec3(c, b, d);
+    }
+
+    uint triangles = max(verticesAmount, verticesPerCircle) * 2;
+    SetMeshOutputsEXT(verticesAmount + verticesPerCircle, triangles);
+}
+
+void line(uint i, vec3 from, vec3 to) {
+    vec3 n = normalize(to - from);
+    pushVertex(i * 2, from, -n, 0, 0, 1, false);
+    pushVertex(i * 2 + 1, to, n, 0, 0, 1, false);
+    gl_PrimitiveTriangleIndicesEXT[i] = uvec3(i * 2, i * 2, i * 2 + 1);
+}
+
+void drawLine() {
+    uint currentConnection = gl_WorkGroupID.x - LAT_VERTICES + 1;
+
+    Soma soma = somas[td.somaIndex];
+    Section somaSection = sections[soma.sectionIndex];
+    Section connectionSection = sections[soma.connection[currentConnection]];
+
+    vec3 from = somaSection.endAndRadius.xyz;
+    vec3 to = connectionSection.endAndRadius.xyz;
+
+    line(0, from, to);
+
+    vec3 dir = normalize(to - from);
+    vec3 initialNormal = vec3(0, 0, -1);
+    if (abs(dot(dir, initialNormal)) > 0.99) {
+        initialNormal = vec3(0, 1, 0);// Use a different axis to avoid parallel vectors
+    }
+
+    vec3 normal = normalize(cross(dir, initialNormal));
+
+    from = from + dir * somaSection.endAndRadius.w;
+    to = from + normal * connectionSection.endAndRadius.w;
+    line(1, from, to);
+
+
+    SetMeshOutputsEXT(4, 2);
+
 }
 
 void main() {
-    if (gl_WorkGroupID.x < LAT_VERTICES) {
+    if (gl_WorkGroupID.x < LAT_VERTICES - 1) {
         generateSomaPart();
     } else {
         generateConnection();
+        //drawLine();
     }
 }

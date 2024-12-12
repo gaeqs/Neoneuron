@@ -11,7 +11,7 @@ const uint MAX_VERTICES = MAX_LAT_VERTICES * MAX_LONG_VERTICES;
 const uint STORAGE_PER_SOMA = MAX_VERTICES;
 
 const uint LAT_VERTICES = 16;
-const uint LONG_VERTICES = 32;
+const uint LONG_VERTICES = 16;
 const uint VERTICES = LAT_VERTICES * LONG_VERTICES;
 
 layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
@@ -65,6 +65,34 @@ taskPayloadSharedEXT TaskData td;
 
 shared vec3 vertices[MAX_VERTICES];
 shared uint connection[MAX_VERTICES];
+shared bool inside[MAX_VERTICES];
+
+float distanceBetweenSegmentsSquared(vec3 p1, vec3 q1, vec3 p2, vec3 q2) {
+    vec3 d1 = q1 - p1;
+    vec3 d2 = q2 - p2;
+    vec3 r = p1 - p2;
+
+    float a = dot(d1, d1);
+    float e = dot(d2, d2);
+    float f = dot(d2, r);
+
+    float c = dot(d1, r);
+    float b = dot(d1, d2);
+
+    float denom = a * e - b * b;
+
+    float t = abs(denom) < 1e-6f ? 0.0f : clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+    float u = clamp((b * t + f) / e, 0.0f, 1.0f);
+
+    // Recompute t based on clamped u
+    t = clamp((b * u - c) / a, 0.0f, 1.0f);
+
+    vec3 pos1 = p1 + t * d1;
+    vec3 pos2 = p2 + u * d2;
+
+    // Closest point on segment1
+    return dot(pos1 - pos2, pos1 - pos2);
+}
 
 vec3 closestPointInSegmentToPlane(vec3 from, vec3 to, vec3 n, float d) {
     vec3 ab = to - from;
@@ -105,6 +133,10 @@ bool pointInTriangle(vec3 a, vec3 b, vec3 c, vec3 p) {
     return u >= -1e-6f && v >= -1e-6f && w >= -1e-6f;
 }
 
+bool pointInPlane(vec3 n, float d, vec3 p) {
+    return abs(dot(n, p) - d) <= 1e-6f;
+}
+
 void planeFromTriangle(vec3 a, vec3 b, vec3 c, out vec3 normal, out float d) {
     normal = normalize(cross(b - a, c - a));
     d = dot(normal, a);
@@ -115,62 +147,57 @@ vec3 closestPointToPlane(vec3 n, float d, vec3 p) {
     return p - distance * n;
 }
 
-vec3 closestPointToTriangle(vec3 a, vec3 b, vec3 c, vec3 p) {
-    vec3 n;
-    float d;
-    planeFromTriangle(a, b, c, n, d);
-
-    vec3 closest = closestPointToPlane(n, d, p);
-    if (pointInTriangle(a, b, c, closest)) return closest;
-
-    vec3 c1 = closestPointToSegment(a, b, p);
-    vec3 c2 = closestPointToSegment(b, c, p);
-    vec3 c3 = closestPointToSegment(c, a, p);
-
-    float m1 = dot(p - c1, p - c1);
-    float m2 = dot(p - c2, p - c2);
-    float m3 = dot(p - c3, p - c3);
-
-    if (m1 < m2 && m1 < m3) return c1;
-    if (m2 < m1 && m2 < m3) return c2;
-    return c3;
-}
-
-bool triangleSphereIntersection(vec3 a, vec3 b, vec3 c, vec3 center, float radius) {
-    vec3 closest = closestPointToTriangle(a, b, c, center);
-    vec3 distance = closest - center;
-    return dot(distance, distance) < radius * radius;
+bool capsulePointIntersection(vec3 p1, vec3 p2, float radius, vec3 p) {
+    vec3 center = closestPointToSegment(p1, p2, p);
+    vec3 distance = center - p;
+    return dot(distance, distance) <= radius * radius;
 }
 
 bool capsuleTriangleIntersection(vec3 p1, vec3 p2, float radius, vec3 a, vec3 b, vec3 c) {
-    // First, let's get the closest point inside the segment to the plane that represents the triangle.
     vec3 n;
     float d;
     planeFromTriangle(a, b, c, n, d);
 
-    vec3 center = closestPointInSegmentToPlane(p1, p2, n, d);
+    vec3 dir = normalize(p2 - p1);
 
-    // Next, we just have to use the intersection between a sphere and a triangle.
-    return triangleSphereIntersection(a, b, c, center, radius);
+    vec3 closest = closestPointInSegmentToPlane(p1, p2, n, d);
+    if (pointInPlane(n, d, closest) && pointInTriangle(a, b, c, closest)) return true;
+
+    float m1 = distanceBetweenSegmentsSquared(a, b, p1, p2);
+    float m2 = distanceBetweenSegmentsSquared(b, c, p1, p2);
+    float m3 = distanceBetweenSegmentsSquared(c, a, p1, p2);
+    if(min(m1, min(m2, m3)) <= radius * radius) return true;
+
+    if (capsulePointIntersection(p1, p2, radius, a)) return true;
+    if (capsulePointIntersection(p1, p2, radius, b)) return true;
+    if (capsulePointIntersection(p1, p2, radius, c)) return true;
+
+    return false;
 }
 
-bool checkSegmentCollisions (vec3 a, vec3 b, vec3 c, out uint intersectedSegment) {
+
+bool checkSegmentCollisions(vec3 a, vec3 b, vec3 c, out uint intersectedSegment, out bool isFirstVertexInside) {
     Soma soma = somas[gl_WorkGroupID.x];
     Section somaSegment = sections[soma.sectionIndex];
     vec3 from = somaSegment.endAndRadius.xyz;
     intersectedSegment = MAX_SOMA_CONNECTIONS;
+    isFirstVertexInside = false;
     for (uint i = 0; i < soma.amount; ++i) {
         Section segment = sections[soma.connection[i]];
-        vec3 to = segment.endAndRadius.xyz;
-        vec3 d = normalize(to - from);
-        vec3 realFrom = from + d * somaSegment.endAndRadius.w * 1.0f;
+        vec3 to = segment.endAndRadius.xyz; //from + vec3(-10, 10, 0);// segment.endAndRadius.xyz * 2.0f - from;
 
-        if (capsuleTriangleIntersection(realFrom, to, segment.endAndRadius.w, a, b, c)) {
+        if (capsuleTriangleIntersection(from, to, segment.endAndRadius.w, a, b, c)) {
             intersectedSegment = i;
+            isFirstVertexInside = capsulePointIntersection(from, to, segment.endAndRadius.w, a);
             return true;
         }
     }
     return false;
+}
+
+uint packVertexData(uint index) {
+    if (index >= VERTICES) return 0;
+    return connection[index] + (inside[index] ? (1 << 4) : 0);
 }
 
 void generateSomaGPUData() {
@@ -223,29 +250,34 @@ void generateSomaGPUData() {
         vec3 vd = vertices[d];
 
         uint segment;
-        if (checkSegmentCollisions(va, vb, vc, segment)) {
+        bool isAInside;
+        bool isCInside;
+        if (checkSegmentCollisions(va, vb, vc, segment, isAInside)) {
             connection[a] = segment;
             connection[b] = segment;
             connection[c] = segment;
         }
-        if (checkSegmentCollisions(vc, vb, vd, segment)) {
+        if (checkSegmentCollisions(vc, vb, vd, segment, isCInside)) {
             connection[c] = segment;
             connection[b] = segment;
             connection[d] = segment;
+        }
+        inside[a] = isAInside;
+        if (vertexIndex + LONG_VERTICES >= VERTICES) {
+            inside[c] = isCInside;// This is useful to add the information to the vertices of the final row!
         }
     }
 
     barrier();
 
-
     // Finally, pack the data!
     uint elements = VERTICES / 4 + (VERTICES % 4 == 0 ? 0 : 1);
     for (uint i = gl_LocalInvocationID.x; i < elements; i += gl_WorkGroupSize.x) {
         uint start = i * 4;
-        uint a = connection[start++];
-        uint b = start < VERTICES ? connection[start++] : 0;
-        uint c = start < VERTICES ? connection[start++] : 0;
-        uint d = start < VERTICES ? connection[start] : 0;
+        uint a = packVertexData(start);
+        uint b = packVertexData(start + 1);
+        uint c = packVertexData(start + 2);
+        uint d = packVertexData(start + 3);
         packedConnection[startIndex + i] = a + (b << 8) + (c << 16) + (d << 24);
     }
 }
