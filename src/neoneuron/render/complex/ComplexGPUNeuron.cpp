@@ -187,6 +187,13 @@ namespace neoneuron {
                 jointData->freeInstance(instance);
             }
         }
+
+        if (auto model = _somaModel.lock(); model != nullptr) {
+            auto* somaData = model->getInstanceData(_somaInstanceDataIndex);
+            for (auto instance: _somaInstances) {
+                somaData->freeInstance(instance);
+            }
+        }
     }
 
     void ComplexGPUNeuron::refreshGPUData() const {

@@ -28,6 +28,9 @@ layout (set = 0, binding = 1) uniform GlobalData {
     uint childrenRotationIndexOffset;
     uint minChildrenForJoint;
     uint verticesPerCircle;
+    uint somaLatitudes;
+    uint somaLongitudes;
+    float somaConnectionPushFactor;
     vec4 defaultColor;
     vec4 selectedColor;
 };

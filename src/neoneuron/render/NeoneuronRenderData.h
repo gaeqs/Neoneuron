@@ -17,8 +17,10 @@ namespace neoneuron {
         uint32_t childrenRotationIndexOffset = 0;
         uint32_t minChildrenForJoint = 2;
         uint32_t verticesPerCircle = 16;
-        uint32_t dummy0 = 0;
-        uint32_t dummy1 = 0;
+        uint32_t somaLatitudes = 32;
+        uint32_t somaLongitudes = 32;
+        float somaConnectionPushFactor = 0.3f;
+        uint32_t dummy[3];
         rush::Vec4f defaultColor = rush::Vec4f(1.0f, 0.0f, 0.0f, 1.0f);
         rush::Vec4f selectedColor = rush::Vec4f(0.0f, 0.0f, 1.0f, 1.0f);
     };

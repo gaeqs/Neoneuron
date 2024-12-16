@@ -20,6 +20,14 @@ namespace neoneuron {
         if (ImGui::Button(name.c_str(), ImVec2(-1.0f, 25.0f))) {
             _selectedNeuron = neuron.getId();
         }
+        if (ImGui::BeginPopupContextItem()) // <-- use last item id as popup id
+        {
+            if (ImGui::Button("Delete")) {
+                auto& scene = _render->getNeuronScene();
+                scene->removeNeuron(neuron.getId());
+            }
+            ImGui::EndPopup();
+        }
 
         if (selected) {
             ImGui::PopStyleColor();

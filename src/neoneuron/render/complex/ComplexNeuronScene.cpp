@@ -432,7 +432,8 @@ namespace neoneuron {
             gpuNeuron.refreshGPUData();
         }
 
-        _selector.refreshGPUData();
+        _selector.clearSelection();
+        //_selector.refreshGPUData();
 
         recalculateBoundingBox();
 

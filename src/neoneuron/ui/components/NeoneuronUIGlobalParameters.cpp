@@ -45,6 +45,17 @@ namespace neoneuron {
                 ImGui::SliderInt("Vertices per circle", &aux, 1, 16);
                 d.verticesPerCircle = static_cast<uint32_t>(aux);
 
+                aux = static_cast<int>(d.somaLatitudes);
+                ImGui::SliderInt("Soma latitudes", &aux, 1, 32);
+                d.somaLatitudes = static_cast<uint32_t>(aux);
+
+                aux = static_cast<int>(d.somaLongitudes);
+                ImGui::SliderInt("Soma longitudes", &aux, 1, 32);
+                d.somaLongitudes = static_cast<uint32_t>(aux);
+
+                ImGui::SliderFloat("Soma connection push factor", &d.somaConnectionPushFactor, 0.01f, 0.9f);
+
+
                 ImGui::ColorEdit3("Default color", d.defaultColor.toPointer());
                 ImGui::ColorEdit3("Selected color", d.selectedColor.toPointer());
 

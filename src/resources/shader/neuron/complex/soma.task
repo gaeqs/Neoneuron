@@ -10,10 +10,6 @@ const uint MAX_LONG_VERTICES = 32;
 const uint MAX_VERTICES = MAX_LAT_VERTICES * MAX_LONG_VERTICES;
 const uint STORAGE_PER_SOMA = MAX_VERTICES;
 
-const uint LAT_VERTICES = 16;
-const uint LONG_VERTICES = 16;
-const uint VERTICES = LAT_VERTICES * LONG_VERTICES;
-
 layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
 layout (set = 0, binding = 1) uniform GlobalData {
@@ -27,6 +23,9 @@ layout (set = 0, binding = 1) uniform GlobalData {
     uint childrenRotationIndexOffset;
     uint minChildrenForJoint;
     uint verticesPerCircle;
+    uint somaLatitudes;
+    uint somaLongitudes;
+    float somaConnectionPushFactor;
     vec4 defaultColor;
     vec4 selectedColor;
 };
@@ -66,6 +65,7 @@ taskPayloadSharedEXT TaskData td;
 shared vec3 vertices[MAX_VERTICES];
 shared uint connection[MAX_VERTICES];
 shared bool inside[MAX_VERTICES];
+shared bool drawTriangle[MAX_VERTICES * 2];
 
 float distanceBetweenSegmentsSquared(vec3 p1, vec3 q1, vec3 p2, vec3 q2) {
     vec3 d1 = q1 - p1;
@@ -166,7 +166,7 @@ bool capsuleTriangleIntersection(vec3 p1, vec3 p2, float radius, vec3 a, vec3 b,
     float m1 = distanceBetweenSegmentsSquared(a, b, p1, p2);
     float m2 = distanceBetweenSegmentsSquared(b, c, p1, p2);
     float m3 = distanceBetweenSegmentsSquared(c, a, p1, p2);
-    if(min(m1, min(m2, m3)) <= radius * radius) return true;
+    if (min(m1, min(m2, m3)) <= radius * radius) return true;
 
     if (capsulePointIntersection(p1, p2, radius, a)) return true;
     if (capsulePointIntersection(p1, p2, radius, b)) return true;
@@ -175,8 +175,19 @@ bool capsuleTriangleIntersection(vec3 p1, vec3 p2, float radius, vec3 a, vec3 b,
     return false;
 }
 
+bool capsuleSphereIntersection(vec3 p1, vec3 p2, float capsuleRadius, vec3 center, float sphereRadius) {
+    vec3 closest = closestPointToSegment(p1, p2, center);
+    float maxDistanceSquared = (capsuleRadius + sphereRadius) * (capsuleRadius * sphereRadius);
+    vec3 ab = closest - center;
+    return dot(ab, ab) <= maxDistanceSquared;
+}
+
 
 bool checkSegmentCollisions(vec3 a, vec3 b, vec3 c, out uint intersectedSegment, out bool isFirstVertexInside) {
+    // Calculate triangle and radius:
+    vec3 center = (a + b + c) / 3.0f;
+    float triRadius = max(length(a - center), max(length(b - center), length(c - center)));
+
     Soma soma = somas[gl_WorkGroupID.x];
     Section somaSegment = sections[soma.sectionIndex];
     vec3 from = somaSegment.endAndRadius.xyz;
@@ -184,11 +195,13 @@ bool checkSegmentCollisions(vec3 a, vec3 b, vec3 c, out uint intersectedSegment,
     isFirstVertexInside = false;
     for (uint i = 0; i < soma.amount; ++i) {
         Section segment = sections[soma.connection[i]];
-        vec3 to = segment.endAndRadius.xyz; //from + vec3(-10, 10, 0);// segment.endAndRadius.xyz * 2.0f - from;
+        float radius = segment.endAndRadius.w * radiusStrength;
+        vec3 to = segment.endAndRadius.xyz;//from + vec3(-10, 10, 0);// segment.endAndRadius.xyz * 2.0f - from;
 
-        if (capsuleTriangleIntersection(from, to, segment.endAndRadius.w, a, b, c)) {
+        //if(capsuleSphereIntersection(from, to, radius, center, triRadius)) {
+        if (capsuleTriangleIntersection(from, to, radius, a, b, c)) {
             intersectedSegment = i;
-            isFirstVertexInside = capsulePointIntersection(from, to, segment.endAndRadius.w, a);
+            isFirstVertexInside = capsulePointIntersection(from, to, radius, a);
             return true;
         }
     }
@@ -196,8 +209,12 @@ bool checkSegmentCollisions(vec3 a, vec3 b, vec3 c, out uint intersectedSegment,
 }
 
 uint packVertexData(uint index) {
-    if (index >= VERTICES) return 0;
-    return connection[index] + (inside[index] ? (1 << 4) : 0);
+    if (index >= somaLatitudes * somaLongitudes) return 0;
+    uint con = connection[index];
+    uint ins = inside[index] ? (1 << 4) : 0;
+    uint draw1 = drawTriangle[index * 2] ? (1 << 5) : 0;
+    uint draw2 = drawTriangle[index * 2 + 1] ? (1 << 6) : 0;
+    return con + ins + draw1 + draw2;
 }
 
 void generateSomaGPUData() {
@@ -206,16 +223,16 @@ void generateSomaGPUData() {
 
     uint startIndex = gl_WorkGroupID.x * STORAGE_PER_SOMA;
 
-    float radius = section.endAndRadius.w;
+    float radius = section.endAndRadius.w * radiusStrength;
     vec3 center = section.endAndRadius.xyz;
 
     // First, let's generate the vertex.
-    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES; vertexIndex += gl_WorkGroupSize.x) {
-        uint latitude = vertexIndex / LONG_VERTICES;
-        uint longitude = vertexIndex % LONG_VERTICES;
+    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < somaLatitudes * somaLongitudes; vertexIndex += gl_WorkGroupSize.x) {
+        uint latitude = vertexIndex / somaLongitudes;
+        uint longitude = vertexIndex % somaLongitudes;
 
-        float phi = float(longitude) / float(LONG_VERTICES) * 2.0 * M_PI;// Longitude angle (0 to 2π)
-        float theta = float(latitude) / float(LAT_VERTICES - 1) * M_PI;// Latitude angle (0 to π)
+        float phi = float(longitude) / float(somaLongitudes) * 2.0 * M_PI;// Longitude angle (0 to 2π)
+        float theta = float(latitude) / float(somaLatitudes - 1) * M_PI;// Latitude angle (0 to π)
 
         float cosPhi = cos(phi);
         float sinPhi = sin(phi);
@@ -227,22 +244,22 @@ void generateSomaGPUData() {
     barrier();
 
     // Fill connection buffer with MAX_SOMA_CONNECTIONS
-    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES; vertexIndex += gl_WorkGroupSize.x) {
+    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < somaLatitudes * somaLongitudes; vertexIndex += gl_WorkGroupSize.x) {
         connection[vertexIndex] = MAX_SOMA_CONNECTIONS;
     }
 
     barrier();
 
     // Now, let's fetch the triangles and generate check for connections!
-    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < VERTICES - LONG_VERTICES; vertexIndex += gl_WorkGroupSize.x) {
-        uint latitude = vertexIndex / LONG_VERTICES;
-        uint longitude = vertexIndex % LONG_VERTICES;
+    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < somaLatitudes * somaLongitudes - somaLongitudes; vertexIndex += gl_WorkGroupSize.x) {
+        uint latitude = vertexIndex / somaLongitudes;
+        uint longitude = vertexIndex % somaLongitudes;
 
 
         uint a = vertexIndex;
-        uint b = latitude * LONG_VERTICES + (longitude + 1) % LONG_VERTICES;
-        uint c = a + LONG_VERTICES;
-        uint d = b + LONG_VERTICES;
+        uint b = latitude * somaLongitudes + (longitude + 1) % somaLongitudes;
+        uint c = a + somaLongitudes;
+        uint d = b + somaLongitudes;
 
         vec3 va = vertices[a];
         vec3 vb = vertices[b];
@@ -263,15 +280,30 @@ void generateSomaGPUData() {
             connection[d] = segment;
         }
         inside[a] = isAInside;
-        if (vertexIndex + LONG_VERTICES >= VERTICES) {
+        if (vertexIndex + somaLongitudes >= somaLatitudes * somaLongitudes) {
             inside[c] = isCInside;// This is useful to add the information to the vertices of the final row!
         }
     }
 
     barrier();
 
+    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < somaLatitudes * somaLongitudes; vertexIndex += gl_WorkGroupSize.x) {
+        uint latitude = vertexIndex / somaLongitudes;
+        uint longitude = vertexIndex % somaLongitudes;
+
+        uint a = vertexIndex;
+        uint b = latitude * somaLongitudes + (longitude + 1) % somaLongitudes;
+        uint c = a + somaLongitudes;
+        uint d = b + somaLongitudes;
+
+        drawTriangle[a * 2] = connection[a] != connection[b] || connection[a] != connection[c] || connection[a] == MAX_SOMA_CONNECTIONS;
+        drawTriangle[a * 2 + 1] = connection[d] != connection[b] || connection[d] != connection[c] || connection[d] == MAX_SOMA_CONNECTIONS;
+    }
+
+    barrier();
+
     // Finally, pack the data!
-    uint elements = VERTICES / 4 + (VERTICES % 4 == 0 ? 0 : 1);
+    uint elements = somaLatitudes * somaLongitudes / 4 + ((somaLatitudes * somaLongitudes) % 4 == 0 ? 0 : 1);
     for (uint i = gl_LocalInvocationID.x; i < elements; i += gl_WorkGroupSize.x) {
         uint start = i * 4;
         uint a = packVertexData(start);
@@ -287,7 +319,7 @@ void main() {
     generateSomaGPUData();
     if (gl_LocalInvocationID.x == 0) {
         td.somaIndex = gl_WorkGroupID.x;
-        EmitMeshTasksEXT(LAT_VERTICES - 1 + soma.amount, 1, 1);
+        EmitMeshTasksEXT(somaLatitudes - 1 + soma.amount, 1, 1);
     }
 }
     
