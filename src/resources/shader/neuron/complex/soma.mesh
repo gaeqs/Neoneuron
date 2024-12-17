@@ -190,29 +190,32 @@ vec3 generateWeightedPosition(uint index, vec3 position, Soma soma, vec3 center,
     if (connectionIndex < MAX_SOMA_CONNECTIONS) {
         Section segment = sections[soma.connection[connectionIndex]];
         return projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w * radiusStrength, position);
-    }
+    };
+
 
     vec3 d = normalize(position - center);
 
-    float maxDistance = dot(position - center, position - center) / 0.8f;
+    float maxDistance = dot(position - center, position - center) / 0.5f;
 
     uint selected = 0;
-    float totalWeight = 0.25f;
+    float totalWeight = 0.1f;
     vec3 accumulation = position * totalWeight;
     for (uint i = 0; i < soma.amount; ++i) {
         Section segment = sections[soma.connection[i]];
         vec3 n = normalize(segment.endAndRadius.xyz - center);
         vec3 connectionCenter = center + n * radius;
+        connectionCenter = mix(connectionCenter, segment.endAndRadius.xyz, somaConnectionPushFactor);
+
         float weight = max(1.0f - dot(connectionCenter - position, connectionCenter - position) / maxDistance, 0.0f);
 
-        weight = pow(weight, 2);
+        weight = pow(weight, 2.0f);
         totalWeight += weight;
-        accumulation += projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w * radiusStrength, position) * weight;
+        accumulation += projectToSphere(connectionCenter, segment.endAndRadius.w * radiusStrength, position) * weight;
     }
 
     //Section segment = sections[soma.connection[selected]];
     //vec3 n = normalize(segment.endAndRadius.xyz - center);
-    //vec3 connectionCenter = center + n * radius;
+    //vec3 connectionCenter = center + n * radizus;
     //vec3 projected = projectToSphere(connectionCenter, segment.endAndRadius.w * radiusStrength, position);
 
     return accumulation / totalWeight;
