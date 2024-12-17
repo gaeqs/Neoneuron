@@ -54,7 +54,9 @@ namespace neoneuron {
                 d.somaLongitudes = static_cast<uint32_t>(aux);
 
                 ImGui::SliderFloat("Soma connection push factor", &d.somaConnectionPushFactor, 0.01f, 0.9f);
-
+                ImGui::SliderFloat("Soma weight power", &d.somaWeightPower, 0.2f, 5.0f);
+                ImGui::SliderFloat("Soma sphere weight", &d.somaSphereWeight, 0.00f, 2.0f);
+                ImGui::SliderFloat("Soma connection max weight", &d.somaConnectionMaxWeight, 0.00f, 2.0f);
 
                 ImGui::ColorEdit3("Default color", d.defaultColor.toPointer());
                 ImGui::ColorEdit3("Selected color", d.selectedColor.toPointer());

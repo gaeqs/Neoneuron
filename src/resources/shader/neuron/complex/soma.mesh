@@ -44,6 +44,9 @@ layout (set = 0, binding = 1) uniform GlobalData {
     uint somaLatitudes;
     uint somaLongitudes;
     float somaConnectionPushFactor;
+    float somaWeightPower;
+    float somaSphereWeight;
+    float somaConnectionMaxWeight;
     vec4 defaultColor;
     vec4 selectedColor;
 };
@@ -110,6 +113,12 @@ bool isInsideSphere(vec3 center, float radius, vec3 point) {
 
 vec3 projectToSphere(vec3 center, float radius, vec3 point) {
     return center + normalize(point - center) * radius;
+}
+
+vec3 projectToPlane(vec3 n, vec3 pointInPlane, vec3 pointToProject) {
+    vec3 v = pointToProject - pointInPlane;
+    vec3 vn = dot(v, n) * n;
+    return pointToProject - vn;
 }
 
 vec3 projectToCapsule(vec3 from, vec3 to, float radius, vec3 point) {
@@ -195,29 +204,27 @@ vec3 generateWeightedPosition(uint index, vec3 position, Soma soma, vec3 center,
 
     vec3 d = normalize(position - center);
 
-    float maxDistance = dot(position - center, position - center) / 0.5f;
+    float maxDistance = length(position - center);
 
     uint selected = 0;
-    float totalWeight = 0.1f;
+    float totalWeight = somaSphereWeight;
     vec3 accumulation = position * totalWeight;
     for (uint i = 0; i < soma.amount; ++i) {
         Section segment = sections[soma.connection[i]];
         vec3 n = normalize(segment.endAndRadius.xyz - center);
-        vec3 connectionCenter = center + n * radius;
-        connectionCenter = mix(connectionCenter, segment.endAndRadius.xyz, somaConnectionPushFactor);
+        vec3 start = center + n * radius;
+        vec3 connectionCenter = mix(start, segment.endAndRadius.xyz, somaConnectionPushFactor);
+        float minDistance = segment.endAndRadius.w;
 
-        float weight = max(1.0f - dot(connectionCenter - position, connectionCenter - position) / maxDistance, 0.0f);
+        float cos = max(dot(n, normalize(position - center)), 0.0f);
+        float sin = sqrt(1.0f - cos * cos);
+        float weight = clamp(1.0f - sin, 0.0f, 1.0f);
+        weight = pow(weight, somaWeightPower) * somaConnectionMaxWeight;
 
-        weight = pow(weight, 2.0f);
         totalWeight += weight;
-        accumulation += projectToSphere(connectionCenter, segment.endAndRadius.w * radiusStrength, position) * weight;
+        vec3 planeProjected = projectToPlane(n, connectionCenter, position);
+        accumulation += projectToSphere(connectionCenter, segment.endAndRadius.w * radiusStrength, planeProjected) * weight;
     }
-
-    //Section segment = sections[soma.connection[selected]];
-    //vec3 n = normalize(segment.endAndRadius.xyz - center);
-    //vec3 connectionCenter = center + n * radizus;
-    //vec3 projected = projectToSphere(connectionCenter, segment.endAndRadius.w * radiusStrength, position);
-
     return accumulation / totalWeight;
 }
 
@@ -470,40 +477,10 @@ void line(uint i, vec3 from, vec3 to) {
     gl_PrimitiveTriangleIndicesEXT[i] = uvec3(i * 2, i * 2, i * 2 + 1);
 }
 
-void drawLine() {
-    uint currentConnection = gl_WorkGroupID.x - somaLatitudes + 1;
-
-    Soma soma = somas[td.somaIndex];
-    Section somaSection = sections[soma.sectionIndex];
-    Section connectionSection = sections[soma.connection[currentConnection]];
-
-    vec3 from = somaSection.endAndRadius.xyz;
-    vec3 to = connectionSection.endAndRadius.xyz;
-
-    line(0, from, to);
-
-    vec3 dir = normalize(to - from);
-    vec3 initialNormal = vec3(0, 0, -1);
-    if (abs(dot(dir, initialNormal)) > 0.99) {
-        initialNormal = vec3(0, 1, 0);// Use a different axis to avoid parallel vectors
-    }
-
-    vec3 normal = normalize(cross(dir, initialNormal));
-
-    from = from + dir * somaSection.endAndRadius.w * radiusStrength;
-    to = from + normal * connectionSection.endAndRadius.w * radiusStrength;
-    line(1, from, to);
-
-
-    SetMeshOutputsEXT(4, 2);
-
-}
-
 void main() {
     if (gl_WorkGroupID.x < somaLatitudes - 1) {
         generateSomaPart();
     } else {
         generateConnection();
-        //drawLine();
     }
 }

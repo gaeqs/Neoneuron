@@ -31,6 +31,9 @@ layout (set = 0, binding = 1) uniform GlobalData {
     uint somaLatitudes;
     uint somaLongitudes;
     float somaConnectionPushFactor;
+    float somaWeightPower;
+    float somaSphereWeight;
+    float somaConnectionMaxWeight;
     vec4 defaultColor;
     vec4 selectedColor;
 };
