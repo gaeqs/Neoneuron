@@ -4,7 +4,6 @@
 
 #include "ComplexNeuronScene.h"
 
-#include <atk/atkutil.h>
 #include <neon/util/task/Coroutine.h>
 #include <neoneuron/render/NeoneuronRender.h>
 
@@ -25,7 +24,7 @@ namespace neoneuron {
     void ComplexNeuronScene::loadUniformBuffers() {
         constexpr size_t INSTANCES = 10000000;
         constexpr size_t SOMA_INSTANCES = 100000;
-        constexpr size_t STORAGE_PER_SOMA = 32 * 32;
+        constexpr size_t STORAGE_PER_SOMA = 64 * 64;
 
         auto* app = &_render->getApplication();
 
@@ -81,9 +80,9 @@ namespace neoneuron {
 
         auto fs = neon::DirectoryFileSystem(std::filesystem::current_path());
 
-        auto task = fs.readFile("/home/gaeqs/CLionProjects/neoneuron/src/resources/shader/neuron/complex/soma.task");
-        auto mesh = fs.readFile("/home/gaeqs/CLionProjects/neoneuron/src/resources/shader/neuron/complex/soma.mesh");
-        auto frag = fs.readFile("/home/gaeqs/CLionProjects/neoneuron/src/resources/shader/neuron/complex/soma.frag");
+        auto task = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.task)");
+        auto mesh = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.mesh)");
+        auto frag = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.frag)");
 
         if (task.has_value()) {
             shader->addShader(neon::ShaderType::TASK, task.value().toString());

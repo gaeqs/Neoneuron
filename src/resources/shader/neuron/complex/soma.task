@@ -5,8 +5,8 @@ const float M_PI = 3.1415926535897932384626433832795f;
 
 const uint MAX_SOMA_CONNECTIONS = 8;
 
-const uint MAX_LAT_VERTICES = 32;
-const uint MAX_LONG_VERTICES = 32;
+const uint MAX_LAT_VERTICES = 64;
+const uint MAX_LONG_VERTICES = 64;
 const uint MAX_VERTICES = MAX_LAT_VERTICES * MAX_LONG_VERTICES;
 const uint STORAGE_PER_SOMA = MAX_VERTICES;
 
@@ -62,10 +62,8 @@ layout(std430, set = 2, binding = 4) buffer SomaGPUData {
 
 taskPayloadSharedEXT TaskData td;
 
-shared vec3 vertices[MAX_VERTICES];
 shared uint connection[MAX_VERTICES];
 shared bool inside[MAX_VERTICES];
-shared bool drawTriangle[MAX_VERTICES * 2];
 
 float distanceBetweenSegmentsSquared(vec3 p1, vec3 q1, vec3 p2, vec3 q2) {
     vec3 d1 = q1 - p1;
@@ -212,9 +210,21 @@ uint packVertexData(uint index) {
     if (index >= somaLatitudes * somaLongitudes) return 0;
     uint con = connection[index];
     uint ins = inside[index] ? (1 << 4) : 0;
-    uint draw1 = drawTriangle[index * 2] ? (1 << 5) : 0;
-    uint draw2 = drawTriangle[index * 2 + 1] ? (1 << 6) : 0;
-    return con + ins + draw1 + draw2;
+    return con + ins;
+}
+
+vec3 generateVertex(uint vertexIndex, vec3 center, float radius) {
+    uint latitude = vertexIndex / somaLongitudes;
+    uint longitude = vertexIndex % somaLongitudes;
+
+    float phi = float(longitude) / float(somaLongitudes) * 2.0 * M_PI;// Longitude angle (0 to 2π)
+    float theta = float(latitude) / float(somaLatitudes - 1) * M_PI;// Latitude angle (0 to π)
+
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+    float cosTheta = cos(theta);
+    float sinTheta = sin(theta);
+    return vec3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi) * radius + center;
 }
 
 void generateSomaGPUData() {
@@ -223,25 +233,8 @@ void generateSomaGPUData() {
 
     uint startIndex = gl_WorkGroupID.x * STORAGE_PER_SOMA;
 
-    float radius = section.endAndRadius.w * radiusStrength;
     vec3 center = section.endAndRadius.xyz;
-
-    // First, let's generate the vertex.
-    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < somaLatitudes * somaLongitudes; vertexIndex += gl_WorkGroupSize.x) {
-        uint latitude = vertexIndex / somaLongitudes;
-        uint longitude = vertexIndex % somaLongitudes;
-
-        float phi = float(longitude) / float(somaLongitudes) * 2.0 * M_PI;// Longitude angle (0 to 2π)
-        float theta = float(latitude) / float(somaLatitudes - 1) * M_PI;// Latitude angle (0 to π)
-
-        float cosPhi = cos(phi);
-        float sinPhi = sin(phi);
-        float cosTheta = cos(theta);
-        float sinTheta = sin(theta);
-        vertices[vertexIndex] = vec3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi) * radius + center;
-    }
-
-    barrier();
+    float radius = section.endAndRadius.w * radiusStrength;
 
     // Fill connection buffer with MAX_SOMA_CONNECTIONS
     for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < somaLatitudes * somaLongitudes; vertexIndex += gl_WorkGroupSize.x) {
@@ -261,10 +254,10 @@ void generateSomaGPUData() {
         uint c = a + somaLongitudes;
         uint d = b + somaLongitudes;
 
-        vec3 va = vertices[a];
-        vec3 vb = vertices[b];
-        vec3 vc = vertices[c];
-        vec3 vd = vertices[d];
+        vec3 va = generateVertex(a, center, radius);
+        vec3 vb = generateVertex(b, center, radius);
+        vec3 vc = generateVertex(c, center, radius);
+        vec3 vd = generateVertex(d, center, radius);
 
         uint segment;
         bool isAInside;
@@ -287,7 +280,7 @@ void generateSomaGPUData() {
 
     barrier();
 
-    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < somaLatitudes * somaLongitudes; vertexIndex += gl_WorkGroupSize.x) {
+    for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < somaLatitudes * somaLongitudes - somaLongitudes; vertexIndex += gl_WorkGroupSize.x) {
         uint latitude = vertexIndex / somaLongitudes;
         uint longitude = vertexIndex % somaLongitudes;
 
@@ -296,8 +289,18 @@ void generateSomaGPUData() {
         uint c = a + somaLongitudes;
         uint d = b + somaLongitudes;
 
-        drawTriangle[a * 2] = connection[a] != connection[b] || connection[a] != connection[c] || connection[a] == MAX_SOMA_CONNECTIONS;
-        drawTriangle[a * 2 + 1] = connection[d] != connection[b] || connection[d] != connection[c] || connection[d] == MAX_SOMA_CONNECTIONS;
+        bool draw1 = connection[a] != connection[b] || connection[a] != connection[c] || connection[a] == MAX_SOMA_CONNECTIONS;
+        bool draw2 = connection[d] != connection[b] || connection[d] != connection[c] || connection[d] == MAX_SOMA_CONNECTIONS;
+        if(draw1) {
+            inside[a] = false;
+            inside[b] = false;
+            inside[c] = false;
+        }
+        if(draw2) {
+            inside[b] = false;
+            inside[c] = false;
+            inside[d] = false;
+        }
     }
 
     barrier();

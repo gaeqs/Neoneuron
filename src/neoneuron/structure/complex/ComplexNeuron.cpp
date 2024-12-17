@@ -158,13 +158,13 @@ namespace neoneuron {
 
     std::optional<const ComplexJoint*> ComplexNeuron::findJoint(UID uid) const {
         auto it = _jointsByUID.find(uid);
-        if (it == _segmentsByUID.end()) return {};
+        if (it == _jointsByUID.end()) return {};
         return &_joints[it->second];
     }
 
     std::optional<size_t> ComplexNeuron::findJointIndex(UID uid) const {
         auto it = _jointsByUID.find(uid);
-        if (it == _segmentsByUID.end()) return {};
+        if (it == _jointsByUID.end()) return {};
         return it->second;
     }
 

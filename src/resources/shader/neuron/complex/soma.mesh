@@ -6,8 +6,8 @@ const float M_PI = 3.1415926535897932384626433832795f;
 
 const uint MAX_SOMA_CONNECTIONS = 8;
 
-const uint MAX_LAT_VERTICES = 32;
-const uint MAX_LONG_VERTICES = 32;
+const uint MAX_LAT_VERTICES = 64;
+const uint MAX_LONG_VERTICES = 64;
 const uint MAX_VERTICES = MAX_LAT_VERTICES * MAX_LONG_VERTICES;
 const uint STORAGE_PER_SOMA = MAX_VERTICES;
 
@@ -18,7 +18,7 @@ const int MAX_POINTS_PER_CIRCLE = 16;
 const uint GROUP_MAX_VERTICES = MAX_LONG_VERTICES * 2;
 const uint GROUP_MAX_PRIMITIVES = MAX_LONG_VERTICES * 2;
 
-layout (local_size_x = MAX_LONG_VERTICES, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = min(32, MAX_LONG_VERTICES), local_size_y = 1, local_size_z = 1) in;
 layout (triangles) out;
 layout(max_vertices = GROUP_MAX_VERTICES, max_primitives = GROUP_MAX_PRIMITIVES) out;
 
@@ -143,26 +143,6 @@ void fetchPackedData(uint vertex, out uint connection, out bool inside) {
     inside = ((raw >> 4) & 1u) == 1u;
 }
 
-void fetchPackedData(uint vertex, out uint connection, out bool inside, out bool draw1, out bool draw2) {
-    uint index = td.somaIndex * STORAGE_PER_SOMA + vertex / 4;
-    uint subindex = vertex % 4;
-    uint packed = packedConnection[index];
-    uint raw = packed >> (subindex * 8u);
-    connection = raw & 15u;
-    inside = ((raw >> 4) & 1u) == 1u;
-    draw1 = ((raw >> 5) & 1u) == 1u;
-    draw2 = ((raw >> 6) & 1u) == 1u;
-}
-
-void fetchDraws(uint vertex, out bool draw1, out bool draw2) {
-    uint index = td.somaIndex * STORAGE_PER_SOMA + vertex / 4;
-    uint subindex = vertex % 4;
-    uint packed = packedConnection[index];
-    uint raw = packed >> (subindex * 8u);
-    draw1 = ((raw >> 5) & 1u) == 1u;
-    draw2 = ((raw >> 6) & 1u) == 1u;
-}
-
 void swapVertices(uint i, uint j) {
     float tempAngle = connectionVerticesAngles[i];
     uint tempIndex = connectionVerticesIndices[i];
@@ -200,6 +180,42 @@ void sortVertices(uint verticesAmount) {
     }
 
     barrier();
+}
+
+vec3 generateWeightedPosition(uint index, vec3 position, Soma soma, vec3 center, float radius) {
+    uint connectionIndex;
+    bool inside;
+    fetchPackedData(index, connectionIndex, inside);
+    if (inside) return center;
+    if (connectionIndex < MAX_SOMA_CONNECTIONS) {
+        Section segment = sections[soma.connection[connectionIndex]];
+        return projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w * radiusStrength, position);
+    }
+
+    vec3 d = normalize(position - center);
+
+    float maxDistance = dot(position - center, position - center) / 0.8f;
+
+    uint selected = 0;
+    float totalWeight = 0.25f;
+    vec3 accumulation = position * totalWeight;
+    for (uint i = 0; i < soma.amount; ++i) {
+        Section segment = sections[soma.connection[i]];
+        vec3 n = normalize(segment.endAndRadius.xyz - center);
+        vec3 connectionCenter = center + n * radius;
+        float weight = max(1.0f - dot(connectionCenter - position, connectionCenter - position) / maxDistance, 0.0f);
+
+        weight = pow(weight, 2);
+        totalWeight += weight;
+        accumulation += projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w * radiusStrength, position) * weight;
+    }
+
+    //Section segment = sections[soma.connection[selected]];
+    //vec3 n = normalize(segment.endAndRadius.xyz - center);
+    //vec3 connectionCenter = center + n * radius;
+    //vec3 projected = projectToSphere(connectionCenter, segment.endAndRadius.w * radiusStrength, position);
+
+    return accumulation / totalWeight;
 }
 
 void pushVertex(uint i, vec3 position, vec3 normal, uint type, uint neuronId, uint sectionId, bool sel) {
@@ -275,66 +291,66 @@ void generateSomaPart () {
     float radius = section.endAndRadius.w * radiusStrength;
     vec3 center = section.endAndRadius.xyz;
 
-    // Workgroup ID and total number of threads
     uint latitude = gl_WorkGroupID.x;
-    uint longitude = gl_LocalInvocationID.x;
-
-    float phi = float(longitude) / float(somaLongitudes) * 2.0 * M_PI;// Longitude angle (0 to 2π)
     float thetaTop = float(latitude) / float(somaLatitudes - 1) * M_PI;// Latitude angle (0 to π)
     float thetaBot = float(latitude + 1) / float(somaLatitudes - 1) * M_PI;// Latitude angle (0 to π)
-
-    float cosPhi = cos(phi);
-    float sinPhi = sin(phi);
     float cosThetaBot = cos(thetaBot);
     float sinThetaBot = sin(thetaBot);
     float cosThetaTop = cos(thetaTop);
     float sinThetaTop = sin(thetaTop);
 
-    vec3 top = vec3(sinThetaTop * cosPhi, cosThetaTop, sinThetaTop * sinPhi) * radius + center;
-    vec3 bot = vec3(sinThetaBot * cosPhi, cosThetaBot, sinThetaBot * sinPhi) * radius + center;
+    for (uint longitude = gl_LocalInvocationID.x; longitude < somaLongitudes; longitude += gl_WorkGroupSize.x) {
+        // Workgroup ID and total number of threads
 
-    uint topIndex = latitude * somaLongitudes + longitude;
-    uint botIndex = (latitude + 1) * somaLongitudes + longitude;
-    uint topConnection;
-    uint botConnection;
-    bool topInside;
-    bool botInside;
-    fetchPackedData(topIndex, topConnection, topInside);
-    fetchPackedData(botIndex, botConnection, botInside);
+        float phi = float(longitude) / float(somaLongitudes) * 2.0 * M_PI;// Longitude angle (0 to 2π)
 
-    if (topConnection < MAX_SOMA_CONNECTIONS) {
-        Section segment = sections[soma.connection[topConnection]];
-        //top = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w * radiusStrength, top);
+        float cosPhi = cos(phi);
+        float sinPhi = sin(phi);
+
+        vec3 top = vec3(sinThetaTop * cosPhi, cosThetaTop, sinThetaTop * sinPhi) * radius + center;
+        vec3 bot = vec3(sinThetaBot * cosPhi, cosThetaBot, sinThetaBot * sinPhi) * radius + center;
+
+        uint topIndex = latitude * somaLongitudes + longitude;
+        uint botIndex = (latitude + 1) * somaLongitudes + longitude;
+        uint topConnection;
+        uint botConnection;
+        bool topInside;
+        bool botInside;
+        fetchPackedData(topIndex, topConnection, topInside);
+        fetchPackedData(botIndex, botConnection, botInside);
+
+        top = generateWeightedPosition(topIndex, top, soma, center, radius);
+        bot = generateWeightedPosition(botIndex, bot, soma, center, radius);
+
+        vec3 normalTop = normalize(top - center);
+        vec3 normalBot = normalize(bot - center);
+
+        pushVertex(longitude, top, normalTop, (topInside ? 1 : 0), section.neuronId, section.sectionId, isSelected);
+        pushVertex(longitude + somaLongitudes, bot, normalBot, (botInside ? 1 : 0), section.neuronId, section.sectionId, isSelected);
+
     }
 
-    if (botConnection < MAX_SOMA_CONNECTIONS) {
-        Section segment = sections[soma.connection[botConnection]];
-        //bot = projectToCapsule(center, segment.endAndRadius.xyz, segment.endAndRadius.w * radiusStrength, bot);
-    }
+    for (uint longitude = gl_LocalInvocationID.x; longitude < somaLongitudes; longitude += gl_WorkGroupSize.x) {
+        uint a = longitude;
+        uint b = (a + 1) % somaLongitudes;
+        uint c = a + somaLongitudes;
+        uint d = b + somaLongitudes;
 
-    vec3 normalTop = normalize(top - center);
-    vec3 normalBot = normalize(bot - center);
+        uint ia = fetchConnection(latitude * somaLongitudes + a);
+        uint ib = fetchConnection(latitude * somaLongitudes + b);
+        uint ic = fetchConnection(latitude * somaLongitudes + c);
+        uint id = fetchConnection(latitude * somaLongitudes + d);
 
-    pushVertex(longitude, top, normalTop, (topInside ? 1 : 0), section.neuronId, section.sectionId, isSelected);
-    pushVertex(longitude + somaLongitudes, bot, normalBot, (botInside ? 1 : 0), section.neuronId, section.sectionId, isSelected);
-
-    uint a = longitude;
-    uint b = (a + 1) % somaLongitudes;
-    uint c = a + somaLongitudes;
-    uint d = b + somaLongitudes;
-
-    bool draw1, draw2;
-    fetchDraws(latitude * somaLongitudes + longitude, draw1, draw2);
-
-    if (draw1) {
-        gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 0] = uvec3(a, b, c);
-    } else {
-        gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 0] = uvec3(a, a, a);
-    }
-    if (draw2) {
-        gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 1] = uvec3(c, b, d);
-    } else {
-        gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 1] = uvec3(d, d, d);
+        if (ia != ib || ia != ic || ia == MAX_SOMA_CONNECTIONS) {
+            gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 0] = uvec3(a, b, c);
+        } else {
+            gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 0] = uvec3(a, a, a);
+        }
+        if (id != ib || id != ic || id == MAX_SOMA_CONNECTIONS) {
+            gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 1] = uvec3(c, b, d);
+        } else {
+            gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 1] = uvec3(d, d, d);
+        }
     }
 }
 
