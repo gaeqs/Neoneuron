@@ -80,9 +80,9 @@ namespace neoneuron {
 
         auto fs = neon::DirectoryFileSystem(std::filesystem::current_path());
 
-        auto task = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.task)");
-        auto mesh = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.mesh)");
-        auto frag = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.frag)");
+        auto task = fs.readFile(R"(/home/gaeqs/CLionProjects/neoneuron/src/resources/shader/neuron/complex/soma.task)");
+        auto mesh = fs.readFile(R"(/home/gaeqs/CLionProjects/neoneuron/src/resources/shader/neuron/complex/soma.mesh)");
+        auto frag = fs.readFile(R"(/home/gaeqs/CLionProjects/neoneuron/src/resources/shader/neuron/complex/soma.frag)");
 
         if (task.has_value()) {
             shader->addShader(neon::ShaderType::TASK, task.value().toString());

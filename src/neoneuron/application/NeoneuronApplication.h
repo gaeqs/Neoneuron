@@ -11,6 +11,7 @@ namespace neoneuron {
     public:
         inline static const std::string CONFIG_FILE = "neoneuron.json";
         static inline const std::string SETTINGS_THEME = "theme";
+        static inline const std::string SETTINGS_FONT_SIZE = "font_size";
 
         static inline const std::string SETTINGS_TOOL_GLOBAL_PARAMETERS = "tool_global_parameters";
         static inline const std::string SETTINGS_TOOL_DEBUG = "tool_debug";
