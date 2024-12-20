@@ -29,6 +29,8 @@ namespace neoneuron {
         auto* app = &_render->getApplication();
 
         std::vector bindings = {
+            // GLOBAL DATA
+            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronGlobalData) * SOMA_INSTANCES),
             // SEGMENTS
             neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSegment) * INSTANCES),
             // JOINTS
@@ -46,6 +48,19 @@ namespace neoneuron {
 
 
         _ubo = std::make_shared<neon::ShaderUniformBuffer>("neoneuron:complex_neuron_ubo", _uboDescriptor);
+
+        std::vector slots = {
+            neon::StorageBufferInstanceData::Slot(
+                sizeof(ComplexGPUNeuronGlobalData),
+                sizeof(ComplexGPUNeuronGlobalData),
+                0,
+                _ubo.get()
+            ),
+        };
+
+        std::vector<std::type_index> types = {typeid(ComplexGPUNeuronGlobalData)};
+
+        _globalInstanceData = std::make_shared<neon::StorageBufferInstanceData>(app, SOMA_INSTANCES, types, slots);
     }
 
     void ComplexNeuronScene::loadNeuronShader() {
@@ -80,9 +95,12 @@ namespace neoneuron {
 
         auto fs = neon::DirectoryFileSystem(std::filesystem::current_path());
 
-        auto task = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.task)");
-        auto mesh = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.mesh)");
-        auto frag = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.frag)");
+        auto task = fs.readFile(
+            R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.task)");
+        auto mesh = fs.readFile(
+            R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.mesh)");
+        auto frag = fs.readFile(
+            R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.frag)");
 
         if (task.has_value()) {
             shader->addShader(neon::ShaderType::TASK, task.value().toString());
@@ -150,7 +168,7 @@ namespace neoneuron {
                 neon::StorageBufferInstanceData::Slot(
                     sizeof(ComplexGPUNeuronSegment),
                     sizeof(ComplexGPUNeuronSegment),
-                    0,
+                    1,
                     _ubo.get()
                 )
             };
@@ -183,7 +201,7 @@ namespace neoneuron {
                 neon::StorageBufferInstanceData::Slot(
                     sizeof(ComplexGPUNeuronJoint),
                     sizeof(ComplexGPUNeuronJoint),
-                    1,
+                    2,
                     _ubo.get()
                 ),
             };
@@ -216,7 +234,7 @@ namespace neoneuron {
                 neon::StorageBufferInstanceData::Slot(
                     sizeof(ComplexGPUNeuronSoma),
                     sizeof(ComplexGPUNeuronSoma),
-                    2,
+                    3,
                     _ubo.get()
                 ),
             };

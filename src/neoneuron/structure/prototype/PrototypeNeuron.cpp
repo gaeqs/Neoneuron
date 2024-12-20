@@ -12,17 +12,17 @@ namespace neoneuron {
         _properties[std::move(name)] = id;
     }
 
-    std::optional<UID> PrototypeNeuron::getProperty(const std::string& name) const {
+    std::optional<UID> PrototypeNeuron::getPropertyUID(const std::string& name) const {
         auto it = _properties.find(name);
         if (it == _properties.end()) return {};
         return it->second;
     }
 
-    std::unordered_map<std::string, UID>& PrototypeNeuron::getProperties() {
+    std::unordered_map<std::string, UID>& PrototypeNeuron::getPropertiesUID() {
         return _properties;
     }
 
-    const std::unordered_map<std::string, UID>& PrototypeNeuron::getProperties() const {
+    const std::unordered_map<std::string, UID>& PrototypeNeuron::getPropertiesUID() const {
         return _properties;
     }
 
@@ -40,5 +40,15 @@ namespace neoneuron {
 
     void PrototypeNeuron::reserveSpaceForSegments(size_t space) {
         _segments.reserve(space);
+    }
+
+    void PrototypeNeuron::setPropertyAny(UID uid, std::any value) {
+        _globalProperties[uid] = std::move(value);
+    }
+
+    std::optional<std::any> PrototypeNeuron::getPropertyAsAny(UID uid) const {
+        auto it = _globalProperties.find(uid);
+        if (it == _globalProperties.end()) return {};
+        return it->second;
     }
 }

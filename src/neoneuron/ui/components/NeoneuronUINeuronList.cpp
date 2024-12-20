@@ -83,7 +83,7 @@ namespace neoneuron {
         ImGui::Text("Properties provided:");
         ImGui::Indent();
 
-        for (const auto& name: prototype->getProperties() | std::views::keys) {
+        for (const auto& name: prototype->getPropertiesUID() | std::views::keys) {
             ImGui::Text(name.c_str());
         }
 

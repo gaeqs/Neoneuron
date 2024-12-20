@@ -16,25 +16,53 @@ namespace neoneuron {
     class PrototypeNeuron : public Identifiable {
         std::unordered_map<std::string, UID> _properties;
         std::vector<PrototypeNeuronSegment> _segments;
+        std::unordered_map<UID, std::any> _globalProperties;
 
     public:
         explicit PrototypeNeuron(UID id);
 
         void defineProperty(std::string name, UID id);
 
-        std::optional<UID> getProperty(const std::string& name) const;
+        [[nodiscard]] std::optional<UID> getPropertyUID(const std::string& name) const;
 
-        std::unordered_map<std::string, UID>& getProperties();
+        [[nodiscard]] std::unordered_map<std::string, UID>& getPropertiesUID();
 
-        const std::unordered_map<std::string, UID>& getProperties() const;
+        [[nodiscard]] const std::unordered_map<std::string, UID>& getPropertiesUID() const;
 
         void addSegment(PrototypeNeuronSegment segment);
 
-        std::vector<PrototypeNeuronSegment>& getSegments();
+        [[nodiscard]] std::vector<PrototypeNeuronSegment>& getSegments();
 
-        const std::vector<PrototypeNeuronSegment>& getSegments() const;
+        [[nodiscard]] const std::vector<PrototypeNeuronSegment>& getSegments() const;
 
         void reserveSpaceForSegments(size_t space);
+
+        void setPropertyAny(UID uid, std::any value);
+
+        template<typename T>
+        void setProperty(UID uid, const T& value) {
+            setPropertyAny(uid, value);
+        }
+
+        [[nodiscard]] std::optional<std::any> getPropertyAsAny(UID uid) const;
+
+        template<typename T>
+        [[nodiscard]] std::optional<T> getProperty(UID uid) const {
+            auto optional = getPropertyAsAny(uid);
+            if (!optional.has_value()) return {};
+            try {
+                return std::any_cast<T>(optional.value());
+            } catch (const std::bad_any_cast& e) {
+                return {};
+            }
+        }
+
+        template<typename T>
+        [[nodiscard]] std::optional<T> getProperty(const std::string& name) const {
+            auto uid = getPropertyUID(name);
+            if (!uid.has_value()) return {};
+            return getProperty<T>(uid.value());
+        }
     };
 }
 

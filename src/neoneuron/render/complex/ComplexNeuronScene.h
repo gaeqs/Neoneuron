@@ -22,6 +22,7 @@ namespace neoneuron {
 
         std::shared_ptr<neon::ShaderUniformDescriptor> _uboDescriptor;
         std::shared_ptr<neon::ShaderUniformBuffer> _ubo;
+        std::shared_ptr<neon::StorageBufferInstanceData> _globalInstanceData;
 
         std::shared_ptr<neon::ShaderProgram> _neuronShader;
         std::shared_ptr<neon::ShaderProgram> _jointShader;
@@ -67,6 +68,8 @@ namespace neoneuron {
         void reassignMaterials() const;
 
     public:
+        ComplexNeuronScene(const ComplexNeuronScene&) = delete;
+
         explicit ComplexNeuronScene(NeoneuronRender* render);
 
         ~ComplexNeuronScene() override;

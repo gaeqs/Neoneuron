@@ -47,6 +47,25 @@ namespace neoneuron {
         }
     }
 
+    void ComplexGPUNeuron::refreshGlobalData() const {
+        auto buffer = _globalInstanceData.lock();
+        if (buffer == nullptr) return;
+
+        ComplexGPUNeuronGlobalData data{
+            .neuronId = _neuron->getId()
+        };
+
+        auto* prototype = _neuron->getPrototypeNeuron().value_or(nullptr);
+        if (prototype != nullptr) {
+            auto transform = prototype->getProperty<NeuronTransform>(PROPERTY_TRANSFORM);
+            if (transform.has_value()) {
+                data.model = transform->getModel();
+            }
+        }
+
+        buffer->uploadData(_globalInstance, 0, data);
+    }
+
     void ComplexGPUNeuron::refreshSegments() const {
         auto neuronModel = _segmentModel.lock();
         if (neuronModel == nullptr) return;
@@ -129,6 +148,7 @@ namespace neoneuron {
 
     ComplexGPUNeuron::ComplexGPUNeuron(ComplexGPUNeuron&& other) noexcept {
         if (this == &other) return;
+        _globalInstanceData = std::move(other._globalInstanceData);
         _segmentModel = std::move(other._segmentModel);
         _jointModel = std::move(other._jointModel);
         _somaModel = std::move(other._somaModel);
@@ -146,14 +166,16 @@ namespace neoneuron {
         other._valid = false;
     }
 
-    ComplexGPUNeuron::ComplexGPUNeuron(std::weak_ptr<neon::Model> neuronModel,
+    ComplexGPUNeuron::ComplexGPUNeuron(std::weak_ptr<neon::InstanceData> globalInstanceData,
+                                       std::weak_ptr<neon::Model> neuronModel,
                                        std::weak_ptr<neon::Model> jointModel,
                                        std::weak_ptr<neon::Model> somaModel,
                                        size_t segmentInstanceDataIndex,
                                        size_t jointInstanceDataIndex,
                                        size_t somaInstanceDataIndex,
                                        const ComplexNeuron* neuron)
-        : _segmentModel(std::move(neuronModel)),
+        : _globalInstanceData(std::move(globalInstanceData)),
+          _segmentModel(std::move(neuronModel)),
           _jointModel(std::move(jointModel)),
           _somaModel(std::move(somaModel)),
           _segmentInstanceDataIndex(segmentInstanceDataIndex),
@@ -163,6 +185,7 @@ namespace neoneuron {
           _valid(true) {
         _segmentInstances.reserve(_neuron->getSegments().size());
 
+        _globalInstance = _globalInstanceData.lock()->createInstance().orElse(_globalInstance);
         generateSegmentInstances();
         generateJointInstances();
         generateSomaInstances();
@@ -173,6 +196,10 @@ namespace neoneuron {
     ComplexGPUNeuron::~ComplexGPUNeuron() {
         if (!_valid) return;
         _valid = false;
+
+        if (auto buf = _globalInstanceData.lock(); buf != nullptr) {
+            buf->freeInstance(_globalInstance);
+        }
 
         if (auto model = _segmentModel.lock(); model != nullptr) {
             auto* segmentData = model->getInstanceData(_segmentInstanceDataIndex);
@@ -198,6 +225,7 @@ namespace neoneuron {
 
     void ComplexGPUNeuron::refreshGPUData() const {
         if (!_valid) return;
+        refreshGlobalData();
         refreshSegments();
         refreshJoints();
         refreshSomas();
@@ -217,14 +245,19 @@ namespace neoneuron {
 
     ComplexGPUNeuron& ComplexGPUNeuron::operator=(ComplexGPUNeuron&& other) noexcept {
         if (this == &other) return *this;
+        _globalInstanceData = std::move(other._globalInstanceData);
         _segmentModel = std::move(other._segmentModel);
         _jointModel = std::move(other._jointModel);
+        _somaModel = std::move(other._somaModel);
         _segmentInstanceDataIndex = other._segmentInstanceDataIndex;
         _jointInstanceDataIndex = other._jointInstanceDataIndex;
+        _somaInstanceDataIndex = other._somaInstanceDataIndex;
         _segmentInstances = std::move(other._segmentInstances);
         _segmentInstancesByUID = std::move(other._segmentInstancesByUID);
         _jointInstances = std::move(other._jointInstances);
         _jointInstancesByUID = std::move(other._jointInstancesByUID);
+        _somaInstances = std::move(other._somaInstances);
+        _somaInstancesByUID = std::move(other._somaInstancesByUID);
         _neuron = other._neuron;
         _valid = other._valid;
         other._valid = false;

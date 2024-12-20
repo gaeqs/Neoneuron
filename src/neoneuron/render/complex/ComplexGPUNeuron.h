@@ -10,11 +10,17 @@
 #include <neoneuron/structure/complex/ComplexNeuron.h>
 
 namespace neoneuron {
+    struct ComplexGPUNeuronGlobalData {
+        uint32_t neuronId;
+        uint32_t dummy[3];
+        rush::Mat4f model;
+    };
+
     struct ComplexGPUNeuronSegment {
         /**
-        * The UID of the neuron this segment is inside.
+        * The neuron's global data's position in the storage buffer.
         */
-        uint32_t neuronId;
+        uint32_t neuronIndex;
 
         /**
         * The UID of the segment.
@@ -63,7 +69,6 @@ namespace neoneuron {
     };
 
     struct ComplexGPUNeuronSoma {
-
         /*
         * The index of the representing section in the storage buffer.
         */
@@ -81,12 +86,14 @@ namespace neoneuron {
     };
 
     class ComplexGPUNeuron {
+        std::weak_ptr<neon::InstanceData> _globalInstanceData;
         std::weak_ptr<neon::Model> _segmentModel;
         std::weak_ptr<neon::Model> _jointModel;
         std::weak_ptr<neon::Model> _somaModel;
         size_t _segmentInstanceDataIndex;
         size_t _jointInstanceDataIndex;
         size_t _somaInstanceDataIndex;
+        neon::InstanceData::Instance _globalInstance;
         std::vector<neon::InstanceData::Instance> _segmentInstances;
         std::unordered_map<UID, neon::InstanceData::Instance> _segmentInstancesByUID;
         std::vector<neon::InstanceData::Instance> _jointInstances;
@@ -103,6 +110,8 @@ namespace neoneuron {
 
         void generateSomaInstances();
 
+        void refreshGlobalData() const;
+
         void refreshSegments() const;
 
         void refreshJoints() const;
@@ -114,7 +123,8 @@ namespace neoneuron {
 
         ComplexGPUNeuron(const ComplexGPUNeuron& other) = delete;
 
-        ComplexGPUNeuron(std::weak_ptr<neon::Model> neuronModel,
+        ComplexGPUNeuron(std::weak_ptr<neon::InstanceData> globalInstanceData,
+                         std::weak_ptr<neon::Model> neuronModel,
                          std::weak_ptr<neon::Model> jointModel,
                          std::weak_ptr<neon::Model> somaModel,
                          size_t segmentInstanceDataIndex,

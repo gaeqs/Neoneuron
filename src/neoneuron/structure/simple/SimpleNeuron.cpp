@@ -96,10 +96,10 @@ namespace neoneuron {
     }
 
     neon::Result<SimpleNeuron, std::string> SimpleNeuron::fromPrototype(const PrototypeNeuron& prototype) {
-        std::optional<UID> propType = prototype.getProperty(PROPERTY_TYPE);
-        std::optional<UID> propEnd = prototype.getProperty(PROPERTY_END);
-        std::optional<UID> propRadius = prototype.getProperty(PROPERTY_RADIUS);
-        std::optional<UID> propParent = prototype.getProperty(PROPERTY_PARENT);
+        std::optional<UID> propType = prototype.getPropertyUID(PROPERTY_TYPE);
+        std::optional<UID> propEnd = prototype.getPropertyUID(PROPERTY_END);
+        std::optional<UID> propRadius = prototype.getPropertyUID(PROPERTY_RADIUS);
+        std::optional<UID> propParent = prototype.getPropertyUID(PROPERTY_PARENT);
         if (!propType.has_value() || !propEnd.has_value() || !propRadius.has_value() || !propParent.has_value()) {
             return {"Cannot load neuron, properties are not found."};
         }

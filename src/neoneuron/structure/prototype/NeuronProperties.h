@@ -24,6 +24,7 @@ namespace neoneuron {
     const std::string PROPERTY_END = "end";
     const std::string PROPERTY_RADIUS = "radius";
     const std::string PROPERTY_PARENT = "parent";
+    const std::string PROPERTY_TRANSFORM = "transform";
 }
 
 #endif //NEURONPROPERTIES_H
