@@ -20,7 +20,8 @@
 
 namespace neoneuron {
     void NeoneuronUI::initStyle(NeoneuronRender* render) {
-        switch (render->getNeoneuronApplication()->getSettings().value(NeoneuronApplication::SETTINGS_THEME, 0)) {
+        auto& s = render->getNeoneuronApplication()->getSettings();
+        switch (s.value(NeoneuronApplication::SETTINGS_THEME, 0)) {
             case 0:
                 StyleColorsDark();
                 break;
@@ -29,6 +30,32 @@ namespace neoneuron {
                 break;
             default:
                 break;
+        }
+
+
+        const char* font = fonts::SS3_18;
+        switch (s.value(NeoneuronApplication::SETTINGS_FONT_SIZE, 1)) {
+            case 0:
+                font = fonts::SS3_16;
+                break;
+            case 1:
+                font = fonts::SS3_18;
+                break;
+            case 2:
+                font = fonts::SS3_20;
+                break;
+            case 3:
+                font = fonts::SS3_24;
+                break;
+            case 4:
+                font = fonts::SS3_32;
+                break;
+            default:
+                break;
+        }
+
+        if (auto opt = fonts::getFont(font); opt.has_value()) {
+            ImGui::GetIO().FontDefault = opt.value();
         }
     }
 
@@ -57,7 +84,6 @@ namespace neoneuron {
     }
 
     NeoneuronUI::NeoneuronUI(NeoneuronRender* render) : _render(render) {
-        initStyle(render);
         ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
         _gameObject = render->getRoom()->newGameObject();
         _gameObject->setName("UI");
@@ -80,13 +106,11 @@ namespace neoneuron {
             fonts::loadFont(fonts::SS3_20, file.value(), 20.0f);
             fonts::loadFont(fonts::SS3_24, file.value(), 24.0f);
             fonts::loadFont(fonts::SS3_32, file.value(), 32.0f);
-
-            if (auto font = fonts::getFont(fonts::SS3_18); font.has_value()) {
-                ImGui::GetIO().FontDefault = font.value();
-            }
         }
 
         fonts::recreateFonts();
+
+        initStyle(render);
     }
 
     NeoneuronUI::~NeoneuronUI() {

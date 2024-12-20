@@ -13,6 +13,8 @@ namespace neoneuron::settings {
 
     void settingsTheme(NeoneuronApplication* app);
 
+    void settingsFontSize(NeoneuronApplication* app);
+
     void settingsDialog(NeoneuronApplication* app);
 }
 
