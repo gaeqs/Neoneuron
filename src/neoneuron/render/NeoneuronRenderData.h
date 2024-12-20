@@ -20,7 +20,7 @@ namespace neoneuron {
         uint32_t somaLatitudes = 32;
         uint32_t somaLongitudes = 32;
         float somaConnectionPushFactor = 0.3f;
-        float somaWeightPower = 1.0f;
+        float somaWeightPower = 3.0f;
         float somaSphereWeight = 0.1f;
         float somaConnectionMaxWeight = 1.0f;
         rush::Vec4f defaultColor = rush::Vec4f(1.0f, 0.0f, 0.0f, 1.0f);

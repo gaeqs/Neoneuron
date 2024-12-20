@@ -108,7 +108,8 @@ namespace neoneuron {
         std::optional<UID> propRadius = prototype->getPropertyUID(PROPERTY_RADIUS);
         std::optional<UID> propParent = prototype->getPropertyUID(PROPERTY_PARENT);
         if (!propType.has_value() || !propEnd.has_value() || !propRadius.has_value() || !propParent.has_value()) {
-            return {"Cannot load neuron, properties are not found."};
+            neon::Logger::defaultLogger()->error("Cannot load neuron, properties are not found.");
+            return;
         }
 
         _segments.reserve(prototype->getSegments().size());
@@ -123,6 +124,7 @@ namespace neoneuron {
                 ss << "Cannot load section ";
                 ss << segment.getId();
                 ss << ". Properties are not found.";
+                neon::Logger::defaultLogger()->error(ss.str());
                 continue;
             }
 
@@ -148,6 +150,7 @@ namespace neoneuron {
                 ss << "Cannot find parent ";
                 ss << segment.getParentId().value();
                 ss << ".";
+                neon::Logger::defaultLogger()->error(ss.str());
                 continue;
             }
 
@@ -156,6 +159,8 @@ namespace neoneuron {
             segment.setStart(parent.getEnd());
             segment.setStartRadius(parent.getEndRadius());
         }
+
+        recalculateMetadata();
     }
 
     ComplexNeuron::ComplexNeuron(UID uid, const std::vector<ComplexNeuronSegment>& segments)

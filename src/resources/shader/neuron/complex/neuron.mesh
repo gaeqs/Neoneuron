@@ -39,19 +39,28 @@ layout (set = 0, binding = 1) uniform GlobalData {
     vec4 selectedColor;
 };
 
-struct Section {
+struct Neuron {
     uint neuronId;
+    mat4 model;
+};
+
+struct Section {
+    uint neuronIndex;
     uint sectionId;
     uint metadata;
     uint parent;// This is the index inside the sections array! It is not the id of the section.
     vec4 endAndRadius;
 };
 
-layout(std430, set = 2, binding = 0) buffer Data {
+layout(std430, set = 2, binding = 0) buffer Neurons {
+    Neuron neurons[];
+};
+
+layout(std430, set = 2, binding = 1) buffer Data {
     Section sections[];
 };
 
-layout(std430, set = 2, binding = 3) buffer Selection {
+layout(std430, set = 2, binding = 4) buffer Selection {
     bool selected[];
 };
 
@@ -68,11 +77,11 @@ layout(location = 3) flat out float fragSectionId[];
 layout(location = 4) flat out float fragSelected[];
 
 
-void pushVertex(uint i, vec4 position, vec3 normal, uint type, uint neuronId, uint sectionId, bool sel) {
-    gl_MeshVerticesEXT[i].gl_Position = viewProjection * position;
+void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
+    gl_MeshVerticesEXT[i].gl_Position = viewProjection * neuron.model * position;
     fragNormal[i] = normal;
     fragType[i] = uintBitsToFloat(type);
-    fragNeuronId[i] = uintBitsToFloat(neuronId);
+    fragNeuronId[i] = uintBitsToFloat(neuron.neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
     fragSelected[i] = sel ? 1.0f : 0.0f;
 }
@@ -87,6 +96,7 @@ void main() {
     Section section = sections[td.section];
     Section parent = sections[section.parent];
     Section grandParent = sections[parent.parent];
+    Neuron neuron = neurons[section.neuronIndex];
 
     uint parentType = parent.metadata & 255u;
     uint sectionType = section.metadata & 255u;
@@ -153,7 +163,7 @@ void main() {
 
     vec3 point = center + rotated * radius;
     SetMeshOutputsEXT(verticesPerCircle * 2, verticesPerCircle * 2);
-    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, section.neuronId, section.sectionId, isSelected);
+    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected);
 
     uint a = gl_LocalInvocationID.x;
     uint b = (gl_LocalInvocationID.x + 1) % verticesPerCircle;

@@ -31,7 +31,7 @@ struct Joint {
     uint connection[8];
 };
 
-layout(std430, set = 2, binding = 1) buffer Joints {
+layout(std430, set = 2, binding = 2) buffer Joints {
     Joint joints[];
 };
 

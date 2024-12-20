@@ -40,8 +40,13 @@ layout (set = 0, binding = 1) uniform GlobalData {
     vec4 selectedColor;
 };
 
-struct Section {
+struct Neuron {
     uint neuronId;
+    mat4 model;
+};
+
+struct Section {
+    uint neuronIndex;
     uint sectionId;
     uint metadata;
     uint parent;// This is the index inside the sections array! It is not the id of the section.
@@ -55,15 +60,19 @@ struct Joint {
     uint connection[8];
 };
 
-layout(std430, set = 2, binding = 0) buffer Data {
+layout(std430, set = 2, binding = 0) buffer Neurons {
+    Neuron neurons[];
+};
+
+layout(std430, set = 2, binding = 1) buffer Data {
     Section sections[];
 };
 
-layout(std430, set = 2, binding = 1) buffer Joints {
+layout(std430, set = 2, binding = 2) buffer Joints {
     Joint joints[];
 };
 
-layout(std430, set = 2, binding = 3) buffer Selection {
+layout(std430, set = 2, binding = 4) buffer Selection {
     bool selected[];
 };
 
@@ -82,11 +91,11 @@ layout(location = 3) flat out float fragSectionId[];
 layout(location = 4) flat out float fragSelected[];
 
 
-void pushVertex(uint i, vec4 position, vec3 normal, uint type, uint neuronId, uint sectionId, bool sel) {
-    gl_MeshVerticesEXT[i].gl_Position = viewProjection * (position);
+void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
+    gl_MeshVerticesEXT[i].gl_Position = viewProjection * neuron.model * position;
     fragNormal[i] = normal;
     fragType[i] = uintBitsToFloat(type);
-    fragNeuronId[i] = uintBitsToFloat(neuronId);
+    fragNeuronId[i] = uintBitsToFloat(neuron.neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
     fragSelected[i] = sel ? 1.0f : 0.0f;
 }
@@ -98,7 +107,7 @@ vec3 rotate (vec3 v, vec3 n, float a) {
 void generateTube (vec3 startCenter, vec3 endCenter, vec3 startDirection, vec3 endDirection,
 float startRadius, float endRadius,
 uint rotationIndex, uint childrenRotationIndex,
-uint neuronId,
+Neuron neuron,
 uint startSectionId, uint endSectionId) {
     bool first = gl_LocalInvocationID.x < verticesPerCircle;
     uint finalRotationIndex = first ? rotationIndex : childrenRotationIndex;
@@ -134,7 +143,7 @@ uint startSectionId, uint endSectionId) {
     vec3 point = center + rotated * radius;
     uint sectionId = first ? startSectionId : endSectionId;
 
-    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuronId, sectionId, false);
+    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, sectionId, false);
 
     uint a = gl_LocalInvocationID.x;
     uint b = (gl_LocalInvocationID.x + 1) % verticesPerCircle;
@@ -150,6 +159,7 @@ void joint1(Joint joint) {
     Section parent = sections[joint.parent];
     Section section = sections[joint.connection[0]];
     Section grandParent = sections[parent.parent];
+    Neuron neuron = neurons[parent.neuronIndex];
 
     uint rotationIndex = (joint.rotationIndex + rotationIndexOffset) * verticesPerCircle / 16;
     uint childrenRotationIndex = (joint.rotationIndex + rotationIndexOffset + childrenRotationIndexOffset) * verticesPerCircle / 16;
@@ -167,11 +177,11 @@ void joint1(Joint joint) {
 
     vec3 parentStart = grandParent.endAndRadius.xyz;
 
-    generateTube(startCenter, endCenter, startDirection, endDirection, startRadius, endRadius, rotationIndex, childrenRotationIndex, section.neuronId, parent.sectionId, section.sectionId);
+    generateTube(startCenter, endCenter, startDirection, endDirection, startRadius, endRadius, rotationIndex, childrenRotationIndex, neuron, parent.sectionId, section.sectionId);
 }
 
 vec3 generateCircle (uint start, uint rotationIndex, vec3 center, vec3 direction,
-vec3 parentDirection, float radius, uint neuronId, uint sectionId) {
+vec3 parentDirection, float radius, Neuron neuron, uint sectionId) {
     float angle = float(gl_LocalInvocationID.x + rotationIndex) / float(verticesPerCircle) * 2.0f * M_PI;
 
     // Correctly align the initial basis for the start circle
@@ -194,7 +204,7 @@ vec3 parentDirection, float radius, uint neuronId, uint sectionId) {
     // Compute the rotated position for each vertex
     vec3 rotated = cos(angle) * normal + sin(angle) * binormal;
     vec3 point = center + rotated * radius * radiusStrength;
-    pushVertex(start + gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuronId, sectionId, false);
+    pushVertex(start + gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, sectionId, false);
 
     return point;
 }
@@ -230,6 +240,7 @@ void joint2(Joint joint) {
 
     Section parent = sections[joint.parent];
     Section grandParent = sections[parent.parent];
+    Neuron neuron = neurons[parent.neuronIndex];
 
     float parentRadius = mix(grandParent.endAndRadius.w, parent.endAndRadius.w, 1.0f - endClip);
 
@@ -239,7 +250,7 @@ void joint2(Joint joint) {
 
     if (gl_LocalInvocationID.x < verticesPerCircle) {
         parentCircle[gl_LocalInvocationID.x] =
-        generateCircle(0, rotationIndex, startCenter, startDirection, startDirection, parentRadius, parent.neuronId, parent.sectionId);
+        generateCircle(0, rotationIndex, startCenter, startDirection, startDirection, parentRadius, neuron, parent.sectionId);
     }
 
     uint childIndex = gl_LocalInvocationID.x / verticesPerCircle;
@@ -254,7 +265,8 @@ void joint2(Joint joint) {
         vec3 endDirection = normalize(endDirectionUnorm);
         vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * startClip;
         float endRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, startClip);
-        generateCircle(verticesPerCircle, childrenRotationIndex, endCenter, endDirection, startDirection, endRadius, section.neuronId, section.sectionId);
+        generateCircle(verticesPerCircle, childrenRotationIndex, endCenter, endDirection, startDirection, endRadius,
+        neuron, section.sectionId);
     }
 
     // Wait, we need the information of the first circle!
@@ -289,7 +301,7 @@ void joint2(Joint joint) {
         // Finally, we can push the vertex
         uint index = verticesPerCircle * 3 + gl_LocalInvocationID.x;
 
-        pushVertex(index, vec4(position, 1), normal, 0, parent.neuronId, parent.sectionId, false);
+        pushVertex(index, vec4(position, 1), normal, 0, neuron, parent.sectionId, false);
     }
 
     if (gl_LocalInvocationID.x < verticesPerCircle * 2) {

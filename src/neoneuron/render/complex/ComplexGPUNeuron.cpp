@@ -52,7 +52,8 @@ namespace neoneuron {
         if (buffer == nullptr) return;
 
         ComplexGPUNeuronGlobalData data{
-            .neuronId = _neuron->getId()
+            .neuronId = _neuron->getId(),
+            .model = rush::Mat4f(1.0f)
         };
 
         auto* prototype = _neuron->getPrototypeNeuron().value_or(nullptr);
@@ -89,7 +90,7 @@ namespace neoneuron {
             }
 
             ComplexGPUNeuronSegment gpu(
-                _neuron->getId(),
+                *_globalInstance.id,
                 segment.getId(),
                 metadata,
                 parentIndex,
@@ -155,6 +156,7 @@ namespace neoneuron {
         _segmentInstanceDataIndex = other._segmentInstanceDataIndex;
         _jointInstanceDataIndex = other._jointInstanceDataIndex;
         _somaInstanceDataIndex = other._somaInstanceDataIndex;
+        _globalInstance = other._globalInstance;
         _segmentInstances = std::move(other._segmentInstances);
         _segmentInstancesByUID = std::move(other._segmentInstancesByUID);
         _jointInstances = std::move(other._jointInstances);
@@ -252,6 +254,7 @@ namespace neoneuron {
         _segmentInstanceDataIndex = other._segmentInstanceDataIndex;
         _jointInstanceDataIndex = other._jointInstanceDataIndex;
         _somaInstanceDataIndex = other._somaInstanceDataIndex;
+        _globalInstance = other._globalInstance;
         _segmentInstances = std::move(other._segmentInstances);
         _segmentInstancesByUID = std::move(other._segmentInstancesByUID);
         _jointInstances = std::move(other._jointInstances);

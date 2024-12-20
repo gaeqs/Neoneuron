@@ -38,7 +38,7 @@ struct TaskData {
 };
 
 struct Section {
-    uint neuronId;
+    uint neuronIndex;
     uint sectionId;
     uint metadata;
     uint parent;// This is the index inside the sections array! It is not the id of the section.
@@ -51,15 +51,15 @@ struct Soma {
     uint connection[MAX_SOMA_CONNECTIONS];
 };
 
-layout(std430, set = 2, binding = 0) buffer Data {
+layout(std430, set = 2, binding = 1) buffer Data {
     Section sections[];
 };
 
-layout(std430, set = 2, binding = 2) buffer Somas {
+layout(std430, set = 2, binding = 3) buffer Somas {
     Soma somas[];
 };
 
-layout(std430, set = 2, binding = 4) buffer SomaGPUData {
+layout(std430, set = 2, binding = 5) buffer SomaGPUData {
     uint packedConnection[];
 };
 

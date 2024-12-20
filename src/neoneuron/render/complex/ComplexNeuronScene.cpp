@@ -92,25 +92,10 @@ namespace neoneuron {
     void ComplexNeuronScene::loadSomaShader() {
         auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
 
-
-        auto fs = neon::DirectoryFileSystem(std::filesystem::current_path());
-
-        auto task = fs.readFile(
-            R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.task)");
-        auto mesh = fs.readFile(
-            R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.mesh)");
-        auto frag = fs.readFile(
-            R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\soma.frag)");
-
-        if (task.has_value()) {
-            shader->addShader(neon::ShaderType::TASK, task.value().toString());
-        }
-        if (mesh.has_value()) {
-            shader->addShader(neon::ShaderType::MESH, mesh.value().toString());
-        }
-        if (frag.has_value()) {
-            shader->addShader(neon::ShaderType::FRAGMENT, frag.value().toString());
-        }
+        auto fs = cmrc::resources::get_filesystem();
+        shader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/soma.task"));
+        shader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/soma.mesh"));
+        shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/soma.frag"));
 
         if (auto result = shader->compile(); result.has_value()) {
             _render->getApplication().getLogger().error(result.value());
@@ -410,25 +395,21 @@ namespace neoneuron {
 
     bool ComplexNeuronScene::addNeuron(const PrototypeNeuron& neuron) {
         _prototypes.push_back(neuron);
-        auto result = ComplexNeuron::fromPrototype(neuron);
-        if (result.isOk()) {
-            auto bb = result.getResult().getBoundingBox();
-            _neurons.push_back(std::move(result.getResult()));
-            _gpuNeurons.emplace_back(
-                _neuronModel, _jointModel, _somaModel,
-                0, 0, 0,
-                &_neurons.back()
-            );
-            if (_neurons.size() == 1) {
-                _sceneBoundingBox = bb;
-            } else {
-                combineBoundingBoxes(bb);
-            }
-            return true;
+        auto result = ComplexNeuron(&_prototypes.back());
+        auto bb = result.getBoundingBox();
+        _neurons.push_back(std::move(result));
+        _gpuNeurons.emplace_back(
+            _globalInstanceData,
+            _neuronModel, _jointModel, _somaModel,
+            0, 0, 0,
+            &_neurons.back()
+        );
+        if (_neurons.size() == 1) {
+            _sceneBoundingBox = bb;
+        } else {
+            combineBoundingBoxes(bb);
         }
-
-        neon::Logger::defaultLogger()->error(result.getError());
-        return false;
+        return true;
     }
 
     bool ComplexNeuronScene::removeNeuron(UID neuronId) {
