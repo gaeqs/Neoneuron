@@ -176,6 +176,17 @@ namespace neoneuron {
         return false;
     }
 
+    bool SimpleNeuronScene::addNeuron(PrototypeNeuron&& neuron) {
+        auto result = SimpleNeuron::fromPrototype(std::move(neuron));
+        if (result.isOk()) {
+            addNeuron(std::move(result.getResult()));
+            return true;
+        }
+
+        neon::Logger::defaultLogger()->error(result.getError());
+        return false;
+    }
+
     void SimpleNeuronScene::addNeuron(const SimpleNeuron& neuron) {
         _neurons.push_back(neuron);
         _gpuNeurons.emplace_back(_neuronModel, 0, &_neurons.back());

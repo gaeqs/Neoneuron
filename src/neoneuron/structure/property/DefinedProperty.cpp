@@ -8,7 +8,7 @@
 
 namespace neoneuron {
     DefinedProperty::DefinedProperty(std::string name, std::type_index type, PropertyTarget target)
-        : _name(std::move(name)), _type(type), _target(target), _editor(nullptr) {}
+        : _name(std::move(name)), _type(type), _target(target), _editor(nullptr), _generator(nullptr) {}
 
     DefinedProperty::DefinedProperty(std::string name,
                                      std::type_index type,
@@ -18,7 +18,17 @@ namespace neoneuron {
           _type(type),
           _target(target),
           _displayName(std::move(displayName)),
-          _editor(nullptr) {}
+          _editor(nullptr),
+          _generator(nullptr) {}
+
+    DefinedProperty::DefinedProperty(std::string name, std::type_index type, PropertyTarget target,
+                                     std::string displayName, EditorFunction editor, GeneratorFunction generator)
+        : _name(std::move(name)),
+          _type(type),
+          _target(target),
+          _displayName(std::move(displayName)),
+          _editor(editor),
+          _generator(generator) {}
 
     const std::string& DefinedProperty::getName() const {
         return _name;
@@ -44,8 +54,16 @@ namespace neoneuron {
         return _editor;
     }
 
-    void DefinedProperty::setEditor(EditorFunction editor) {
+    void DefinedProperty::setEditor(const EditorFunction& editor) {
         _editor = editor;
+    }
+
+    DefinedProperty::GeneratorFunction DefinedProperty::getGenerator() const {
+        return _generator;
+    }
+
+    void DefinedProperty::setGenerator(const GeneratorFunction& generator) {
+        _generator = generator;
     }
 
     bool DefinedProperty::operator==(const DefinedProperty& other) const {

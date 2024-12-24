@@ -4,6 +4,7 @@
 
 #include "NeoneuronUINeuronList.h"
 
+#include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/simple/SimpleNeuronScene.h>
 #include <neoneuron/ui/imgui/ImGuiCustomComponents.h>
 
@@ -70,7 +71,8 @@ namespace neoneuron {
             return;
         }
 
-        auto* prototype = _render->getNeuronScene()->findPrototypeNeuron(_selectedNeuron.value()).value_or(nullptr);
+        auto* scene = _render->getNeuronScene().get();
+        auto* prototype = scene->findPrototypeNeuron(_selectedNeuron.value()).value_or(nullptr);
 
         if (prototype == nullptr) {
             ImGui::EndChild();
@@ -83,8 +85,52 @@ namespace neoneuron {
         ImGui::Text("Properties provided:");
         ImGui::Indent();
 
-        for (const auto& name: prototype->getPropertiesUID() | std::views::keys) {
-            ImGui::Text(name.c_str());
+        auto& storage = _render->getNeoneuronApplication()->getPropertyStorage();
+
+        std::vector<std::string> segmentProperties;
+        std::vector<std::string> undefinedProperties;
+
+        for (const auto& [name, uid]: prototype->getPropertiesUID()) {
+            auto prop = storage.getProperty(name);
+            if (!prop.has_value()) {
+                undefinedProperties.push_back(name);
+                continue;
+            }
+
+            if (prop.value()->getTarget() == PropertyTarget::SEGMENT) {
+                segmentProperties.push_back(name);
+                continue;
+            }
+
+            if (ImGui::CollapsingHeader(prop.value()->getDisplayName().c_str())) {
+                if (auto editor = prop.value()->getEditor(); editor != nullptr) {
+                    if (auto optional = prototype->getPropertyAsAny(uid); optional.has_value()) {
+                        auto value = optional.value();
+                        if (editor(&value, prototype, scene)) {
+                            prototype->setPropertyAny(uid, value);
+                            scene->refreshNeuronProperty(_selectedNeuron.value(), name);
+                        }
+                    }
+                }
+            }
+        }
+
+        ImGui::Unindent();
+
+        ImGui::Text("Segment properties:");
+        ImGui::Indent();
+
+        for (const auto& prop: segmentProperties) {
+            ImGui::Text(prop.c_str());
+        }
+
+        ImGui::Unindent();
+
+        ImGui::Text("Undefined properties:");
+        ImGui::Indent();
+
+        for (const auto& prop: undefinedProperties) {
+            ImGui::Text(prop.c_str());
         }
 
         ImGui::Unindent();

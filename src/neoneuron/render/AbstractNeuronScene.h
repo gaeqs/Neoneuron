@@ -28,9 +28,13 @@ namespace neoneuron {
 
         virtual bool addNeuron(const PrototypeNeuron& neuron) = 0;
 
+        virtual bool addNeuron(PrototypeNeuron&& neuron) = 0;
+
         virtual bool removeNeuron(UID neuronId) = 0;
 
         [[nodiscard]] virtual rush::AABB<3, float> getSceneBoundingBox() const = 0;
+
+        virtual void refreshNeuronProperty(UID neuronId, const std::string& propertyName) = 0;
     };
 }
 

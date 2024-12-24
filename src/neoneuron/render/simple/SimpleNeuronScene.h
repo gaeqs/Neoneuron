@@ -52,6 +52,8 @@ namespace neoneuron {
 
         bool addNeuron(const PrototypeNeuron& neuron) override;
 
+        bool addNeuron(PrototypeNeuron&& neuron) override;
+
         void addNeuron(const SimpleNeuron& neuron);
 
         void addNeuron(SimpleNeuron&& neuron);

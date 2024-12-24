@@ -75,6 +75,8 @@ namespace neoneuron {
         [[nodiscard]] std::optional<size_t> findSomaIndex(UID uid) const;
 
         void recalculateMetadata();
+
+        void refreshProperty(const std::string& propertyName);
     };
 }
 

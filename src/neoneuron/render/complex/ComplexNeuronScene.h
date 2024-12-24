@@ -17,6 +17,21 @@ namespace neoneuron {
     class NeoneuronRender;
 
     class ComplexNeuronScene : public AbstractNeuronScene {
+    public:
+        static constexpr size_t UNIFORM_SET = 2;
+        static constexpr size_t GLOBAL_DATA_BINDING = 0;
+        static constexpr size_t SEGMENT_BINDING = 1;
+        static constexpr size_t JOINT_BINDING = 2;
+        static constexpr size_t SOMA_BINDING = 3;
+        static constexpr size_t SELECTION_BINDING = 4;
+        static constexpr size_t SOMA_GPU_DATA_BINDING = 5;
+
+        static constexpr size_t SEGMENT_INSTANCES = 10000000;
+        static constexpr size_t JOINT_INSTANCES = 10000000;
+        static constexpr size_t SOMA_INSTANCES = 100000;
+        static constexpr size_t STORAGE_PER_SOMA = 64 * 64;
+
+    private:
         NeoneuronRender* _render;
         ComplexNeuronSelector _selector;
 
@@ -102,9 +117,13 @@ namespace neoneuron {
 
         bool addNeuron(const PrototypeNeuron& neuron) override;
 
+        bool addNeuron(PrototypeNeuron&& neuron) override;
+
         bool removeNeuron(UID neuronId) override;
 
         [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
+
+        void refreshNeuronProperty(UID neuronId, const std::string& propertyName) override;
 
         [[nodiscard]] bool isWireframeMode() const;
 

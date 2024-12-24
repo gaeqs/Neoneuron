@@ -20,6 +20,14 @@ namespace neoneuron {
             max = rush::max(max, _segments[i].getEnd());
         }
 
+        if (_prototypeNeuron != nullptr) {
+            auto transform = _prototypeNeuron->getProperty<NeuronTransform>(PROPERTY_TRANSFORM);
+            if (transform.has_value()) {
+                auto model = transform.value().getModel();
+                min = model * rush::Vec4f(min, 1.0f);
+                max = model * rush::Vec4f(max, 1.0f);
+            }
+        }
         _boundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
@@ -192,10 +200,7 @@ namespace neoneuron {
     }
 
     rush::AABB<3, float> ComplexNeuron::getBoundingBox() const {
-        auto bb = _boundingBox;
-        //bb.center = _transform.getModel() * rush::Vec4f(bb.center, 1.0f);
-        //bb.radius = _transform.getModel() * rush::Vec4f(bb.radius, 0.0f);
-        return bb;
+        return _boundingBox;
     }
 
     const std::vector<ComplexNeuronSegment>& ComplexNeuron::getSegments() const {
@@ -250,5 +255,11 @@ namespace neoneuron {
         calculateBoundingBox();
         calculateJoints();
         calculateSomas();
+    }
+
+    void ComplexNeuron::refreshProperty(const std::string& propertyName) {
+        if (propertyName == PROPERTY_TRANSFORM) {
+            calculateBoundingBox();
+        }
     }
 }

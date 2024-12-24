@@ -5,6 +5,7 @@
 #ifndef NEONEURONAPPLICATION_H
 #define NEONEURONAPPLICATION_H
 #include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/structure/property/PropertyStorage.h>
 
 namespace neoneuron {
     class NeoneuronApplication {
@@ -17,11 +18,11 @@ namespace neoneuron {
         static inline const std::string SETTINGS_TOOL_DEBUG = "tool_debug";
         static inline const std::string SETTINGS_TOOL_DEMO = "tool_demo";
 
-
     private:
         nlohmann::json _settings;
         hey::Observable<std::string> _settingsNodeChange;
         NeoneuronRender _render;
+        PropertyStorage _propertyStorage;
 
         static nlohmann::json loadSettings();
 
@@ -35,6 +36,10 @@ namespace neoneuron {
         [[nodiscard]] nlohmann::json& getSettings();
 
         [[nodiscard]] const nlohmann::json& getSettings() const;
+
+        PropertyStorage& getPropertyStorage();
+
+        const PropertyStorage& getPropertyStorage() const;
 
         void registerSettingsListener(const hey::Listener<std::string>& listener) const;
 

@@ -233,6 +233,12 @@ namespace neoneuron {
         refreshSomas();
     }
 
+    void ComplexGPUNeuron::refreshProperty(const std::string& propertyName) {
+        if (propertyName == PROPERTY_TRANSFORM) {
+            refreshGlobalData();
+        }
+    }
+
     std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findSegment(UID uid) const {
         auto id = _segmentInstancesByUID.find(uid);
         if (id == _segmentInstancesByUID.end()) return {};

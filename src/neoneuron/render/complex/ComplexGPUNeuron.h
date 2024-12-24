@@ -136,6 +136,8 @@ namespace neoneuron {
 
         void refreshGPUData() const;
 
+        void refreshProperty(const std::string& propertyName);
+
         std::optional<neon::InstanceData::Instance> findSegment(UID uid) const;
 
         std::optional<neon::InstanceData::Instance> findJoint(UID uid) const;

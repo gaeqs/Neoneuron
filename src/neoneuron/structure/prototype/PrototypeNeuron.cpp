@@ -4,9 +4,23 @@
 
 #include "PrototypeNeuron.h"
 
+#include <ranges>
+
 namespace neoneuron {
     PrototypeNeuron::PrototypeNeuron(UID id)
         : Identifiable(id) {}
+
+    UID PrototypeNeuron::defineProperty(std::string name) {
+        UID maxId = 0;
+        for (auto id: _properties | std::views::values) {
+            maxId = std::max(id, maxId);
+        }
+
+        UID id = maxId + 1;
+        _properties[std::move(name)] = id;
+
+        return id;
+    }
 
     void PrototypeNeuron::defineProperty(std::string name, UID id) {
         _properties[std::move(name)] = id;

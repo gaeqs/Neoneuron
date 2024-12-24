@@ -13,16 +13,22 @@ namespace neoneuron {
     class PropertyStorage {
         std::unordered_map<std::string, DefinedProperty> _properties;
 
+        void addDefaultProperties();
+
     public:
-        PropertyStorage();
+        explicit PropertyStorage(bool defaultProperties = true);
 
-        bool hasProperty(const std::string& name) const;
+        [[nodiscard]] bool hasProperty(const std::string& name) const;
 
-        DefinedProperty& getProperty(const std::string& name);
+        [[nodiscard]] const std::unordered_map<std::string, DefinedProperty>& getProperties() const;
 
-        const DefinedProperty& getProperty(const std::string& name) const;
+        std::optional<DefinedProperty*> getProperty(const std::string& name);
+
+        [[nodiscard]] std::optional<const DefinedProperty*> getProperty(const std::string& name) const;
 
         void defineProperty(DefinedProperty property);
+
+        bool removeProperty(const std::string& name);
     };
 }
 

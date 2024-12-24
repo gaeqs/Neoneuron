@@ -14,6 +14,8 @@
 #include <neoneuron/loader/SWCLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/structure/NeuronTransform.h>
+#include <neoneuron/structure/prototype/NeuronProperties.h>
 
 #include "settings/NeoneuronUiSettings.h"
 #include "style/Fonts.h"
@@ -56,7 +58,9 @@ namespace neoneuron {
         }
 
         PrototypeNeuron prototype = std::move(loaderResult.getResult());
-        _render->getNeuronScene()->addNeuron(prototype);
+        auto transformUID = prototype.defineProperty(PROPERTY_TRANSFORM);
+        prototype.setProperty(transformUID, NeuronTransform());
+        _render->getNeuronScene()->addNeuron(std::move(prototype));
         _render->focusScene();
     }
 

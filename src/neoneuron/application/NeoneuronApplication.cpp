@@ -32,6 +32,14 @@ namespace neoneuron {
         return _settings;
     }
 
+    PropertyStorage& NeoneuronApplication::getPropertyStorage() {
+        return _propertyStorage;
+    }
+
+    const PropertyStorage& NeoneuronApplication::getPropertyStorage() const {
+        return _propertyStorage;
+    }
+
     void NeoneuronApplication::registerSettingsListener(const hey::Listener<std::string>& listener) const {
         _settingsNodeChange.addListener(listener);
     }

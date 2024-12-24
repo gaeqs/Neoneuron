@@ -21,6 +21,8 @@ namespace neoneuron {
     public:
         explicit PrototypeNeuron(UID id);
 
+        UID defineProperty(std::string name);
+
         void defineProperty(std::string name, UID id);
 
         [[nodiscard]] std::optional<UID> getPropertyUID(const std::string& name) const;

@@ -22,9 +22,6 @@ namespace {
 
 namespace neoneuron {
     void ComplexNeuronScene::loadUniformBuffers() {
-        constexpr size_t INSTANCES = 10000000;
-        constexpr size_t SOMA_INSTANCES = 100000;
-        constexpr size_t STORAGE_PER_SOMA = 64 * 64;
 
         auto* app = &_render->getApplication();
 
@@ -32,13 +29,13 @@ namespace neoneuron {
             // GLOBAL DATA
             neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronGlobalData) * SOMA_INSTANCES),
             // SEGMENTS
-            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSegment) * INSTANCES),
+            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSegment) * SEGMENT_INSTANCES),
             // JOINTS
-            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronJoint) * INSTANCES),
+            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronJoint) * JOINT_INSTANCES),
             // SOMAS
             neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSoma) * SOMA_INSTANCES),
             // SELECTION
-            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSelectionData) * INSTANCES),
+            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSelectionData) * SEGMENT_INSTANCES),
             // SOMA GPU DATA
             neon::ShaderUniformBinding::storageBuffer(STORAGE_PER_SOMA * SOMA_INSTANCES)
         };
@@ -53,7 +50,7 @@ namespace neoneuron {
             neon::StorageBufferInstanceData::Slot(
                 sizeof(ComplexGPUNeuronGlobalData),
                 sizeof(ComplexGPUNeuronGlobalData),
-                0,
+                GLOBAL_DATA_BINDING,
                 _ubo.get()
             ),
         };
@@ -109,7 +106,7 @@ namespace neoneuron {
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _neuronShader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
         materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
-        materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
+        materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
         _neuronMaterial = std::make_shared<neon::Material>(app, "Neuron", materialCreateInfo);
     }
 
@@ -117,7 +114,7 @@ namespace neoneuron {
         auto* app = &_render->getApplication();
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _jointShader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
-        materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
+        materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
         materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
         _jointMaterial = std::make_shared<neon::Material>(app, "Joint", materialCreateInfo);
     }
@@ -126,7 +123,7 @@ namespace neoneuron {
         auto* app = &_render->getApplication();
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _somaShader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
-        materialCreateInfo.descriptions.uniformBindings[2] = neon::DescriptorBinding::extra(_uboDescriptor);
+        materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
         materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
         _somaMaterial = std::make_shared<neon::Material>(app, "Soma", materialCreateInfo);
     }
@@ -143,7 +140,7 @@ namespace neoneuron {
         neon::ModelCreateInfo modelCreateInfo;
         modelCreateInfo.maximumInstances = INSTANCES;
         modelCreateInfo.drawables.push_back(drawable);
-        modelCreateInfo.uniformBufferBindings[2] = neon::ModelBufferBinding::extra(_ubo);
+        modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
         modelCreateInfo.instanceDataProvider = [this](neon::Application* app,
@@ -153,7 +150,7 @@ namespace neoneuron {
                 neon::StorageBufferInstanceData::Slot(
                     sizeof(ComplexGPUNeuronSegment),
                     sizeof(ComplexGPUNeuronSegment),
-                    1,
+                    SEGMENT_BINDING,
                     _ubo.get()
                 )
             };
@@ -176,7 +173,7 @@ namespace neoneuron {
         neon::ModelCreateInfo modelCreateInfo;
         modelCreateInfo.maximumInstances = INSTANCES;
         modelCreateInfo.drawables.push_back(drawable);
-        modelCreateInfo.uniformBufferBindings[2] = neon::ModelBufferBinding::extra(_ubo);
+        modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
         modelCreateInfo.instanceDataProvider = [this](neon::Application* app,
@@ -186,7 +183,7 @@ namespace neoneuron {
                 neon::StorageBufferInstanceData::Slot(
                     sizeof(ComplexGPUNeuronJoint),
                     sizeof(ComplexGPUNeuronJoint),
-                    2,
+                    JOINT_BINDING,
                     _ubo.get()
                 ),
             };
@@ -209,7 +206,7 @@ namespace neoneuron {
         neon::ModelCreateInfo modelCreateInfo;
         modelCreateInfo.maximumInstances = INSTANCES;
         modelCreateInfo.drawables.push_back(drawable);
-        modelCreateInfo.uniformBufferBindings[2] = neon::ModelBufferBinding::extra(_ubo);
+        modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
         modelCreateInfo.instanceDataProvider = [this](neon::Application* app,
@@ -219,7 +216,7 @@ namespace neoneuron {
                 neon::StorageBufferInstanceData::Slot(
                     sizeof(ComplexGPUNeuronSoma),
                     sizeof(ComplexGPUNeuronSoma),
-                    3,
+                    SOMA_BINDING,
                     _ubo.get()
                 ),
             };
@@ -280,7 +277,7 @@ namespace neoneuron {
         loadNeuronModel();
         loadJointModel();
         loadSomaModel();
-        _selector = ComplexNeuronSelector(this, _ubo.get(), 3);
+        _selector = ComplexNeuronSelector(this, _ubo.get(), SELECTION_BINDING);
     }
 
     ComplexNeuronScene::~ComplexNeuronScene() {
@@ -412,6 +409,25 @@ namespace neoneuron {
         return true;
     }
 
+    bool ComplexNeuronScene::addNeuron(PrototypeNeuron&& neuron) {
+        _prototypes.push_back(std::move(neuron));
+        auto result = ComplexNeuron(&_prototypes.back());
+        auto bb = result.getBoundingBox();
+        _neurons.push_back(std::move(result));
+        _gpuNeurons.emplace_back(
+            _globalInstanceData,
+            _neuronModel, _jointModel, _somaModel,
+            0, 0, 0,
+            &_neurons.back()
+        );
+        if (_neurons.size() == 1) {
+            _sceneBoundingBox = bb;
+        } else {
+            combineBoundingBoxes(bb);
+        }
+        return true;
+    }
+
     bool ComplexNeuronScene::removeNeuron(UID neuronId) {
         auto it = std::find_if(
             _neurons.begin(),
@@ -440,6 +456,20 @@ namespace neoneuron {
 
     rush::AABB<3, float> ComplexNeuronScene::getSceneBoundingBox() const {
         return _sceneBoundingBox;
+    }
+
+    void ComplexNeuronScene::refreshNeuronProperty(UID neuronId, const std::string& propertyName) {
+        if (auto neuron = findNeuron(neuronId); neuron.has_value()) {
+            neuron.value()->refreshProperty(propertyName);
+        }
+
+        if (auto gpuNeuron = findGPUNeuron(neuronId); gpuNeuron.has_value()) {
+            gpuNeuron.value()->refreshProperty(propertyName);
+        }
+
+        if (propertyName == PROPERTY_TRANSFORM) {
+            recalculateBoundingBox();
+        }
     }
 
     bool ComplexNeuronScene::isWireframeMode() const {

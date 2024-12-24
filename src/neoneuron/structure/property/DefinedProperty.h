@@ -21,8 +21,11 @@ namespace neoneuron {
     class DefinedProperty {
     public:
         using EditorFunction = std::function<bool(std::any* property,
-                                                  const PrototypeNeuron& neuron,
-                                                  const AbstractNeuronScene& scene)>;
+                                                  const PrototypeNeuron* neuron,
+                                                  const AbstractNeuronScene* scene)>;
+
+        using GeneratorFunction = std::function<std::any(const PrototypeNeuron* neuron,
+                                                         const AbstractNeuronScene* scene)>;
 
     private:
         std::string _name;
@@ -30,11 +33,15 @@ namespace neoneuron {
         PropertyTarget _target;
         std::string _displayName;
         EditorFunction _editor;
+        GeneratorFunction _generator;
 
     public:
         DefinedProperty(std::string name, std::type_index type, PropertyTarget target);
 
         DefinedProperty(std::string name, std::type_index type, PropertyTarget target, std::string displayName);
+
+        DefinedProperty(std::string name, std::type_index type, PropertyTarget target, std::string displayName,
+            EditorFunction editor, GeneratorFunction generator);
 
         [[nodiscard]] const std::string& getName() const;
 
@@ -48,7 +55,11 @@ namespace neoneuron {
 
         [[nodiscard]] EditorFunction getEditor() const;
 
-        void setEditor(EditorFunction editor);
+        void setEditor(const EditorFunction& editor);
+
+        [[nodiscard]] GeneratorFunction getGenerator() const;
+
+        void setGenerator(const GeneratorFunction& generator);
 
         bool operator==(const DefinedProperty& other) const;
 
@@ -56,6 +67,7 @@ namespace neoneuron {
     };
 }
 
+template<>
 struct std::hash<neoneuron::DefinedProperty> {
     std::size_t operator()(const neoneuron::DefinedProperty& property) const noexcept;
 };
