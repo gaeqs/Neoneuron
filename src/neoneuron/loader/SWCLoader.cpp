@@ -4,6 +4,7 @@
 
 #include "SWCLoader.h"
 
+#include <sstream>
 #include <unordered_map>
 #include <neoneuron/structure/prototype/NeuronProperties.h>
 

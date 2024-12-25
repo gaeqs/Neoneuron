@@ -12,11 +12,67 @@
 #include <neoneuron/loader/SWCLoader.h>
 
 #include "application/NeoneuronApplication.h"
+#include "loader/XMLLoader.h"
 
 
 CMRC_DECLARE(resources);
 
+/*std::string text = R"(<?xml version="1.0" encoding="UTF-8"?>
+
+<scene version="0.1">
+  <morphology>
+    <columns>
+      <column id="0">
+        <minicolumn id="0">
+          <neuron gid="0" layer="2">
+          </neuron>
+          <neuron gid="1" layer="3" type="INTERNEURON">
+            <transform>
+              -1.0, 0, 0.0, 100.0,
+              0.0, -1, 0.0, 0.0,
+              0.0, 0.0, 1.0, 150.0,
+              0.0, 0.0, 0.0, 1.0
+            </transform>
+          </neuron>
+        </minicolumn>
+        <minicolumn id="1">
+          <neuron gid="2" type="PYRAMIDAL">
+            <transform>
+              1.0, 0.0, 0.0, 200.0,
+              0.0, 1.0, 0.0, 0.0,
+              0.0, 0.0, 1.0, 50.0,
+              0.0, 0.0, 0.0, 1
+            </transform>
+          </neuron>
+        </minicolumn>
+      </column>
+      <column id="1">
+        <minicolumn id="0">
+          <neuron gid="3" type="PYRAMIDAL">
+            <transform>
+              -1.0, 0, 0.0, 300.0,
+              0.0, -1.0, 0.0, 0.0,
+              0.0, 0.0, 1.0, 200.0,
+              0.0, 0.0, 0.0, 1
+            </transform>
+          </neuron>
+        </minicolumn>
+      </column>
+    </columns>
+    <neuronmorphologies>
+      <neuronmorphology neurons="0,1" swc="GA02326c1n2-2.CNG.swc" />
+      <neuronmorphology neurons="2,3" swc="GA02327c1.CNG.swc" />
+    </neuronmorphologies>
+  </morphology>
+</scene>
+)";*/
+
 int main() {
+    //neoneuron::XMLLoader loader(nullptr, "", text.data(), text.size());
+    //loader.build(0);
+
+    //return 0;
+
     NFD::Init();
 
     using MeshFeature = VkPhysicalDeviceMeshShaderFeaturesEXT;

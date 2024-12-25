@@ -8,6 +8,8 @@
 #include <vector>
 #include <string>
 
+#include <rush/rush.h>
+
 #include <neoneuron/loader/Loader.h>
 #include <neoneuron/structure/prototype/PrototypeNeuron.h>
 

@@ -5,7 +5,7 @@
 #ifndef LOADER_H
 #define LOADER_H
 
-#include <neon/assimp/AssimpLoader.h>
+#include <neon/util/Result.h>
 #include <neoneuron/structure/prototype/PrototypeNeuron.h>
 
 namespace neoneuron {
