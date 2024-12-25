@@ -21,6 +21,7 @@ namespace neoneuron {
             int64_t parent;
         };
 
+        std::optional<std::string> _fileName;
         std::vector<std::string> _lines;
 
         [[nodiscard]] neon::Result<SWCSegment, std::string> toSegment(size_t lineIndex) const;
@@ -33,6 +34,8 @@ namespace neoneuron {
         explicit SWCLoader(std::istream& stream);
 
         ~SWCLoader() override = default;
+
+        void setFileName(std::string fileName);
 
         [[nodiscard]] neon::Result<PrototypeNeuron, std::string> build(UID uid) const override;
     };

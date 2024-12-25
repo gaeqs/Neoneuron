@@ -40,6 +40,10 @@ namespace neoneuron {
         }
     }
 
+    void SWCLoader::setFileName(std::string fileName) {
+        _fileName = std::move(fileName);
+    }
+
     neon::Result<PrototypeNeuron, std::string> SWCLoader::build(UID uid) const {
         std::unordered_map<UID, SWCSegment> prototypes;
         PrototypeNeuron neuron(uid);
@@ -49,6 +53,11 @@ namespace neoneuron {
         neuron.defineProperty(PROPERTY_END, 1);
         neuron.defineProperty(PROPERTY_RADIUS, 2);
         neuron.defineProperty(PROPERTY_PARENT, 3);
+
+        if (_fileName.has_value()) {
+            neuron.defineProperty(PROPERTY_NAME, 4);
+            neuron.setProperty(4, _fileName.value());
+        }
 
         prototypes.reserve(_lines.size());
         neuron.reserveSpaceForSegments(_lines.size());

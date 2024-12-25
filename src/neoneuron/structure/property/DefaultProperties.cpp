@@ -53,3 +53,33 @@ bool neoneuron::property::transformEditor(std::any* property,
 std::any neoneuron::property::transformGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene) {
     return NeuronTransform();
 }
+
+bool neoneuron::property::nameEditor(std::any* property, const PrototypeNeuron* neuron,
+                                     const AbstractNeuronScene* scene) {
+    constexpr size_t BUF_SIZE = 64;
+    auto* s = std::any_cast<std::string>(property);
+    if (s == nullptr) return false;
+
+    char buf[BUF_SIZE];
+    size_t size = std::min(s->size(), BUF_SIZE - 1);
+    std::memcpy(buf, s->data(), size);
+    buf[size] = '\0';
+
+    ImGui::PushItemWidth(-1.0f);
+
+    ImGui::Text("Name:");
+    ImGui::SameLine();
+
+    if (ImGui::InputText("##name", buf, BUF_SIZE - 1)) {
+        *s = std::string(buf);
+        ImGui::PopItemWidth();
+        return true;
+    }
+
+    ImGui::PopItemWidth();
+    return false;
+}
+
+std::any neoneuron::property::nameGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene) {
+    return std::string();
+}

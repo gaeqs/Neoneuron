@@ -12,6 +12,11 @@ namespace neoneuron::property {
     bool transformEditor(std::any* property, const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
 
     std::any transformGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+
+    bool nameEditor(std::any* property, const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+
+    std::any nameGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+
 }
 
 

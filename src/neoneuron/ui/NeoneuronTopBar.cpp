@@ -48,8 +48,11 @@ namespace neoneuron {
             return;
         }
 
-        std::ifstream ss(file);
+        std::filesystem::path path(file);
+
+        std::ifstream ss(path);
         SWCLoader loader(ss);
+        loader.setFileName(path.filename().string());
         auto loaderResult = loader.build(_render->getNeuronScene()->getNeuronsAmount());
 
         if (!loaderResult.isOk()) {

@@ -20,6 +20,7 @@ namespace neoneuron {
         GLIA_PROCESSES = 7
     };
 
+    const std::string PROPERTY_NAME = "name";
     const std::string PROPERTY_TYPE = "type";
     const std::string PROPERTY_END = "end";
     const std::string PROPERTY_RADIUS = "radius";

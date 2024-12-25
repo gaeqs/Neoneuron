@@ -11,7 +11,13 @@
 
 namespace neoneuron {
     void NeoneuronUINeuronList::neuronSection(const PrototypeNeuron& neuron, size_t id) {
-        std::string name = "Neuron " + std::to_string(id) + "##" + std::to_string(id);
+        std::string name;
+        if (auto opt = neuron.getProperty<std::string>(PROPERTY_NAME); opt.has_value()) {
+            name = opt.value() + "##" + std::to_string(id);
+        } else {
+            name = "Neuron " + std::to_string(id) + "##" + std::to_string(id);
+        }
+
 
         bool selected = _selectedNeuron == neuron.getId();
         if (selected) {

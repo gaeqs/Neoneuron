@@ -19,6 +19,14 @@ void neoneuron::PropertyStorage::addDefaultProperties() {
         property::transformEditor,
         property::transformGenerator
     });
+    defineProperty({
+        PROPERTY_NAME,
+        typeid(std::string),
+        PropertyTarget::NEURON,
+        "Name",
+        property::nameEditor,
+        property::nameGenerator
+    });
 }
 
 neoneuron::PropertyStorage::PropertyStorage(bool defaultProperties) {
