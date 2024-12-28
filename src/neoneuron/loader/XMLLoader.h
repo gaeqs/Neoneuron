@@ -14,9 +14,19 @@
 #include <neon/filesystem/FileSystem.h>
 
 #include <neoneuron/loader/Loader.h>
+#include <neoneuron/structure/NeuronTransform.h>
 
 namespace neoneuron {
     class XMLLoader final : public Loader {
+        struct XMLNeuron {
+            UID id;
+            std::optional<UID> column;
+            std::optional<UID> miniColumn;
+            std::optional<UID> layer;
+            std::optional<std::string> neuronType;
+            NeuronTransform transform;
+        };
+
         neon::FileSystem* _fileSystem;
         std::filesystem::path _root;
 
@@ -24,9 +34,9 @@ namespace neoneuron {
         bool _valid;
 
     public:
-        XMLLoader(neon::FileSystem* fileSystem, std::filesystem::path  root, void* data, size_t size);
+        XMLLoader(neon::FileSystem* fileSystem, std::filesystem::path root, void* data, size_t size);
 
-        XMLLoader(neon::FileSystem* fileSystem, std::filesystem::path  root, std::istream& stream);
+        XMLLoader(neon::FileSystem* fileSystem, std::filesystem::path root, std::istream& stream);
 
         [[nodiscard]] neon::Result<PrototypeNeuron, std::string> build(UID uid) const override;
     };

@@ -23,6 +23,8 @@ namespace neoneuron {
     public:
         NeuronTransform();
 
+        explicit NeuronTransform(const rush::Mat4f& model);
+
         [[nodiscard]] const rush::Mat4f& getModel() const;
 
         [[nodiscard]] const rush::Mat4f& getNormal() const;

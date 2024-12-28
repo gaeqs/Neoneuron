@@ -17,7 +17,7 @@
 
 CMRC_DECLARE(resources);
 
-/*std::string text = R"(<?xml version="1.0" encoding="UTF-8"?>
+std::string text = R"(<?xml version="1.0" encoding="UTF-8"?>
 
 <scene version="0.1">
   <morphology>
@@ -38,10 +38,6 @@ CMRC_DECLARE(resources);
         <minicolumn id="1">
           <neuron gid="2" type="PYRAMIDAL">
             <transform>
-              1.0, 0.0, 0.0, 200.0,
-              0.0, 1.0, 0.0, 0.0,
-              0.0, 0.0, 1.0, 50.0,
-              0.0, 0.0, 0.0, 1
             </transform>
           </neuron>
         </minicolumn>
@@ -65,13 +61,13 @@ CMRC_DECLARE(resources);
     </neuronmorphologies>
   </morphology>
 </scene>
-)";*/
+)";
 
 int main() {
-    //neoneuron::XMLLoader loader(nullptr, "", text.data(), text.size());
-    //loader.build(0);
+    neoneuron::XMLLoader loader(nullptr, "", text.data(), text.size());
+    loader.build(0);
 
-    //return 0;
+    return 0;
 
     NFD::Init();
 

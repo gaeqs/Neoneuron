@@ -20,6 +20,22 @@ namespace neoneuron {
         _scale(1),
         _dirty(false) {}
 
+    NeuronTransform::NeuronTransform(const rush::Mat4f& model) {
+        _position = model[3](0, 1, 2);
+        _scale.x() = model[0](0, 1, 2).toVec().length();
+        _scale.y() = model[1](0, 1, 2).toVec().length();
+        _scale.z() = model[2](0, 1, 2).toVec().length();
+
+        auto rot = rush::Mat3f(model);
+        rot[0] /= _scale.x();
+        rot[1] /= _scale.y();
+        rot[2] /= _scale.z();
+
+        std::cout << rot << std::endl;
+
+        _rotation = rush::Quatf::fromRotationMatrix(rot);
+    }
+
     const rush::Mat4f& NeuronTransform::getModel() const {
         recalculateIfRequired();
         return _model;
