@@ -11,6 +11,8 @@ namespace neoneuron {
         : Identifiable(id) {}
 
     UID PrototypeNeuron::defineProperty(std::string name) {
+        if (auto found = getPropertyUID(name); found.has_value()) return found.value();
+
         UID maxId = 0;
         for (auto id: _properties | std::views::values) {
             maxId = std::max(id, maxId);
@@ -24,6 +26,10 @@ namespace neoneuron {
 
     void PrototypeNeuron::defineProperty(std::string name, UID id) {
         _properties[std::move(name)] = id;
+    }
+
+    bool PrototypeNeuron::isPropertyDefined(const std::string& name) {
+        return _properties.contains(name);
     }
 
     std::optional<UID> PrototypeNeuron::getPropertyUID(const std::string& name) const {

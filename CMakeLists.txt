@@ -17,6 +17,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/nativefiledialog/src/include
 add_subdirectory(lib)
 
 find_package(Vulkan REQUIRED)
+find_package(pugixml REQUIRED)
 
 # Try extracting VulkanSDK path from ${Vulkan_INCLUDE_DIRS}
 if (NOT ${Vulkan_INCLUDE_DIRS} STREQUAL "")
@@ -36,7 +37,7 @@ endif ()
 find_package(glfw3 CONFIG REQUIRED)
 list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
-list(APPEND LIBRARIES neon nfd hey)
+list(APPEND LIBRARIES neon nfd hey pugixml)
 
 include_directories(src)
 add_subdirectory(src)

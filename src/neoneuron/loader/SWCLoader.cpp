@@ -31,21 +31,23 @@ namespace neoneuron {
 
     SWCLoader::SWCLoader(const std::vector<std::string>& lines) : _lines(lines) {}
 
-    SWCLoader::SWCLoader(std::vector<std::string>&& lines) : _lines(std::move(lines)) {}
+    SWCLoader::SWCLoader(std::vector<std::string>&& lines) : _lines(std::move(lines)) {
+    }
 
     SWCLoader::SWCLoader(std::istream& stream) {
         std::string line;
         while (std::getline(stream, line)) {
-            if (line.starts_with("#") || line.empty()) continue;
             _lines.push_back(std::move(line));
         }
     }
+
+    SWCLoader::SWCLoader(const neon::File& stream) : _lines(stream.readLines()) {}
 
     void SWCLoader::setFileName(std::string fileName) {
         _fileName = std::move(fileName);
     }
 
-    neon::Result<PrototypeNeuron, std::string> SWCLoader::build(UID uid) const {
+    neon::Result<std::vector<PrototypeNeuron>, std::string> SWCLoader::build(UID uid) const {
         std::unordered_map<UID, SWCSegment> prototypes;
         PrototypeNeuron neuron(uid);
 
@@ -64,6 +66,8 @@ namespace neoneuron {
         neuron.reserveSpaceForSegments(_lines.size());
 
         for (size_t i = 0; i < _lines.size(); ++i) {
+            auto line = _lines[i];
+            if (line.starts_with("#") || line.empty()) continue;
             auto result = toSegment(i);
             if (!result.isOk()) return result.getError();
             prototypes.emplace(result.getResult().id, result.getResult());
@@ -78,6 +82,6 @@ namespace neoneuron {
             neuron.addSegment(std::move(segment));
         }
 
-        return std::move(neuron);
+        return std::vector{std::move(neuron)};
     }
 }

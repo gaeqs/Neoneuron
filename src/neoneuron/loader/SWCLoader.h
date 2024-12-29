@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <neon/filesystem/File.h>
 
 #include <rush/rush.h>
 
@@ -35,11 +36,13 @@ namespace neoneuron {
 
         explicit SWCLoader(std::istream& stream);
 
+        explicit SWCLoader(const neon::File& stream);
+
         ~SWCLoader() override = default;
 
         void setFileName(std::string fileName);
 
-        [[nodiscard]] neon::Result<PrototypeNeuron, std::string> build(UID uid) const override;
+        [[nodiscard]] neon::Result<std::vector<PrototypeNeuron>, std::string> build(UID uid) const override;
     };
 }
 

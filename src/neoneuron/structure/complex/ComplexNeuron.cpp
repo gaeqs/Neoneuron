@@ -20,8 +20,9 @@ namespace neoneuron {
             max = rush::max(max, _segments[i].getEnd());
         }
 
-        if (_prototypeNeuron != nullptr) {
-            auto transform = _prototypeNeuron->getProperty<NeuronTransform>(PROPERTY_TRANSFORM);
+        auto prototype = _prototypeNeuron.lock();
+        if (prototype != nullptr) {
+            auto transform = prototype->getProperty<NeuronTransform>(PROPERTY_TRANSFORM);
             if (transform.has_value()) {
                 auto model = transform.value().getModel();
                 min = model * rush::Vec4f(min, 1.0f);
@@ -97,6 +98,7 @@ namespace neoneuron {
         if (this == &other)
             return *this;
         Identifiable::operator =(std::move(other));
+        _prototypeNeuron = std::move(other._prototypeNeuron);
         _segments = std::move(other._segments);
         _segmentsByUID = std::move(other._segmentsByUID);
         _joints = std::move(other._joints);
@@ -107,10 +109,11 @@ namespace neoneuron {
         return *this;
     }
 
-    ComplexNeuron::ComplexNeuron() : Identifiable(std::numeric_limits<UID>::max()), _prototypeNeuron(nullptr) {}
+    ComplexNeuron::ComplexNeuron() : Identifiable(std::numeric_limits<UID>::max()) {}
 
-    ComplexNeuron::ComplexNeuron(PrototypeNeuron* prototype) : Identifiable(prototype->getId()),
-                                                               _prototypeNeuron(prototype) {
+    ComplexNeuron::ComplexNeuron(std::shared_ptr<PrototypeNeuron> prototype)
+        : Identifiable(prototype->getId()),
+          _prototypeNeuron(prototype) {
         std::optional<UID> propType = prototype->getPropertyUID(PROPERTY_TYPE);
         std::optional<UID> propEnd = prototype->getPropertyUID(PROPERTY_END);
         std::optional<UID> propRadius = prototype->getPropertyUID(PROPERTY_RADIUS);
@@ -131,7 +134,11 @@ namespace neoneuron {
                 std::stringstream ss;
                 ss << "Cannot load section ";
                 ss << segment.getId();
-                ss << ". Properties are not found.";
+                ss << ". Properties are not found. ";
+                ss << "Type: " << type.has_value();
+                ss << ", End: " << end.has_value();
+                ss << ", Radius: " << radius.has_value();
+                ss << ", Parent: " << parent.has_value();
                 neon::Logger::defaultLogger()->error(ss.str());
                 continue;
             }
@@ -172,7 +179,7 @@ namespace neoneuron {
     }
 
     ComplexNeuron::ComplexNeuron(UID uid, const std::vector<ComplexNeuronSegment>& segments)
-        : Identifiable(uid), _prototypeNeuron(nullptr),
+        : Identifiable(uid),
           _segments(segments) {
         for (size_t i = 0; i < _segments.size(); ++i) {
             _segmentsByUID.emplace(_segments[i].getId(), i);
@@ -181,7 +188,7 @@ namespace neoneuron {
     }
 
     ComplexNeuron::ComplexNeuron(UID uid, std::vector<ComplexNeuronSegment>&& segments)
-        : Identifiable(uid), _prototypeNeuron(nullptr),
+        : Identifiable(uid),
           _segments(std::move(segments)) {
         for (size_t i = 0; i < _segments.size(); ++i) {
             _segmentsByUID.emplace(_segments[i].getId(), i);
@@ -190,13 +197,15 @@ namespace neoneuron {
     }
 
     std::optional<PrototypeNeuron*> ComplexNeuron::getPrototypeNeuron() {
-        if (_prototypeNeuron == nullptr) return {};
-        return _prototypeNeuron;
+        auto prototype = _prototypeNeuron.lock();
+        if (prototype == nullptr) return {};
+        return prototype.get();
     }
 
     std::optional<const PrototypeNeuron*> ComplexNeuron::getPrototypeNeuron() const {
-        if (_prototypeNeuron == nullptr) return {};
-        return _prototypeNeuron;
+        auto prototype = _prototypeNeuron.lock();
+        if (prototype == nullptr) return {};
+        return prototype.get();
     }
 
     rush::AABB<3, float> ComplexNeuron::getBoundingBox() const {

@@ -8,6 +8,7 @@
 #include <any>
 #include <optional>
 #include <unordered_map>
+#include <neon/logging/Logger.h>
 #include <neoneuron/structure/Identifiable.h>
 
 namespace neoneuron {
@@ -38,9 +39,16 @@ namespace neoneuron {
         std::optional<T> getProperty(UID uid) const {
             auto optional = getPropertyAsAny(uid);
             if (!optional.has_value()) return {};
+            auto any = std::move(optional.value());
             try {
-                return std::any_cast<T>(optional.value());
+                return std::any_cast<T>(any);
             } catch (const std::bad_any_cast& e) {
+                neon::Logger::defaultLogger()->error(neon::MessageBuilder()
+                    .print("Error while casting std::any. ")
+                    .print("Expected: ")
+                    .print(typeid(T).name())
+                    .print(", Found: ")
+                    .print(any.type().name()));
                 return {};
             }
         }

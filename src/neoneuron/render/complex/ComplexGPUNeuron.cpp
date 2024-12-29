@@ -8,9 +8,9 @@
 
 
 namespace neoneuron {
-    void ComplexGPUNeuron::generateSegmentInstances() {
+    void ComplexGPUNeuron::generateSegmentInstances(const ComplexNeuron* neuron) {
         auto* instanceData = _segmentModel.lock()->getInstanceData(_segmentInstanceDataIndex);
-        for (auto& segments = _neuron->getSegments(); auto& segment: segments) {
+        for (auto& segments = neuron->getSegments(); auto& segment: segments) {
             if (auto result = instanceData->createInstance(); result.isOk()) {
                 _segmentInstances.push_back(result.getResult());
                 _segmentInstancesByUID[segment.getId()] = result.getResult();
@@ -21,9 +21,9 @@ namespace neoneuron {
         }
     }
 
-    void ComplexGPUNeuron::generateJointInstances() {
+    void ComplexGPUNeuron::generateJointInstances(const ComplexNeuron* neuron) {
         auto* instanceData = _jointModel.lock()->getInstanceData(_jointInstanceDataIndex);
-        for (auto& joints = _neuron->getJoints(); auto& joint: joints) {
+        for (auto& joints = neuron->getJoints(); auto& joint: joints) {
             if (auto result = instanceData->createInstance(); result.isOk()) {
                 _jointInstances.push_back(result.getResult());
                 _jointInstancesByUID[joint.getId()] = result.getResult();
@@ -34,9 +34,9 @@ namespace neoneuron {
         }
     }
 
-    void ComplexGPUNeuron::generateSomaInstances() {
+    void ComplexGPUNeuron::generateSomaInstances(const ComplexNeuron* neuron) {
         auto* instanceData = _somaModel.lock()->getInstanceData(_somaInstanceDataIndex);
-        for (auto& somas = _neuron->getSomas(); auto& soma: somas) {
+        for (auto& somas = neuron->getSomas(); auto& soma: somas) {
             if (auto result = instanceData->createInstance(); result.isOk()) {
                 _somaInstances.push_back(result.getResult());
                 _somaInstancesByUID[soma.getId()] = result.getResult();
@@ -47,16 +47,16 @@ namespace neoneuron {
         }
     }
 
-    void ComplexGPUNeuron::refreshGlobalData() const {
+    void ComplexGPUNeuron::refreshGlobalData(const ComplexNeuron* neuron) const {
         auto buffer = _globalInstanceData.lock();
         if (buffer == nullptr) return;
 
         ComplexGPUNeuronGlobalData data{
-            .neuronId = _neuron->getId(),
+            .neuronId = neuron->getId(),
             .model = rush::Mat4f(1.0f)
         };
 
-        auto* prototype = _neuron->getPrototypeNeuron().value_or(nullptr);
+        auto* prototype = neuron->getPrototypeNeuron().value_or(nullptr);
         if (prototype != nullptr) {
             auto transform = prototype->getProperty<NeuronTransform>(PROPERTY_TRANSFORM);
             if (transform.has_value()) {
@@ -67,22 +67,22 @@ namespace neoneuron {
         buffer->uploadData(_globalInstance, 0, data);
     }
 
-    void ComplexGPUNeuron::refreshSegments() const {
+    void ComplexGPUNeuron::refreshSegments(const ComplexNeuron* neuron) const {
         auto neuronModel = _segmentModel.lock();
         if (neuronModel == nullptr) return;
         auto* neuronData = neuronModel->getInstanceData(_segmentInstanceDataIndex);
         for (size_t i = 0; i < _segmentInstances.size(); ++i) {
-            auto& segment = _neuron->getSegments()[i];
+            auto& segment = neuron->getSegments()[i];
 
             uint32_t parentIndex;
             if (segment.getParentId().has_value()) {
-                size_t index = _neuron->findSegmentIndex(segment.getParentId().value()).value();
+                size_t index = neuron->findSegmentIndex(segment.getParentId().value()).value();
                 parentIndex = *_segmentInstances[index].id;
             } else {
                 parentIndex = *_segmentInstances[i].id;
             }
 
-            auto joint = _neuron->findJoint(segment.getId());
+            auto joint = neuron->findJoint(segment.getId());
 
             uint32_t metadata = static_cast<uint32_t>(segment.getType()) & 0b11111111;;
             if (joint.has_value()) {
@@ -101,15 +101,15 @@ namespace neoneuron {
         }
     }
 
-    void ComplexGPUNeuron::refreshJoints() const {
+    void ComplexGPUNeuron::refreshJoints(const ComplexNeuron* neuron) const {
         auto jointModel = _jointModel.lock();
         if (jointModel == nullptr) return;
         auto* jointData = jointModel->getInstanceData(_jointInstanceDataIndex);
 
         for (size_t i = 0; i < _jointInstances.size(); ++i) {
-            auto& joint = _neuron->getJoints()[i];
+            auto& joint = neuron->getJoints()[i];
 
-            uint32_t parentInstance = *_segmentInstances[_neuron->findSegmentIndex(joint.getId()).value()].id;
+            uint32_t parentInstance = *_segmentInstances[neuron->findSegmentIndex(joint.getId()).value()].id;
 
             ComplexGPUNeuronJoint gpu{
                 parentInstance,
@@ -118,21 +118,21 @@ namespace neoneuron {
             };
 
             for (size_t c = 0; c < gpu.amount; ++c) {
-                gpu.connections[c] = *_segmentInstances[_neuron->findSegmentIndex(joint.getChildren()[c]).value()].id;
+                gpu.connections[c] = *_segmentInstances[neuron->findSegmentIndex(joint.getChildren()[c]).value()].id;
             }
 
             jointData->uploadData(_jointInstances[i], 0, gpu);
         }
     }
 
-    void ComplexGPUNeuron::refreshSomas() const {
+    void ComplexGPUNeuron::refreshSomas(const ComplexNeuron* neuron) const {
         auto somaModel = _somaModel.lock();
         if (somaModel == nullptr) return;
         auto* somaData = somaModel->getInstanceData(_somaInstanceDataIndex);
 
         for (size_t i = 0; i < _somaInstances.size(); ++i) {
-            auto& soma = _neuron->getSomas()[i];
-            uint32_t segment = *_segmentInstances[_neuron->findSegmentIndex(soma.getId()).value()].id;
+            auto& soma = neuron->getSomas()[i];
+            uint32_t segment = *_segmentInstances[neuron->findSegmentIndex(soma.getId()).value()].id;
 
             ComplexGPUNeuronSoma gpu{
                 segment,
@@ -140,7 +140,7 @@ namespace neoneuron {
             };
 
             for (size_t c = 0; c < gpu.amount; ++c) {
-                gpu.connections[c] = *_segmentInstances[_neuron->findSegmentIndex(soma.getChildren()[c]).value()].id;
+                gpu.connections[c] = *_segmentInstances[neuron->findSegmentIndex(soma.getChildren()[c]).value()].id;
             }
 
             somaData->uploadData(_somaInstances[i], 0, gpu);
@@ -163,7 +163,6 @@ namespace neoneuron {
         _jointInstancesByUID = std::move(other._jointInstancesByUID);
         _somaInstances = std::move(other._somaInstances);
         _somaInstancesByUID = std::move(other._somaInstancesByUID);
-        _neuron = other._neuron;
         _valid = other._valid;
         other._valid = false;
     }
@@ -183,16 +182,15 @@ namespace neoneuron {
           _segmentInstanceDataIndex(segmentInstanceDataIndex),
           _jointInstanceDataIndex(jointInstanceDataIndex),
           _somaInstanceDataIndex(somaInstanceDataIndex),
-          _neuron(neuron),
           _valid(true) {
-        _segmentInstances.reserve(_neuron->getSegments().size());
+        _segmentInstances.reserve(neuron->getSegments().size());
 
         _globalInstance = _globalInstanceData.lock()->createInstance().orElse(_globalInstance);
-        generateSegmentInstances();
-        generateJointInstances();
-        generateSomaInstances();
+        generateSegmentInstances(neuron);
+        generateJointInstances(neuron);
+        generateSomaInstances(neuron);
 
-        refreshGPUData();
+        refreshGPUData(neuron);
     }
 
     ComplexGPUNeuron::~ComplexGPUNeuron() {
@@ -225,17 +223,17 @@ namespace neoneuron {
         }
     }
 
-    void ComplexGPUNeuron::refreshGPUData() const {
+    void ComplexGPUNeuron::refreshGPUData(const ComplexNeuron* neuron) const {
         if (!_valid) return;
-        refreshGlobalData();
-        refreshSegments();
-        refreshJoints();
-        refreshSomas();
+        refreshGlobalData(neuron);
+        refreshSegments(neuron);
+        refreshJoints(neuron);
+        refreshSomas(neuron);
     }
 
-    void ComplexGPUNeuron::refreshProperty(const std::string& propertyName) {
+    void ComplexGPUNeuron::refreshProperty(const ComplexNeuron* neuron, const std::string& propertyName) {
         if (propertyName == PROPERTY_TRANSFORM) {
-            refreshGlobalData();
+            refreshGlobalData(neuron);
         }
     }
 
@@ -267,7 +265,6 @@ namespace neoneuron {
         _jointInstancesByUID = std::move(other._jointInstancesByUID);
         _somaInstances = std::move(other._somaInstances);
         _somaInstancesByUID = std::move(other._somaInstancesByUID);
-        _neuron = other._neuron;
         _valid = other._valid;
         other._valid = false;
         return *this;

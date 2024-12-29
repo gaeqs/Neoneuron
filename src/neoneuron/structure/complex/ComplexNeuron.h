@@ -20,7 +20,7 @@
 
 namespace neoneuron {
     class ComplexNeuron : public Identifiable {
-        PrototypeNeuron* _prototypeNeuron;
+        std::weak_ptr<PrototypeNeuron> _prototypeNeuron;
         std::vector<ComplexNeuronSegment> _segments;
         std::unordered_map<UID, size_t> _segmentsByUID;
         std::vector<ComplexJoint> _joints;
@@ -44,7 +44,7 @@ namespace neoneuron {
 
         ComplexNeuron();
 
-        explicit ComplexNeuron(PrototypeNeuron* prototype);
+        explicit ComplexNeuron(std::shared_ptr<PrototypeNeuron> prototype);
 
         ComplexNeuron(UID uid, const std::vector<ComplexNeuronSegment>& segments);
 

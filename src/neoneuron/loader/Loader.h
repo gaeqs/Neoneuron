@@ -13,7 +13,7 @@ namespace neoneuron {
     public:
         virtual ~Loader() = default;
 
-        [[nodiscard]] virtual neon::Result<PrototypeNeuron, std::string> build(UID uid) const = 0;
+        [[nodiscard]] virtual neon::Result<std::vector<PrototypeNeuron>, std::string> build(UID uid) const = 0;
     };
 }
 

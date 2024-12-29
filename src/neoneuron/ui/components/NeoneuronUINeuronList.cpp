@@ -58,7 +58,7 @@ namespace neoneuron {
 
         while (clipper.Step()) {
             for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-                neuronSection(neurons[row], row);
+                neuronSection(*neurons[row].get(), row);
             }
         }
 

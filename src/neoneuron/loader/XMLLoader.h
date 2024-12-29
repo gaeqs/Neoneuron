@@ -24,21 +24,20 @@ namespace neoneuron {
             std::optional<UID> miniColumn;
             std::optional<UID> layer;
             std::optional<std::string> neuronType;
-            NeuronTransform transform;
+            std::optional<NeuronTransform> transform;
         };
 
         neon::FileSystem* _fileSystem;
-        std::filesystem::path _root;
 
         pugi::xml_document _doc;
         bool _valid;
 
     public:
-        XMLLoader(neon::FileSystem* fileSystem, std::filesystem::path root, void* data, size_t size);
+        XMLLoader(neon::FileSystem* fileSystem, const void* data, size_t size);
 
-        XMLLoader(neon::FileSystem* fileSystem, std::filesystem::path root, std::istream& stream);
+        XMLLoader(neon::FileSystem* fileSystem, std::istream& stream);
 
-        [[nodiscard]] neon::Result<PrototypeNeuron, std::string> build(UID uid) const override;
+        [[nodiscard]] neon::Result<std::vector<PrototypeNeuron>, std::string> build(UID uid) const override;
     };
 }
 

@@ -22,7 +22,6 @@ namespace {
 
 namespace neoneuron {
     void ComplexNeuronScene::loadUniformBuffers() {
-
         auto* app = &_render->getApplication();
 
         std::vector bindings = {
@@ -316,30 +315,30 @@ namespace neoneuron {
         return _neurons.size();
     }
 
-    const std::vector<PrototypeNeuron>& ComplexNeuronScene::getPrototypeNeurons() const {
+    const std::vector<std::shared_ptr<PrototypeNeuron>>& ComplexNeuronScene::getPrototypeNeurons() const {
         return _prototypes;
     }
 
     std::optional<PrototypeNeuron*> ComplexNeuronScene::findPrototypeNeuron(UID uid) {
         auto it = std::find_if(
             _prototypes.begin(), _prototypes.end(),
-            [uid](const PrototypeNeuron& neuron) {
-                return uid == neuron.getId();
+            [uid](const auto& neuron) {
+                return uid == neuron->getId();
             }
         );
         if (it == _prototypes.end()) return {};
-        return {&*it};
+        return {it->get()};
     }
 
     std::optional<const PrototypeNeuron*> ComplexNeuronScene::findPrototypeNeuron(UID uid) const {
         auto it = std::find_if(
             _prototypes.cbegin(), _prototypes.cend(),
-            [uid](const PrototypeNeuron& neuron) {
-                return uid == neuron.getId();
+            [uid](const auto& neuron) {
+                return uid == neuron->getId();
             }
         );
         if (it == _prototypes.cend()) return {};
-        return {&*it};
+        return {it->get()};
     }
 
     std::optional<ComplexNeuron*> ComplexNeuronScene::findNeuron(UID uid) {
@@ -391,8 +390,8 @@ namespace neoneuron {
     }
 
     bool ComplexNeuronScene::addNeuron(const PrototypeNeuron& neuron) {
-        _prototypes.push_back(neuron);
-        auto result = ComplexNeuron(&_prototypes.back());
+        _prototypes.push_back(std::make_unique<PrototypeNeuron>(neuron));
+        auto result = ComplexNeuron(_prototypes.back());
         auto bb = result.getBoundingBox();
         _neurons.push_back(std::move(result));
         _gpuNeurons.emplace_back(
@@ -410,8 +409,8 @@ namespace neoneuron {
     }
 
     bool ComplexNeuronScene::addNeuron(PrototypeNeuron&& neuron) {
-        _prototypes.push_back(std::move(neuron));
-        auto result = ComplexNeuron(&_prototypes.back());
+        _prototypes.push_back(std::make_unique<PrototypeNeuron>(std::move(neuron)));
+        auto result = ComplexNeuron(_prototypes.back());
         auto bb = result.getBoundingBox();
         _neurons.push_back(std::move(result));
         _gpuNeurons.emplace_back(
@@ -442,8 +441,11 @@ namespace neoneuron {
         _neurons.erase(_neurons.begin() + index);
         _gpuNeurons.erase(_gpuNeurons.begin() + index);
         _prototypes.erase(_prototypes.begin() + index);
-        for (auto& gpuNeuron: _gpuNeurons) {
-            gpuNeuron.refreshGPUData();
+
+        if (auto neuron = findNeuron(neuronId); neuron.has_value()) {
+            if (auto gpuNeuron = findGPUNeuron(neuronId); gpuNeuron.has_value()) {
+                gpuNeuron.value()->refreshGPUData(neuron.value());
+            }
         }
 
         _selector.clearSelection();
@@ -461,11 +463,11 @@ namespace neoneuron {
     void ComplexNeuronScene::refreshNeuronProperty(UID neuronId, const std::string& propertyName) {
         if (auto neuron = findNeuron(neuronId); neuron.has_value()) {
             neuron.value()->refreshProperty(propertyName);
+            if (auto gpuNeuron = findGPUNeuron(neuronId); gpuNeuron.has_value()) {
+                gpuNeuron.value()->refreshProperty(neuron.value(), propertyName);
+            }
         }
 
-        if (auto gpuNeuron = findGPUNeuron(neuronId); gpuNeuron.has_value()) {
-            gpuNeuron.value()->refreshProperty(propertyName);
-        }
 
         if (propertyName == PROPERTY_TRANSFORM) {
             recalculateBoundingBox();

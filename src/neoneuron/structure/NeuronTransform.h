@@ -13,7 +13,7 @@ namespace neoneuron {
         mutable rush::Mat4f _normal;
 
         rush::Vec3f _position;
-        rush::Quatf _rotation;
+        rush::Vec3f _rotation;
         rush::Vec3f _scale;
 
         mutable bool _dirty;
@@ -33,9 +33,9 @@ namespace neoneuron {
 
         void setPosition(const rush::Vec3f& position);
 
-        [[nodiscard]] const rush::Quatf& getRotation() const;
+        [[nodiscard]] const rush::Vec3f& getRotation() const;
 
-        void setRotation(const rush::Quatf& rotation);
+        void setRotation(const rush::Vec3f& rotation);
 
         [[nodiscard]] const rush::Vec3f& getScale() const;
 

@@ -7,8 +7,9 @@
 namespace neoneuron {
     void NeuronTransform::recalculateIfRequired() const {
         if (!_dirty) return;
-        _model = rush::Mat4f::model(_scale, _rotation, _position);
-        _normal = rush::Mat4f::normal(_scale, _rotation);
+        auto rot = rush::Quatf::euler(_rotation);
+        _model = rush::Mat4f::model(_scale, rot, _position);
+        _normal = rush::Mat4f::normal(_scale, rot);
 
         _dirty = false;
     }
@@ -20,7 +21,8 @@ namespace neoneuron {
         _scale(1),
         _dirty(false) {}
 
-    NeuronTransform::NeuronTransform(const rush::Mat4f& model) {
+    NeuronTransform::NeuronTransform(const rush::Mat4f& model) :
+        _dirty(true) {
         _position = model[3](0, 1, 2);
         _scale.x() = model[0](0, 1, 2).toVec().length();
         _scale.y() = model[1](0, 1, 2).toVec().length();
@@ -31,9 +33,7 @@ namespace neoneuron {
         rot[1] /= _scale.y();
         rot[2] /= _scale.z();
 
-        std::cout << rot << std::endl;
-
-        _rotation = rush::Quatf::fromRotationMatrix(rot);
+        _rotation = rush::Quatf::fromRotationMatrix(rot).euler();
     }
 
     const rush::Mat4f& NeuronTransform::getModel() const {
@@ -56,11 +56,11 @@ namespace neoneuron {
         _dirty = true;
     }
 
-    const rush::Quatf& NeuronTransform::getRotation() const {
+    const rush::Vec3f& NeuronTransform::getRotation() const {
         return _rotation;
     }
 
-    void NeuronTransform::setRotation(const rush::Quatf& rotation) {
+    void NeuronTransform::setRotation(const rush::Vec3f& rotation) {
         if (_rotation == rotation) return;
         _rotation = rotation;
         _dirty = true;

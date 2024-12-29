@@ -14,7 +14,7 @@ bool neoneuron::property::transformEditor(std::any* property,
     if (t == nullptr) return false;
 
     auto p = t->getPosition();
-    auto r = rush::degrees(t->getRotation().euler());
+    auto r = rush::degrees(t->getRotation());
     auto s = t->getScale();
     bool updated = false;
 
@@ -32,8 +32,7 @@ bool neoneuron::property::transformEditor(std::any* property,
     ImGui::SameLine();
 
     if (ImGui::DragFloat3("##rotation", &r.x(), 0.1f)) {
-        auto rotation = rush::Quatf::euler(rush::radians(r));
-        t->setRotation(rotation);
+        t->setRotation(rush::radians(r));
         updated = true;
     }
 
@@ -62,7 +61,7 @@ bool neoneuron::property::nameEditor(std::any* property, const PrototypeNeuron* 
 
     char buf[BUF_SIZE];
     size_t size = std::min(s->size(), BUF_SIZE - 1);
-    std::memcpy(buf, s->data(), size);
+    memcpy(buf, s->data(), size);
     buf[size] = '\0';
 
     ImGui::PushItemWidth(-1.0f);

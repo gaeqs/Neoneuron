@@ -25,6 +25,13 @@ namespace neoneuron {
 
         void defineProperty(std::string name, UID id);
 
+        template<typename T>
+        void defineAndSetProperty(std::string name, const T& value) {
+            setPropertyAny(defineProperty(std::move(name)), value);
+        }
+
+        bool isPropertyDefined(const std::string& name);
+
         [[nodiscard]] std::optional<UID> getPropertyUID(const std::string& name) const;
 
         [[nodiscard]] std::unordered_map<std::string, UID>& getPropertiesUID();

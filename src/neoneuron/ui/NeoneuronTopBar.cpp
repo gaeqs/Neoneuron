@@ -12,6 +12,7 @@
 #include <nfd.hpp>
 #include <nfd_glfw3.h>
 #include <neoneuron/loader/SWCLoader.h>
+#include <neoneuron/loader/XMLLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/structure/NeuronTransform.h>
@@ -21,7 +22,7 @@
 #include "style/Fonts.h"
 
 namespace neoneuron {
-    void NeoneuronTopBar::openFile() const {
+    void NeoneuronTopBar::openSWC() const {
         auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
 
         nfdwindowhandle_t handle;
@@ -60,10 +61,58 @@ namespace neoneuron {
             return;
         }
 
-        PrototypeNeuron prototype = std::move(loaderResult.getResult());
-        auto transformUID = prototype.defineProperty(PROPERTY_TRANSFORM);
-        prototype.setProperty(transformUID, NeuronTransform());
-        _render->getNeuronScene()->addNeuron(std::move(prototype));
+        for (auto& prototype: std::move(loaderResult.getResult())) {
+            _render->getNeuronScene()->addNeuron(std::move(prototype));
+        }
+        _render->focusScene();
+    }
+
+    void NeoneuronTopBar::openXML() const {
+        auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
+
+        nfdwindowhandle_t handle;
+        NFD_GetNativeWindowFromGLFWWindow(app->getWindow(), &handle);
+
+        NFD::UniquePath outPath = NULL;
+        nfdresult_t result = NFD::OpenDialog(
+            outPath,
+            nullptr,
+            0,
+            nullptr,
+            handle
+        );
+        std::string file;
+        if (result == NFD_OKAY) {
+            file = std::string(outPath.get());
+        } else if (result == NFD_CANCEL) {
+            return;
+        } else {
+            getLogger().error(neon::MessageBuilder()
+                .print("Error while choosing file: ")
+                .print(NFD_GetError()));
+            return;
+        }
+
+        std::filesystem::path path(file);
+        neon::DirectoryFileSystem fileSystem(path.parent_path());
+
+        std::ifstream ss(path);
+        XMLLoader loader(&fileSystem, ss);
+        auto loaderResult = loader.build(0);
+
+        if (!loaderResult.isOk()) {
+            getLogger().error(loaderResult.getError());
+            return;
+        }
+
+        std::cout << loaderResult.getResult().size() << std::endl;
+        std::cout << loaderResult.getResult().size() << std::endl;
+        std::cout << loaderResult.getResult().size() << std::endl;
+        std::cout << loaderResult.getResult().size() << std::endl;
+        std::cout << loaderResult.getResult().size() << std::endl;
+        for (auto& prototype: loaderResult.getResult()) {
+            _render->getNeuronScene()->addNeuron(std::move(prototype));
+        }
         _render->focusScene();
     }
 
@@ -119,7 +168,10 @@ namespace neoneuron {
             if (ImGui::BeginMenu("File")) {
                 fonts::imGuiPushFont(fonts::SS3_18);
                 if (ImGui::MenuItem("Open SWC File", "Ctrl+O")) {
-                    openFile();
+                    openSWC();
+                }
+                if (ImGui::MenuItem("Open XML File", "Ctrl+O")) {
+                    openXML();
                 }
                 if (ImGui::MenuItem("Settings", "Ctrl+S")) {
                     openSettings = true;

@@ -20,7 +20,7 @@ namespace neoneuron {
 
         [[nodiscard]] virtual size_t getNeuronsAmount() = 0;
 
-        [[nodiscard]] virtual const std::vector<PrototypeNeuron>& getPrototypeNeurons() const = 0;
+        [[nodiscard]] virtual const std::vector<std::shared_ptr<PrototypeNeuron>>& getPrototypeNeurons() const = 0;
 
         [[nodiscard]] virtual std::optional<PrototypeNeuron*> findPrototypeNeuron(UID uid) = 0;
 

@@ -16,6 +16,8 @@ namespace neoneuron {
         explicit Identifiable(UID id);
 
         [[nodiscard]] UID getId() const;
+
+        void setId(UID id);
     };
 }
 

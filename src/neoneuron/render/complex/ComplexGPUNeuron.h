@@ -100,23 +100,22 @@ namespace neoneuron {
         std::unordered_map<UID, neon::InstanceData::Instance> _jointInstancesByUID;
         std::vector<neon::InstanceData::Instance> _somaInstances;
         std::unordered_map<UID, neon::InstanceData::Instance> _somaInstancesByUID;
-        const ComplexNeuron* _neuron;
         bool _valid;
 
 
-        void generateSegmentInstances();
+        void generateSegmentInstances(const ComplexNeuron* neuron);
 
-        void generateJointInstances();
+        void generateJointInstances(const ComplexNeuron* neuron);
 
-        void generateSomaInstances();
+        void generateSomaInstances(const ComplexNeuron* neuron);
 
-        void refreshGlobalData() const;
+        void refreshGlobalData(const ComplexNeuron* neuron) const;
 
-        void refreshSegments() const;
+        void refreshSegments(const ComplexNeuron* neuron) const;
 
-        void refreshJoints() const;
+        void refreshJoints(const ComplexNeuron* neuron) const;
 
-        void refreshSomas() const;
+        void refreshSomas(const ComplexNeuron* neuron) const;
 
     public:
         ComplexGPUNeuron(ComplexGPUNeuron&& other) noexcept;
@@ -134,9 +133,9 @@ namespace neoneuron {
 
         ~ComplexGPUNeuron();
 
-        void refreshGPUData() const;
+        void refreshGPUData(const ComplexNeuron* neuron) const;
 
-        void refreshProperty(const std::string& propertyName);
+        void refreshProperty(const ComplexNeuron* neuron, const std::string& propertyName);
 
         std::optional<neon::InstanceData::Instance> findSegment(UID uid) const;
 
