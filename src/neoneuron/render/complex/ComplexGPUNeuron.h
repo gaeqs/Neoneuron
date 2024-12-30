@@ -14,6 +14,7 @@ namespace neoneuron {
         uint32_t neuronId;
         uint32_t dummy[3];
         rush::Mat4f model;
+        rush::Mat4f normal;
     };
 
     struct ComplexGPUNeuronSegment {

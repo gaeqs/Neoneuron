@@ -42,6 +42,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
 struct Neuron {
     uint neuronId;
     mat4 model;
+    mat4 normal;
 };
 
 struct Section {
@@ -79,7 +80,7 @@ layout(location = 4) flat out float fragSelected[];
 
 void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
     gl_MeshVerticesEXT[i].gl_Position = viewProjection * neuron.model * position;
-    fragNormal[i] = normal;
+    fragNormal[i] = mat3(neuron.normal) * normal;
     fragType[i] = uintBitsToFloat(type);
     fragNeuronId[i] = uintBitsToFloat(neuron.neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);

@@ -53,7 +53,8 @@ namespace neoneuron {
 
         ComplexGPUNeuronGlobalData data{
             .neuronId = neuron->getId(),
-            .model = rush::Mat4f(1.0f)
+            .model = rush::Mat4f(1.0f),
+            .normal = rush::Mat4f(1.0f)
         };
 
         auto* prototype = neuron->getPrototypeNeuron().value_or(nullptr);
@@ -61,6 +62,7 @@ namespace neoneuron {
             auto transform = prototype->getProperty<NeuronTransform>(PROPERTY_TRANSFORM);
             if (transform.has_value()) {
                 data.model = transform->getModel();
+                data.normal = transform->getNormal();
             }
         }
 
