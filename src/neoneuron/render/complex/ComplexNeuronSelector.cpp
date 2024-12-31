@@ -10,6 +10,18 @@
 #include "ComplexNeuronScene.h"
 
 namespace neoneuron {
+    namespace {
+        rush::Mat4f fetchTransform(const ComplexNeuron& neuron) {
+            if (auto prototype = neuron.getPrototypeNeuron(); prototype.value()) {
+                auto transform = prototype.value()->getProperty<NeuronTransform>(PROPERTY_TRANSFORM);
+                if (transform.has_value()) {
+                    return transform.value().getModel();
+                }
+            }
+            return rush::Mat4f(1.0f);
+        }
+    }
+
     bool ComplexSelectionEntry::operator==(const ComplexSelectionEntry& other) const {
         return neuron == other.neuron && segment == other.segment;
     }
@@ -41,6 +53,8 @@ namespace neoneuron {
         rush::Vec3f center;
         size_t centerAmount = 0;
 
+        std::unordered_map<UID, rush::Mat4f> transforms;
+
         for (auto& any: selection.selections) {
             if (any.type() != typeid(rush::Vec<2, UID>)) continue;
             auto pair = std::any_cast<rush::Vec<2, UID>>(any);
@@ -69,7 +83,17 @@ namespace neoneuron {
             if (!realNeuron.has_value()) continue;
             auto realSegment = realNeuron.value()->findSegment(sectionId);
             if (!realSegment.has_value()) continue;
-            center += realSegment.value()->getEnd();
+
+            auto it = transforms.find(neuronId);
+            rush::Mat4f transform;
+            if (it == transforms.end()) {
+                transform = fetchTransform(*realNeuron.value());
+                transforms.insert({neuronId, transform});
+            } else {
+                transform = it->second;
+            }
+
+            center += rush::Vec3f(transform * rush::Vec4f(realSegment.value()->getEnd(), 1.0f));
             ++centerAmount;
         }
 

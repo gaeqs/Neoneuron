@@ -7,10 +7,26 @@ struct TaskData {
     uint instance;
 };
 
+struct Section {
+    uint neuronIndex;
+    uint sectionId;
+    uint metadata;
+    uint parent;// This is the index inside the sections array! It is not the id of the section.
+    vec4 endAndRadius;
+};
+
+layout(std430, set = 2, binding = 1) buffer Data {
+    Section sections[];
+};
+
+
 taskPayloadSharedEXT TaskData td;
 
 void main() {
     td.instance = gl_WorkGroupID.x;
-    EmitMeshTasksEXT(1, 1, 1);
+
+    Section section = sections[gl_WorkGroupID.x];
+    uint sectionChildren = (section.metadata >> 8u) & 7u;
+    EmitMeshTasksEXT(sectionChildren == 0 ? 2 : 1, 1, 1);
 }
     

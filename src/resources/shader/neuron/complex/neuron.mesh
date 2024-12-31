@@ -91,7 +91,7 @@ vec3 rotate (vec3 v, vec3 n, float a) {
     return v * cos(a) + cross(n, v) * sin(a) + n * dot(n, v) * (1. - cos(a));
 }
 
-void main() {
+void generateSection() {
     if (gl_LocalInvocationID.x >= verticesPerCircle * 2) return;
 
     Section section = sections[td.section];
@@ -117,7 +117,7 @@ void main() {
     bool hasStartJoint = parentChildren >= minChildrenForJoint;
     bool hasEndJoint = sectionChildren >= minChildrenForJoint;
 
-    float sClip = parentSoma ? 0.1f : (hasStartJoint ? startClip : 0.0f);
+    float sClip = hasStartJoint ? startClip : 0.0f;
     float eClip = hasEndJoint ? endClip : 0.0f;
 
     vec3 end = section.endAndRadius.xyz;
@@ -170,4 +170,71 @@ void main() {
     uint b = (gl_LocalInvocationID.x + 1) % verticesPerCircle;
     uint c = (gl_LocalInvocationID.x + (first ? 0 : 1)) % verticesPerCircle + verticesPerCircle;
     gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(a, b, c);
+}
+
+void generateEnd () {
+    if (gl_LocalInvocationID.x >= verticesPerCircle) return;
+
+    Section section = sections[td.section];
+    Section parent = sections[section.parent];
+    Neuron neuron = neurons[section.neuronIndex];
+
+    uint parentType = parent.metadata & 255u;
+    uint sectionType = section.metadata & 255u;
+    // If is soma or has no children...
+    if (sectionType == 1 || section.sectionId == parent.sectionId) {
+        SetMeshOutputsEXT(0, 0);
+        return;
+    }
+
+    // Fetch initial data.
+    bool first = gl_LocalInvocationID.x < verticesPerCircle;
+    bool isSelected = selected[td.section];
+    uint parentChildren = (parent.metadata >> 8u) & 7u;
+    uint sectionChildren = (section.metadata >> 8u) & 7u;
+    bool hasStartJoint = parentChildren >= minChildrenForJoint;
+    bool hasEndJoint = sectionChildren >= minChildrenForJoint;
+
+    float eClip = hasEndJoint ? endClip : 0.0f;
+
+    vec3 end = section.endAndRadius.xyz;
+    vec3 start = parent.endAndRadius.xyz;
+
+    float radius = section.endAndRadius.w * radiusStrength;
+
+    float angle = float(gl_LocalInvocationID.x) / float(verticesPerCircle) * 2.0f * M_PI;
+
+    vec3 tangent = normalize(end - start);
+
+    // Handle edge cases where the tangent might align with the default normal
+    vec3 initialNormal = vec3(0, 0, -1);
+    if (abs(dot(tangent, initialNormal)) > 0.99) {
+        initialNormal = vec3(0, 1, 0);// Use a different axis to avoid parallel vectors
+    }
+
+    vec3 normal = normalize(cross(tangent, initialNormal));
+    vec3 binormal = cross(tangent, normal);
+
+    // Compute the rotated position for each vertex
+    vec3 rotated = cos(angle) * normal + sin(angle) * binormal;
+    vec3 point = end + rotated * radius;
+
+
+    vec3 edge = end + tangent * radius;
+
+    SetMeshOutputsEXT(verticesPerCircle + 1, verticesPerCircle);
+    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected);
+    pushVertex(verticesPerCircle, vec4(edge, 1), tangent, 0, neuron, section.sectionId, isSelected);
+
+    uint a = gl_LocalInvocationID.x;
+    uint b = (gl_LocalInvocationID.x + 1) % verticesPerCircle;
+    gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(a, b, verticesPerCircle);
+}
+
+void main() {
+   if(gl_WorkGroupID.x == 0) {
+       generateSection();
+   } else {
+       generateEnd();
+   }
 }
