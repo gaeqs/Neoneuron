@@ -48,10 +48,16 @@ namespace neoneuron {
 
         void setPropertyAny(UID uid, std::any value);
 
+        bool deleteGlobalProperty(const std::string& name);
+
+        bool deleteGlobalProperty(UID uid);
+
         template<typename T>
         void setProperty(UID uid, const T& value) {
             setPropertyAny(uid, value);
         }
+
+        [[nodiscard]] std::optional<std::any> getPropertyAsAny(const std::string& name) const;
 
         [[nodiscard]] std::optional<std::any> getPropertyAsAny(UID uid) const;
 

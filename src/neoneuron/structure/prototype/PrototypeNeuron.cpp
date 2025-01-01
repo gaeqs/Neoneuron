@@ -66,6 +66,22 @@ namespace neoneuron {
         _globalProperties[uid] = std::move(value);
     }
 
+    bool PrototypeNeuron::deleteGlobalProperty(const std::string& name) {
+        auto uid = getPropertyUID(name);
+        if (!uid.has_value()) return false;
+        return _globalProperties.erase(uid.value()) > 0;
+    }
+
+    bool PrototypeNeuron::deleteGlobalProperty(UID uid) {
+        return _globalProperties.erase(uid) > 0;
+    }
+
+    std::optional<std::any> PrototypeNeuron::getPropertyAsAny(const std::string& name) const {
+        auto uid = getPropertyUID(name);
+        if (!uid.has_value()) return {};
+        return getPropertyAsAny(uid.value());
+    }
+
     std::optional<std::any> PrototypeNeuron::getPropertyAsAny(UID uid) const {
         auto it = _globalProperties.find(uid);
         if (it == _globalProperties.end()) return {};

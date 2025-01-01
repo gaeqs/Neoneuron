@@ -39,5 +39,15 @@ namespace neoneuron {
 
         IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
     }
-}
 
+    bool collapsingHeaderWithCloseButton(const char* label, bool& closed) {
+        ImGui::PushID(label);
+        bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_AllowItemOverlap);
+        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(" X ").x - ImGui::GetStyle().FramePadding.x * 2);
+        if (ImGui::Button(" X ", ImVec2(0.0f, 0.0f))) {
+            closed = true;
+        }
+        ImGui::PopID();
+        return open;
+    }
+}

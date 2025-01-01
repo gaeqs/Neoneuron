@@ -20,6 +20,8 @@ namespace neoneuron {
 
         void neuronInformation();
 
+        void neuronNewProperty(PrototypeNeuron* neuron) const;
+
     public:
         explicit NeoneuronUINeuronList(NeoneuronRender* render);
 
