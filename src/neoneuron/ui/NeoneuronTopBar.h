@@ -13,9 +13,7 @@ namespace neoneuron {
     class NeoneuronTopBar : public neon::Component {
         NeoneuronRender* _render;
 
-        void openSWC() const;
-
-        void openXML() const;
+        void openFile() const;
 
         void toolsMenu() const;
 

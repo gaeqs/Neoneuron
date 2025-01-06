@@ -4,7 +4,13 @@
 
 #include "NeoneuronApplication.h"
 
+#include <neoneuron/loader/SWCLoader.h>
+#include <neoneuron/loader/XMLLoader.h>
+
+#include "NeoneuronDefaults.h"
+
 namespace neoneuron {
+
     nlohmann::json NeoneuronApplication::loadSettings() {
         neon::DirectoryFileSystem dfs(std::filesystem::current_path());
         auto optional = dfs.readFile(CONFIG_FILE);
@@ -14,7 +20,10 @@ namespace neoneuron {
 
     NeoneuronApplication::NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo)
         : _settings(loadSettings()),
-          _render(this, renderCreateInfo) {}
+          _render(this, std::move(renderCreateInfo)) {
+        initDefaultProperties(_propertyStorage);
+        initDefaultLoaders(_loaderStorage);
+    }
 
     NeoneuronRender& NeoneuronApplication::getRender() {
         return _render;
@@ -32,12 +41,20 @@ namespace neoneuron {
         return _settings;
     }
 
-    PropertyStorage& NeoneuronApplication::getPropertyStorage() {
+    Storage<DefinedProperty>& NeoneuronApplication::getPropertyStorage() {
         return _propertyStorage;
     }
 
-    const PropertyStorage& NeoneuronApplication::getPropertyStorage() const {
+    const Storage<DefinedProperty>& NeoneuronApplication::getPropertyStorage() const {
         return _propertyStorage;
+    }
+
+    Storage<LoaderBuilder>& NeoneuronApplication::getLoaderStorage() {
+        return _loaderStorage;
+    }
+
+    const Storage<LoaderBuilder>& NeoneuronApplication::getLoaderStorage() const {
+        return _loaderStorage;
     }
 
     void NeoneuronApplication::registerSettingsListener(const hey::Listener<std::string>& listener) const {

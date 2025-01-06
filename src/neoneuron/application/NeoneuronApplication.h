@@ -4,8 +4,10 @@
 
 #ifndef NEONEURONAPPLICATION_H
 #define NEONEURONAPPLICATION_H
+#include <neoneuron/loader/Loader.h>
 #include <neoneuron/render/NeoneuronRender.h>
-#include <neoneuron/structure/property/PropertyStorage.h>
+#include <neoneuron/structure/Storage.h>
+#include <neoneuron/structure/property/DefinedProperty.h>
 
 namespace neoneuron {
     class NeoneuronApplication {
@@ -22,7 +24,8 @@ namespace neoneuron {
         nlohmann::json _settings;
         hey::Observable<std::string> _settingsNodeChange;
         NeoneuronRender _render;
-        PropertyStorage _propertyStorage;
+        Storage<DefinedProperty> _propertyStorage;
+        Storage<LoaderBuilder> _loaderStorage;
 
         static nlohmann::json loadSettings();
 
@@ -37,9 +40,13 @@ namespace neoneuron {
 
         [[nodiscard]] const nlohmann::json& getSettings() const;
 
-        PropertyStorage& getPropertyStorage();
+        Storage<DefinedProperty>& getPropertyStorage();
 
-        const PropertyStorage& getPropertyStorage() const;
+        const Storage<DefinedProperty>& getPropertyStorage() const;
+
+        Storage<LoaderBuilder>& getLoaderStorage();
+
+        const Storage<LoaderBuilder>& getLoaderStorage() const;
 
         void registerSettingsListener(const hey::Listener<std::string>& listener) const;
 

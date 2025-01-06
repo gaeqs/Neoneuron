@@ -76,6 +76,12 @@ namespace neoneuron {
         _valid = result.status == pugi::status_ok;
     }
 
+    XMLLoader::XMLLoader(neon::FileSystem* fileSystem, const neon::File& file)
+        : _fileSystem(fileSystem) {
+        auto result = _doc.load_buffer(file.getData(), file.getSize());
+        _valid = result.status == pugi::status_ok;
+    }
+
     neon::Result<std::vector<PrototypeNeuron>, std::string> XMLLoader::build(UID uid) const {
         if (!_valid) return {"Parser is not valid"};
         if (!_fileSystem) return {"Filesystem not set"};

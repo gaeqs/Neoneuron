@@ -17,6 +17,10 @@
 #include <neoneuron/structure/NeuronTransform.h>
 
 namespace neoneuron {
+
+    const std::string XML_LOADER_NAME = "neoneuron:xml";
+    const std::string XML_LOADER_DISPLAY_NAME = "XML Loader";
+
     class XMLLoader final : public Loader {
         struct XMLNeuron {
             UID id;
@@ -36,6 +40,8 @@ namespace neoneuron {
         XMLLoader(neon::FileSystem* fileSystem, const void* data, size_t size);
 
         XMLLoader(neon::FileSystem* fileSystem, std::istream& stream);
+
+        XMLLoader(neon::FileSystem* fileSystem, const neon::File& file);
 
         [[nodiscard]] neon::Result<std::vector<PrototypeNeuron>, std::string> build(UID uid) const override;
     };

@@ -10,7 +10,7 @@
 
 
 namespace neoneuron {
-    void NeoneuronUINeuronList::neuronSection(const PrototypeNeuron& neuron, size_t id) {
+    bool NeoneuronUINeuronList::neuronSection(const PrototypeNeuron& neuron, size_t id) {
         std::string name;
         if (auto opt = neuron.getProperty<std::string>(PROPERTY_NAME); opt.has_value()) {
             name = opt.value() + "##" + std::to_string(id);
@@ -18,7 +18,7 @@ namespace neoneuron {
             name = "Neuron " + std::to_string(id) + "##" + std::to_string(id);
         }
 
-
+        bool deleted = false;
         bool selected = _selectedNeuron == neuron.getId();
         if (selected) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
@@ -31,7 +31,8 @@ namespace neoneuron {
         {
             if (ImGui::Button("Delete")) {
                 auto& scene = _render->getNeuronScene();
-                scene->removeNeuron(neuron.getId());
+                deleted = scene->removeNeuron(neuron.getId());
+                ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
@@ -40,6 +41,8 @@ namespace neoneuron {
             ImGui::PopStyleColor();
             ImGui::PopStyleVar();
         }
+
+        return deleted;
     }
 
     void NeoneuronUINeuronList::neuronList() {
@@ -58,7 +61,10 @@ namespace neoneuron {
 
         while (clipper.Step()) {
             for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-                neuronSection(*neurons[row].get(), row);
+                if (neuronSection(*neurons[row].get(), row)) {
+                    --clipper.DisplayEnd;
+                    --row;
+                }
             }
         }
 
@@ -98,7 +104,7 @@ namespace neoneuron {
         for (const auto& [name, uid]: prototype->getPropertiesUID()) {
             auto optionalValue = prototype->getPropertyAsAny(uid);
             if (!optionalValue.has_value()) continue;
-            auto prop = storage.getProperty(name);
+            auto prop = storage.get(name);
             if (!prop.has_value()) {
                 undefinedProperties.push_back(name);
                 continue;
@@ -155,7 +161,7 @@ namespace neoneuron {
         const DefinedProperty* properties[100];
 
         auto& storage = _render->getNeoneuronApplication()->getPropertyStorage();
-        for (auto& [name, prop]: storage.getProperties()) {
+        for (auto& [name, prop]: storage) {
             if (prop.getGenerator() != nullptr
                 && prop.getTarget() != PropertyTarget::SEGMENT
                 && !prototype->getPropertyAsAny(name).has_value()) {

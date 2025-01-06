@@ -15,6 +15,9 @@
 #include <neoneuron/structure/prototype/PrototypeNeuron.h>
 
 namespace neoneuron {
+    const std::string SWC_LOADER_NAME = "neoneuron:swc";
+    const std::string SWC_LOADER_DISPLAY_NAME = "SWC Loader";
+
     class SWCLoader final : public Loader {
         struct SWCSegment {
             UID id;

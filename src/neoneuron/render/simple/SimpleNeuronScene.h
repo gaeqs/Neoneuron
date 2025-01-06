@@ -34,6 +34,10 @@ namespace neoneuron {
 
         ~SimpleNeuronScene() override;
 
+        [[nodiscard]] NeoneuronRender* getRender() override;
+
+        [[nodiscard]] const NeoneuronRender* getRender() const override;
+
         [[nodiscard]] const std::vector<SimpleNeuron>& getNeurons() const;
 
         [[nodiscard]] AbstractSelector& getSelector() override;

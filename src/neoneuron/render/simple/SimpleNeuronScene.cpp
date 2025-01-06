@@ -101,6 +101,14 @@ namespace neoneuron {
         }
     }
 
+    NeoneuronRender* SimpleNeuronScene::getRender() {
+        return _render;
+    }
+
+    const NeoneuronRender* SimpleNeuronScene::getRender() const {
+        return _render;
+    }
+
     const std::vector<SimpleNeuron>& SimpleNeuronScene::getNeurons() const {
         return _neurons;
     }

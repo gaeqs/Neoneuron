@@ -10,9 +10,15 @@
 #include <neoneuron/render/AbstractSelector.h>
 
 namespace neoneuron {
+    class NeoneuronRender;
+
     class AbstractNeuronScene {
     public:
         virtual ~AbstractNeuronScene() = default;
+
+        [[nodiscard]] virtual NeoneuronRender* getRender() = 0;
+
+        [[nodiscard]] virtual const NeoneuronRender* getRender() const = 0;
 
         [[nodiscard]] virtual AbstractSelector& getSelector() = 0;
 

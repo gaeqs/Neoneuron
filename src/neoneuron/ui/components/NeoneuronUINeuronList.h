@@ -14,7 +14,7 @@ namespace neoneuron {
         NeoneuronRender* _render;
         std::optional<UID> _selectedNeuron;
 
-        void neuronSection(const PrototypeNeuron& neuron, size_t id);
+        bool neuronSection(const PrototypeNeuron& neuron, size_t id);
 
         void neuronList();
 
