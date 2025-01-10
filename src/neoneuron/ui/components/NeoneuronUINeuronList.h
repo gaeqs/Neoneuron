@@ -12,9 +12,8 @@
 namespace neoneuron {
     class NeoneuronUINeuronList : public neon::Component {
         NeoneuronRender* _render;
-        std::optional<UID> _selectedNeuron;
 
-        bool neuronSection(const PrototypeNeuron& neuron, size_t id);
+        bool neuronSection(const PrototypeNeuron& neuron, size_t id, bool selected) const;
 
         void neuronList();
 

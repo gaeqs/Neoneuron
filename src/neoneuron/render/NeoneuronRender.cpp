@@ -48,7 +48,7 @@ namespace neoneuron {
         _application.setRender(initRender());
 
         _room = std::make_shared<neon::Room>(&_application);
-        _room->getCamera().setFrustum(_room->getCamera().getFrustum().withFar(10000.0f).withNear(0.001f));
+        _room->getCamera().setFrustum(_room->getCamera().getFrustum().withFar(10000.0f));
         _application.setRoom(_room);
         _startTime = std::chrono::high_resolution_clock::now();
 

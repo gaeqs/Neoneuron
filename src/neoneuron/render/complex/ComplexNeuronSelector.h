@@ -47,7 +47,13 @@ namespace neoneuron {
         size_t _binding;
 
         std::unordered_map<ComplexSelectionEntry, neon::InstanceData::Instance> _selection;
+        std::unordered_set<UID> _selectedNeurons;
         std::vector<uint32_t> _activeIndices;
+
+        rush::Vec3f _centerAccumulator;
+        size_t _centerAccumulatorAmount;
+
+        void sendCenterToCamera() const;
 
     public:
         ComplexNeuronSelector();
@@ -58,9 +64,17 @@ namespace neoneuron {
 
         ~ComplexNeuronSelector() override = default;
 
+        const std::unordered_set<UID> getSelectedNeurons() override;
+
         void setSelectionData(const Selection& selection) override;
 
         void clearSelection() override;
+
+        void selectNeuron(UID neuronId) override;
+
+        void selectSection(UID neuronId, UID sectionId) override;
+
+        void selectSection(UID neuronId, UID sectionId, std::unordered_map<UID, rush::Mat4f>* transforms);
 
         void refreshGPUData();
     };

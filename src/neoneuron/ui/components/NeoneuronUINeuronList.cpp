@@ -10,7 +10,7 @@
 
 
 namespace neoneuron {
-    bool NeoneuronUINeuronList::neuronSection(const PrototypeNeuron& neuron, size_t id) {
+    bool NeoneuronUINeuronList::neuronSection(const PrototypeNeuron& neuron, size_t id, bool selected) const {
         std::string name;
         if (auto opt = neuron.getProperty<std::string>(PROPERTY_NAME); opt.has_value()) {
             name = opt.value() + "##" + std::to_string(id);
@@ -19,13 +19,14 @@ namespace neoneuron {
         }
 
         bool deleted = false;
-        bool selected = _selectedNeuron == neuron.getId();
         if (selected) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 1, 0, 1));
         }
         if (ImGui::Button(name.c_str(), ImVec2(-1.0f, 25.0f))) {
-            _selectedNeuron = neuron.getId();
+            auto& selector = _render->getNeuronScene()->getSelector();
+            selector.clearSelection();
+            selector.selectNeuron(neuron.getId());
         }
         if (ImGui::BeginPopupContextItem()) // <-- use last item id as popup id
         {
@@ -53,15 +54,18 @@ namespace neoneuron {
             ImGuiChildFlags_Borders
         );
 
-        auto* render = _render->getNeuronScene().get();
-        auto& neurons = render->getPrototypeNeurons();
+
+        auto* scene = _render->getNeuronScene().get();
+        auto& neurons = scene->getPrototypeNeurons();
+        auto& selectedNeurons = scene->getSelector().getSelectedNeurons();
 
         ImGuiListClipper clipper;
         clipper.Begin(neurons.size());
 
         while (clipper.Step()) {
             for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-                if (neuronSection(*neurons[row].get(), row)) {
+                auto* neuron = neurons[row].get();
+                if (neuronSection(*neuron, row, selectedNeurons.contains(neuron->getId()))) {
                     --clipper.DisplayEnd;
                     --row;
                 }
@@ -78,13 +82,17 @@ namespace neoneuron {
             ImVec2(0, ImGui::GetContentRegionAvail().y)
         );
 
-        if (!_selectedNeuron.has_value()) {
+        auto& selectedNeurons = _render->getNeuronScene()->getSelector().getSelectedNeurons();
+
+        if (selectedNeurons.size() != 1) {
             ImGui::EndChild();
             return;
         }
 
+        auto selectedNeuron = *selectedNeurons.begin();
+
         auto* scene = _render->getNeuronScene().get();
-        auto* prototype = scene->findPrototypeNeuron(_selectedNeuron.value()).value_or(nullptr);
+        auto* prototype = scene->findPrototypeNeuron(selectedNeuron).value_or(nullptr);
 
         if (prototype == nullptr) {
             ImGui::EndChild();
@@ -122,14 +130,14 @@ namespace neoneuron {
                     auto value = optionalValue.value();
                     if (editor(&value, prototype, scene)) {
                         prototype->setPropertyAny(uid, value);
-                        scene->refreshNeuronProperty(_selectedNeuron.value(), name);
+                        scene->refreshNeuronProperty(selectedNeuron, name);
                     }
                 }
                 ImGui::Unindent();
             }
             if (closed) {
                 prototype->deleteGlobalProperty(uid);
-                scene->refreshNeuronProperty(_selectedNeuron.value(), name);
+                scene->refreshNeuronProperty(selectedNeuron, name);
             }
         }
 
