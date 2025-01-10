@@ -32,6 +32,7 @@ namespace neoneuron {
         * The type of the segment.
         * 0-7 -> Type
         * 8 - 10 -> Amount of children.
+        * 11 - 13 -> Min LOD level
         */
         uint32_t metadata;
 

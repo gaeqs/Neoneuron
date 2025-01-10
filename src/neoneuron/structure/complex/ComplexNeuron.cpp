@@ -83,6 +83,22 @@ namespace neoneuron {
         }
     }
 
+    void ComplexNeuron::calculateLOD() {
+        for (auto& segment: _segments) {
+            // We want to start the algorithm from the segment that represents
+            // a joint with two or more children or a segment that has no children.
+            auto joint = findJoint(segment.getId());
+            if (joint.has_value() && joint.value()->getChildren().size() == 1) continue;
+            calculateLODFrom(&segment);
+        }
+    }
+
+    void ComplexNeuron::calculateLODFrom(ComplexNeuronSegment* segment) {
+        segment->setLod(0);
+
+        float angle = 
+    }
+
     ComplexNeuron::ComplexNeuron(ComplexNeuron&& other) noexcept
         : Identifiable(other.getId()),
           _prototypeNeuron(std::move(other._prototypeNeuron)),

@@ -35,6 +35,10 @@ namespace neoneuron {
 
         void calculateSomas();
 
+        void calculateLOD();
+
+        void calculateLODFrom(ComplexNeuronSegment* segment);
+
     public:
         ComplexNeuron(const ComplexNeuron& other) = delete;
 

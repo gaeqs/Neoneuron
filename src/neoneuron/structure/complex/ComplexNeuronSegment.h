@@ -20,6 +20,7 @@ namespace neoneuron {
         float _startRadius;
         float _endRadius;
         std::optional<UID> _parentID;
+        uint32_t _lod;
 
     public:
         ComplexNeuronSegment(
@@ -29,7 +30,8 @@ namespace neoneuron {
             const rush::Vec3f& end,
             float startRadius,
             float endRadius,
-            const std::optional<UID>& parentId = {}
+            const std::optional<UID>& parentId = {},
+            uint32_t lod
         );
 
         [[nodiscard]] SegmentType getType() const;
@@ -55,6 +57,10 @@ namespace neoneuron {
         [[nodiscard]] std::optional<UID> getParentId() const;
 
         void setParentId(const UID& parentId);
+
+        [[nodiscard]] uint32_t getLod() const;
+
+        void setLod(uint32_t lod);
 
         void clearParentId();
     };
