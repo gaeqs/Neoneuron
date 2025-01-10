@@ -41,7 +41,9 @@ layout (set = 0, binding = 1) uniform GlobalData {
 void main() {
     vec4 viewNormal = view * vec4(normalize(fragNormal), 0.0f);
     float intensity = viewNormal.z * 0.8f + 0.2f;
-    color = vec4(defaultColor.xyz * intensity, defaultColor.w);
 
+    uint type = floatBitsToUint(fragType);
+    vec4 pre = fragSelected > 0.5f ? selectedColor : defaultColor;
+    color = vec4(pre.xyz * intensity, pre.w);
     ids = vec3(1, fragNeuronId, fragSectionId);
 }
