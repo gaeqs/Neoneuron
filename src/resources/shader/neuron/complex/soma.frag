@@ -1,10 +1,9 @@
 #version 460
 
 layout(location = 0) in vec3 fragNormal;
-layout(location = 1) in vec3 fragColor;
-layout(location = 2) flat in float fragNeuronId;
-layout(location = 3) flat in float fragSectionId;
-layout(location = 4) flat in float fragSelected;
+layout(location = 1) flat in float fragNeuronId;
+layout(location = 2) flat in float fragSectionId;
+layout(location = 3) flat in float fragSelected;
 
 layout(location = 0) out vec4 color;
 layout(location = 1) out vec3 ids;
@@ -42,6 +41,7 @@ void main() {
     vec4 viewNormal = view * vec4(normalize(fragNormal), 0.0f);
     float intensity = viewNormal.z * 0.8f + 0.2f;
 
-    color = vec4(fragColor * intensity, 1.0f);
+    vec4 pre = fragSelected > 0.5f ? selectedColor : defaultColor;
+    color = vec4(pre.xyz * intensity, pre.w);
     ids = vec3(1, fragNeuronId, fragSectionId);
 }
