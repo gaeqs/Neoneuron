@@ -82,7 +82,9 @@ namespace neoneuron {
         _valid = result.status == pugi::status_ok;
     }
 
-    neon::Result<std::vector<PrototypeNeuron>, std::string> XMLLoader::build(UID uid) const {
+    void XMLLoader::setPath(const std::filesystem::path&) {}
+
+    neon::Result<std::vector<PrototypeNeuron>, std::string> XMLLoader::build() const {
         if (!_valid) return {"Parser is not valid"};
         if (!_fileSystem) return {"Filesystem not set"};
         auto scene = _doc.child("scene").child("morphology");
@@ -146,7 +148,7 @@ namespace neoneuron {
             if (!file.has_value()) return {"File not found: " + fileName};
 
             auto loader = SWCLoader(file.value());
-            auto swcResult = loader.build(0);
+            auto swcResult = loader.build();
             if (!swcResult.isOk())
                 return {"Error loading SWC file '" + fileName + "': " + swcResult.getError()};
             if (swcResult.getResult().empty()) return {"No SWC neuron found"};

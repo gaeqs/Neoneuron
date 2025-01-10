@@ -43,9 +43,9 @@ namespace neoneuron {
 
         ~SWCLoader() override = default;
 
-        void setFileName(std::string fileName);
+        void setPath(const std::filesystem::path& path) override;
 
-        [[nodiscard]] neon::Result<std::vector<PrototypeNeuron>, std::string> build(UID uid) const override;
+        [[nodiscard]] neon::Result<std::vector<PrototypeNeuron>, std::string> build() const override;
     };
 }
 

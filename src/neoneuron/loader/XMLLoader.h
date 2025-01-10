@@ -43,7 +43,9 @@ namespace neoneuron {
 
         XMLLoader(neon::FileSystem* fileSystem, const neon::File& file);
 
-        [[nodiscard]] neon::Result<std::vector<PrototypeNeuron>, std::string> build(UID uid) const override;
+        void setPath(const std::filesystem::path& path) override;
+
+        [[nodiscard]] neon::Result<std::vector<PrototypeNeuron>, std::string> build() const override;
     };
 }
 

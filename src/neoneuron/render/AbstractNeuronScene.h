@@ -41,6 +41,8 @@ namespace neoneuron {
         [[nodiscard]] virtual rush::AABB<3, float> getSceneBoundingBox() const = 0;
 
         virtual void refreshNeuronProperty(UID neuronId, const std::string& propertyName) = 0;
+
+        [[nodiscard]] virtual UID findAvailableUID() const = 0;
     };
 }
 

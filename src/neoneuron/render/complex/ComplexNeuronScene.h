@@ -125,6 +125,8 @@ namespace neoneuron {
 
         void refreshNeuronProperty(UID neuronId, const std::string& propertyName) override;
 
+        [[nodiscard]] UID findAvailableUID() const override;
+
         [[nodiscard]] bool isWireframeMode() const;
 
         void setWireframeMode(bool wireframe);

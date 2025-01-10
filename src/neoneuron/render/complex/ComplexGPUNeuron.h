@@ -118,6 +118,8 @@ namespace neoneuron {
 
         void refreshSomas(const ComplexNeuron* neuron) const;
 
+        void invalidate();
+
     public:
         ComplexGPUNeuron(ComplexGPUNeuron&& other) noexcept;
 

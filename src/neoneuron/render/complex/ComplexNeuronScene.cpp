@@ -409,6 +409,7 @@ namespace neoneuron {
     }
 
     bool ComplexNeuronScene::addNeuron(PrototypeNeuron&& neuron) {
+        removeNeuron(neuron.getId());
         _prototypes.push_back(std::make_unique<PrototypeNeuron>(std::move(neuron)));
         auto result = ComplexNeuron(_prototypes.back());
         auto bb = result.getBoundingBox();
@@ -442,9 +443,9 @@ namespace neoneuron {
         _gpuNeurons.erase(_gpuNeurons.begin() + index);
         _prototypes.erase(_prototypes.begin() + index);
 
-        if (auto neuron = findNeuron(neuronId); neuron.has_value()) {
-            if (auto gpuNeuron = findGPUNeuron(neuronId); gpuNeuron.has_value()) {
-                gpuNeuron.value()->refreshGPUData(neuron.value());
+        for (auto& neuron : _neurons) {
+            if (auto gpuNeuron = findGPUNeuron(neuron.getId()); gpuNeuron.has_value()) {
+                gpuNeuron.value()->refreshGPUData(&neuron);
             }
         }
 
@@ -472,6 +473,21 @@ namespace neoneuron {
         if (propertyName == PROPERTY_TRANSFORM) {
             recalculateBoundingBox();
         }
+    }
+
+    UID ComplexNeuronScene::findAvailableUID() const {
+        std::unordered_set<UID> uids;
+        for (auto& neuron: _neurons) {
+            uids.insert(neuron.getId());
+        }
+
+        size_t smallest = 0;
+
+        while (uids.contains(smallest)) {
+            ++smallest;
+        }
+
+        return smallest;
     }
 
     bool ComplexNeuronScene::isWireframeMode() const {

@@ -43,7 +43,8 @@ namespace neoneuron {
                 XML_LOADER_DISPLAY_NAME,
                 [](auto* fileSystem, auto& file) {
                     return std::make_unique<XMLLoader>(fileSystem, file);
-                }
+                },
+                true
             )
         );
 
@@ -54,7 +55,8 @@ namespace neoneuron {
                 SWC_LOADER_DISPLAY_NAME,
                 [](auto*, auto& file) {
                     return std::make_unique<SWCLoader>(file);
-                }
+                },
+                false
             )
         );
     }

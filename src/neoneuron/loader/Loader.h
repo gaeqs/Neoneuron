@@ -14,7 +14,9 @@ namespace neoneuron {
     public:
         virtual ~Loader() = default;
 
-        [[nodiscard]] virtual neon::Result<std::vector<PrototypeNeuron>, std::string> build(UID uid) const = 0;
+        virtual void setPath(const std::filesystem::path& path) = 0;
+
+        [[nodiscard]] virtual neon::Result<std::vector<PrototypeNeuron>, std::string> build() const = 0;
     };
 
     class LoaderBuilder {
@@ -25,15 +27,18 @@ namespace neoneuron {
         std::string _name;
         std::string _displayName;
         Builder _builder;
+        bool _providesUIDs;
 
     public:
-        LoaderBuilder(std::string name, std::string displayName, Builder builder);
+        LoaderBuilder(std::string name, std::string displayName, Builder builder, bool providesUIDs);
 
         [[nodiscard]] const std::string& getName() const;
 
         [[nodiscard]] const std::string& getDisplayName() const;
 
         [[nodiscard]] const Builder& getBuilder() const;
+
+        bool providesUIDs() const;
 
         std::unique_ptr<Loader> build(neon::FileSystem* fileSystem, const neon::File& file) const;
     };

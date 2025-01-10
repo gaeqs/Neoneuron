@@ -149,6 +149,36 @@ namespace neoneuron {
         }
     }
 
+    void ComplexGPUNeuron::invalidate() {
+        if (!_valid) return;
+        _valid = false;
+
+        if (auto buf = _globalInstanceData.lock(); buf != nullptr) {
+            buf->freeInstance(_globalInstance);
+        }
+
+        if (auto model = _segmentModel.lock(); model != nullptr) {
+            auto* segmentData = model->getInstanceData(_segmentInstanceDataIndex);
+            for (auto instance: _segmentInstances) {
+                segmentData->freeInstance(instance);
+            }
+        }
+
+        if (auto model = _jointModel.lock(); model != nullptr) {
+            auto* jointData = model->getInstanceData(_jointInstanceDataIndex);
+            for (auto instance: _jointInstances) {
+                jointData->freeInstance(instance);
+            }
+        }
+
+        if (auto model = _somaModel.lock(); model != nullptr) {
+            auto* somaData = model->getInstanceData(_somaInstanceDataIndex);
+            for (auto instance: _somaInstances) {
+                somaData->freeInstance(instance);
+            }
+        }
+    }
+
     ComplexGPUNeuron::ComplexGPUNeuron(ComplexGPUNeuron&& other) noexcept {
         if (this == &other) return;
         _globalInstanceData = std::move(other._globalInstanceData);
@@ -196,33 +226,7 @@ namespace neoneuron {
     }
 
     ComplexGPUNeuron::~ComplexGPUNeuron() {
-        if (!_valid) return;
-        _valid = false;
-
-        if (auto buf = _globalInstanceData.lock(); buf != nullptr) {
-            buf->freeInstance(_globalInstance);
-        }
-
-        if (auto model = _segmentModel.lock(); model != nullptr) {
-            auto* segmentData = model->getInstanceData(_segmentInstanceDataIndex);
-            for (auto instance: _segmentInstances) {
-                segmentData->freeInstance(instance);
-            }
-        }
-
-        if (auto model = _jointModel.lock(); model != nullptr) {
-            auto* jointData = model->getInstanceData(_jointInstanceDataIndex);
-            for (auto instance: _jointInstances) {
-                jointData->freeInstance(instance);
-            }
-        }
-
-        if (auto model = _somaModel.lock(); model != nullptr) {
-            auto* somaData = model->getInstanceData(_somaInstanceDataIndex);
-            for (auto instance: _somaInstances) {
-                somaData->freeInstance(instance);
-            }
-        }
+        invalidate();
     }
 
     void ComplexGPUNeuron::refreshGPUData(const ComplexNeuron* neuron) const {
@@ -253,6 +257,10 @@ namespace neoneuron {
 
     ComplexGPUNeuron& ComplexGPUNeuron::operator=(ComplexGPUNeuron&& other) noexcept {
         if (this == &other) return *this;
+
+        // Delete the data of the current neuron.
+        invalidate();
+
         _globalInstanceData = std::move(other._globalInstanceData);
         _segmentModel = std::move(other._segmentModel);
         _jointModel = std::move(other._jointModel);

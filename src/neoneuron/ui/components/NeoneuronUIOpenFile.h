@@ -11,6 +11,11 @@
 
 namespace neoneuron {
     class NeoneuronUiOpenFile : public neon::Component {
+        enum class UIDProvider {
+            FILE,
+            AVAILABLE
+        };
+
         AbstractNeuronScene* _scene;
         std::unique_ptr<neon::FileSystem> _fileSystem;
         std::filesystem::path _path;
@@ -18,16 +23,24 @@ namespace neoneuron {
         bool _open;
 
         std::vector<LoaderBuilder*> _loaders;
-        std::vector<const char*> _names;
-        int _selected;
+        std::vector<const char*> _loaderNames;
+        int _selectedLoader;
 
-        std::string fetchBestLoaderName() const;
+        UIDProvider _uidProvider;
 
-        int fetchLoaderIndex(const std::string& name) const;
+        [[nodiscard]] std::string fetchBestLoaderName() const;
 
-        std::unique_ptr<Loader> generateLoader() const;
+        [[nodiscard]] int fetchLoaderIndex(const std::string& name) const;
+
+        [[nodiscard]] std::unique_ptr<Loader> generateLoader() const;
+
+        void loaderCombo();
+
+        void uidProviderCombo();
 
         void loadButton() const;
+
+        void changeNeuronUID(PrototypeNeuron& neuron) const;
 
     public:
         explicit NeoneuronUiOpenFile(AbstractNeuronScene* scene,

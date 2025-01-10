@@ -31,8 +31,7 @@ namespace neoneuron {
 
     SWCLoader::SWCLoader(const std::vector<std::string>& lines) : _lines(lines) {}
 
-    SWCLoader::SWCLoader(std::vector<std::string>&& lines) : _lines(std::move(lines)) {
-    }
+    SWCLoader::SWCLoader(std::vector<std::string>&& lines) : _lines(std::move(lines)) {}
 
     SWCLoader::SWCLoader(std::istream& stream) {
         std::string line;
@@ -43,13 +42,13 @@ namespace neoneuron {
 
     SWCLoader::SWCLoader(const neon::File& stream) : _lines(stream.readLines()) {}
 
-    void SWCLoader::setFileName(std::string fileName) {
-        _fileName = std::move(fileName);
+    void SWCLoader::setPath(const std::filesystem::path& path) {
+        _fileName = path.filename().string();
     }
 
-    neon::Result<std::vector<PrototypeNeuron>, std::string> SWCLoader::build(UID uid) const {
+    neon::Result<std::vector<PrototypeNeuron>, std::string> SWCLoader::build() const {
         std::unordered_map<UID, SWCSegment> prototypes;
-        PrototypeNeuron neuron(uid);
+        PrototypeNeuron neuron(0);
 
         // Define properties
         neuron.defineProperty(PROPERTY_TYPE, 0);
