@@ -152,6 +152,16 @@ namespace neoneuron {
         ++_centerAccumulatorAmount;
     }
 
+    void SimpleNeuronSelector::deselectNeuron(UID neuronId) {
+        _selectedNeurons.erase(neuronId);
+        size_t amount = std::erase_if(_selection, [neuronId](const auto& entry) {
+            return entry.first.neuron == neuronId;
+        });
+        if (amount > 0) {
+            refreshGPUData();
+        }
+    }
+
     void SimpleNeuronSelector::refreshGPUData() {
         auto data = static_cast<SimpleGPUNeuronSelectionData*>(_uniformBuffer->fetchData(_binding));
 

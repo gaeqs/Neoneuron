@@ -24,10 +24,24 @@ namespace neoneuron {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 1, 0, 1));
         }
         if (ImGui::Button(name.c_str(), ImVec2(-1.0f, 25.0f))) {
+            bool control = ImGui::IsKeyDown(ImGuiKey_ModCtrl);
             auto& selector = _render->getNeuronScene()->getSelector();
-            selector.clearSelection();
-            selector.selectNeuron(neuron.getId());
+            if (!control) {
+                selector.clearSelection();
+                selector.selectNeuron(neuron.getId());
+            } else {
+                if (selected) {
+                    selector.deselectNeuron(neuron.getId());
+                } else {
+                    selector.selectNeuron(neuron.getId());
+                }
+            }
         }
+        if (selected) {
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+        }
+
         if (ImGui::BeginPopupContextItem()) // <-- use last item id as popup id
         {
             if (ImGui::Button("Delete")) {
@@ -36,11 +50,6 @@ namespace neoneuron {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
-        }
-
-        if (selected) {
-            ImGui::PopStyleColor();
-            ImGui::PopStyleVar();
         }
 
         return deleted;
@@ -76,7 +85,7 @@ namespace neoneuron {
         ImGui::PopStyleColor();
     }
 
-    void NeoneuronUINeuronList::neuronInformation() {
+    void NeoneuronUINeuronList::neuronInformation() const {
         ImGui::BeginChild(
             "Information",
             ImVec2(0, ImGui::GetContentRegionAvail().y)

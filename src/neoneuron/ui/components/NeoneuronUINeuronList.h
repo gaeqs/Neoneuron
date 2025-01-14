@@ -17,7 +17,7 @@ namespace neoneuron {
 
         void neuronList();
 
-        void neuronInformation();
+        void neuronInformation() const;
 
         void neuronNewProperty(PrototypeNeuron* neuron) const;
 

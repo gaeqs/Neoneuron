@@ -26,6 +26,8 @@ namespace neoneuron {
 
         virtual void selectNeuron(UID neuronId) = 0;
 
+        virtual void deselectNeuron(UID neuronId) = 0;
+
         virtual void selectSection(UID neuronId, UID sectionId) = 0;
     };
 }

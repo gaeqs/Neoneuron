@@ -76,6 +76,8 @@ namespace neoneuron {
 
         void selectSection(UID neuronId, UID sectionId, std::unordered_map<UID, rush::Mat4f>* transforms);
 
+        void deselectNeuron(UID neuronId) override;
+
         void refreshGPUData();
     };
 }
