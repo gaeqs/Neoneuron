@@ -133,7 +133,9 @@ namespace neoneuron {
 
         auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Neuron", _neuronMaterial);
         drawable->setGroupsSupplier([](const neon::Model& model) {
-            return rush::Vec<3, uint32_t>{model.getInstanceData(0)->getInstanceAmount(), 1, 1};
+            uint32_t amount = model.getInstanceData(0)->getInstanceAmount();
+            uint32_t tasks = amount / 32 + (amount % 32 != 0);
+            return rush::Vec<3, uint32_t>{tasks, 1, 1};
         });
 
         neon::ModelCreateInfo modelCreateInfo;
@@ -443,7 +445,7 @@ namespace neoneuron {
         _gpuNeurons.erase(_gpuNeurons.begin() + index);
         _prototypes.erase(_prototypes.begin() + index);
 
-        for (auto& neuron : _neurons) {
+        for (auto& neuron: _neurons) {
             if (auto gpuNeuron = findGPUNeuron(neuron.getId()); gpuNeuron.has_value()) {
                 gpuNeuron.value()->refreshGPUData(&neuron);
             }

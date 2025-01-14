@@ -67,7 +67,11 @@ layout(std430, set = 2, binding = 4) buffer Selection {
 };
 
 struct TaskData {
-    uint section;
+    uint section[32];
+    uint lodNextToParent[32];
+    uint children[32];
+    uint amount;
+    uint childrenAmount;
 };
 
 taskPayloadSharedEXT TaskData td;
@@ -77,22 +81,6 @@ layout(location = 1) flat out float fragType[];
 layout(location = 2) flat out float fragNeuronId[];
 layout(location = 3) flat out float fragSectionId[];
 layout(location = 4) flat out float fragSelected[];
-
-Section findParent(uint firstParent, out Section nextToParent) {
-    uint parentIndex = firstParent;
-    uint currentIndex = firstParent;
-    Section segment = sections[firstParent];
-    uint segmentLod;
-    do {
-        nextToParent = segment;
-        segment = sections[parentIndex];
-        segmentLod = (segment.metadata >> 11u) & 7u;
-        currentIndex = parentIndex;
-        parentIndex = segment.parent;
-    } while (segmentLod > lod && parentIndex != currentIndex);
-
-    return segment;
-}
 
 void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
     gl_MeshVerticesEXT[i].gl_Position = viewProjection * neuron.model * position;
@@ -107,15 +95,15 @@ vec3 rotate (vec3 v, vec3 n, float a) {
     return v * cos(a) + cross(n, v) * sin(a) + n * dot(n, v) * (1. - cos(a));
 }
 
-void generateSection() {
+void generateSection(uint sectionIndex, uint nextToParentIndex) {
     if (gl_LocalInvocationID.x >= verticesPerCircle * 2) return;
 
-    Section section = sections[td.section];
+    Section section = sections[sectionIndex];
     Section directParent = sections[section.parent];
     Section directGrandparent = sections[directParent.parent];
 
-    Section nextToParent;
-    Section parent = findParent(section.parent, nextToParent);
+    Section nextToParent = sections[nextToParentIndex];
+    Section parent = sections[nextToParent.parent];
     Section grandParent = sections[parent.parent];
     Neuron neuron = neurons[section.neuronIndex];
 
@@ -131,7 +119,7 @@ void generateSection() {
 
     // Fetch initial data.
     bool first = gl_LocalInvocationID.x < verticesPerCircle;
-    bool isSelected = selected[td.section];
+    bool isSelected = selected[sectionIndex];
     uint parentChildren = (parent.metadata >> 8u) & 7u;
     uint sectionChildren = (section.metadata >> 8u) & 7u;
     bool hasStartJoint = parentChildren >= minChildrenForJoint;
@@ -195,10 +183,10 @@ void generateSection() {
     gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(a, b, c);
 }
 
-void generateEnd () {
+void generateEnd (uint sectionIndex) {
     if (gl_LocalInvocationID.x >= verticesPerCircle) return;
 
-    Section section = sections[td.section];
+    Section section = sections[sectionIndex];
     Section parent = sections[section.parent];
     Neuron neuron = neurons[section.neuronIndex];
 
@@ -212,7 +200,7 @@ void generateEnd () {
 
     // Fetch initial data.
     bool first = gl_LocalInvocationID.x < verticesPerCircle;
-    bool isSelected = selected[td.section];
+    bool isSelected = selected[sectionIndex];
     uint parentChildren = (parent.metadata >> 8u) & 7u;
     uint sectionChildren = (section.metadata >> 8u) & 7u;
     bool hasStartJoint = parentChildren >= minChildrenForJoint;
@@ -255,9 +243,12 @@ void generateEnd () {
 }
 
 void main() {
-    if (gl_WorkGroupID.x == 0) {
-        generateSection();
+    if (gl_WorkGroupID.x >= td.amount) {
+        uint section = td.children[gl_WorkGroupID.x - td.amount];
+        generateEnd(section);
     } else {
-        generateEnd();
+        uint section = td.section[gl_WorkGroupID.x];
+        uint nextToParent = td.lodNextToParent[gl_WorkGroupID.x];
+        generateSection(section, nextToParent);
     }
 }

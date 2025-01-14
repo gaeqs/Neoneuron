@@ -1,7 +1,8 @@
 #version 460
 #extension GL_EXT_mesh_shader: enable
+#extension GL_KHR_shader_subgroup_ballot: enable
 
-layout (local_size_x = , local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
 layout (set = 0, binding = 1) uniform GlobalData {
     float currentTime;
@@ -26,7 +27,11 @@ layout (set = 0, binding = 1) uniform GlobalData {
 };
 
 struct TaskData {
-    uint instance;
+    uint section[32];
+    uint lodNextToParent[32];
+    uint children[32];
+    uint amount;
+    uint childrenAmount;
 };
 
 struct Section {
@@ -44,16 +49,52 @@ layout(std430, set = 2, binding = 1) buffer Data {
 
 taskPayloadSharedEXT TaskData td;
 
-void main() {
-    td.section = gl_WorkGroupID.x;
+uint findNextToParent(uint firstParent) {
 
-    Section section = sections[gl_WorkGroupID.x];
+    Section segment = sections[firstParent];
+    uint previous = firstParent;
+    uint current = firstParent;
+    uint segmentLod;
+    bool notFound = false;
+    do {
+        previous = current;
+        current = segment.parent;
+
+        segment = sections[current];
+        segmentLod = (segment.metadata >> 11u) & 7u;
+        notFound = segmentLod > lod && previous != current;
+    } while (notFound);
+
+    return previous;
+}
+
+
+void main() {
+    Section section = sections[gl_GlobalInvocationID.x];
     uint sectionChildren = (section.metadata >> 8u) & 7u;
     uint segmentLod = (section.metadata >> 11u) & 7u;
-    if (segmentLod > lod) {
-        EmitMeshTasksEXT(0, 1, 1);
-    } else {
-        EmitMeshTasksEXT(sectionChildren == 0 ? 2 : 1, 1, 1);
+
+    bool render = segmentLod <= lod;
+    uvec4 vote = subgroupBallot(render);
+    uint amount = subgroupBallotBitCount(vote);
+
+    if (render) {
+        uint index = subgroupBallotExclusiveBitCount(vote);
+        td.section[index] = gl_GlobalInvocationID.x;
+        td.lodNextToParent[index] = findNextToParent(gl_GlobalInvocationID.x);
     }
+
+    bool renderChildren = render && sectionChildren == 0;
+    uvec4 childrenVote = subgroupBallot(renderChildren);
+    uint childrenAmount = subgroupBallotBitCount(childrenVote);
+
+    if (renderChildren) {
+        uint index = subgroupBallotExclusiveBitCount(childrenVote);
+        td.children[index] = gl_GlobalInvocationID.x;
+    }
+
+    td.amount = amount;
+    td.childrenAmount = childrenAmount;
+    EmitMeshTasksEXT(amount + childrenAmount, 1, 1);
 }
     
