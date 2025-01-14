@@ -31,7 +31,7 @@ namespace neoneuron {
             float startRadius,
             float endRadius,
             const std::optional<UID>& parentId = {},
-            uint32_t lod
+            uint32_t lod = 0
         );
 
         [[nodiscard]] SegmentType getType() const;

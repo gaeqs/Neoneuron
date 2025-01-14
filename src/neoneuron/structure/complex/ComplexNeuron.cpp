@@ -94,9 +94,68 @@ namespace neoneuron {
     }
 
     void ComplexNeuron::calculateLODFrom(ComplexNeuronSegment* segment) {
+        constexpr size_t MAX_LOD = 7;
+
+        auto distanceSquared = [](const rush::Vec3f& point, const rush::Vec3f& start, const rush::Vec3f& end) {
+            rush::Vec3f line = end - start;
+            rush::Vec3f toPoint = point - start;
+
+            float t = std::max(toPoint.dot(line) / line.squaredLength(), 0.0f);
+
+            auto projection = start + t * line;
+            return (projection - point).squaredLength();
+        };
+
         segment->setLod(0);
 
-        float angle = 
+        std::vector<ComplexNeuronSegment*> segments;
+        segments.push_back(segment);
+
+        // Get all segments
+        auto parentId = segment->getParentId();
+        while (parentId.has_value()) {
+            auto it = _segmentsByUID.find(parentId.value());
+            if (it == _segmentsByUID.end()) break;
+            auto parent = &_segments[it->second];
+            auto parentJoint = findJoint(parentId.value());
+            if (parentJoint.has_value() && parentJoint.value()->getChildren().size() > 1) break;
+            if (parent->getType() == SegmentType::SOMA) break;
+            parent->setLod(0);
+            segments.push_back(parent);
+            parentId = parent->getParentId();
+        }
+
+        if (segments.size() < 3) return;
+
+        // Let's use a modified version of the Ramer-Douglas-Peucker algorithm to generate the LOD levels.
+        std::vector<std::pair<size_t, float>> significances;
+        significances.reserve(segments.size() - 2);
+        for (size_t i = 1; i < segments.size() - 1; i++) {
+            significances.emplace_back(
+                i,
+                distanceSquared(
+                    segments[i]->getEnd(),
+                    segments[i - 1]->getEnd(),
+                    segments[i + 1]->getEnd()
+                )
+            );
+        }
+
+        std::ranges::sort(
+            significances,
+            [](auto& a, auto& b) {
+                return a.second > b.second;
+            }
+        );
+
+        size_t currentLOD = 1;
+        size_t threshold = std::max(segments.size() / (MAX_LOD + 1), static_cast<size_t>(1u));
+        for (size_t i = 0; i < significances.size(); ++i) {
+            if (i > 0 && i % threshold == 0) {
+                currentLOD = std::min(currentLOD + 1, MAX_LOD);
+            }
+            segments[significances[i].first]->setLod(currentLOD);
+        }
     }
 
     ComplexNeuron::ComplexNeuron(ComplexNeuron&& other) noexcept
@@ -280,6 +339,7 @@ namespace neoneuron {
         calculateBoundingBox();
         calculateJoints();
         calculateSomas();
+        calculateLOD();
     }
 
     void ComplexNeuron::refreshProperty(const std::string& propertyName) {

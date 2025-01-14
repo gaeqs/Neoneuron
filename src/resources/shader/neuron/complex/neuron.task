@@ -1,7 +1,29 @@
 #version 460
 #extension GL_EXT_mesh_shader: enable
 
-layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = , local_size_y = 1, local_size_z = 1) in;
+
+layout (set = 0, binding = 1) uniform GlobalData {
+    float currentTime;
+    float radiusStrength;
+    float startClip;
+    float endClip;
+    float splitHeight;
+    float splitArcStrength;
+    uint rotationIndexOffset;
+    uint childrenRotationIndexOffset;
+    uint minChildrenForJoint;
+    uint verticesPerCircle;
+    uint somaLatitudes;
+    uint somaLongitudes;
+    float somaConnectionPushFactor;
+    float somaWeightPower;
+    float somaSphereWeight;
+    float somaConnectionMaxWeight;
+    vec4 defaultColor;
+    vec4 selectedColor;
+    uint lod;
+};
 
 struct TaskData {
     uint instance;
@@ -23,10 +45,15 @@ layout(std430, set = 2, binding = 1) buffer Data {
 taskPayloadSharedEXT TaskData td;
 
 void main() {
-    td.instance = gl_WorkGroupID.x;
+    td.section = gl_WorkGroupID.x;
 
     Section section = sections[gl_WorkGroupID.x];
     uint sectionChildren = (section.metadata >> 8u) & 7u;
-    EmitMeshTasksEXT(sectionChildren == 0 ? 2 : 1, 1, 1);
+    uint segmentLod = (section.metadata >> 11u) & 7u;
+    if (segmentLod > lod) {
+        EmitMeshTasksEXT(0, 1, 1);
+    } else {
+        EmitMeshTasksEXT(sectionChildren == 0 ? 2 : 1, 1, 1);
+    }
 }
     

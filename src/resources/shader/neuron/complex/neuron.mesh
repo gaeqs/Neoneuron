@@ -37,6 +37,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
     float somaConnectionMaxWeight;
     vec4 defaultColor;
     vec4 selectedColor;
+    uint lod;
 };
 
 struct Neuron {
@@ -77,6 +78,21 @@ layout(location = 2) flat out float fragNeuronId[];
 layout(location = 3) flat out float fragSectionId[];
 layout(location = 4) flat out float fragSelected[];
 
+Section findParent(uint firstParent, out Section nextToParent) {
+    uint parentIndex = firstParent;
+    uint currentIndex = firstParent;
+    Section segment = sections[firstParent];
+    uint segmentLod;
+    do {
+        nextToParent = segment;
+        segment = sections[parentIndex];
+        segmentLod = (segment.metadata >> 11u) & 7u;
+        currentIndex = parentIndex;
+        parentIndex = segment.parent;
+    } while (segmentLod > lod && parentIndex != currentIndex);
+
+    return segment;
+}
 
 void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
     gl_MeshVerticesEXT[i].gl_Position = viewProjection * neuron.model * position;
@@ -95,7 +111,11 @@ void generateSection() {
     if (gl_LocalInvocationID.x >= verticesPerCircle * 2) return;
 
     Section section = sections[td.section];
-    Section parent = sections[section.parent];
+    Section directParent = sections[section.parent];
+    Section directGrandparent = sections[directParent.parent];
+
+    Section nextToParent;
+    Section parent = findParent(section.parent, nextToParent);
     Section grandParent = sections[parent.parent];
     Neuron neuron = neurons[section.neuronIndex];
 
@@ -121,16 +141,19 @@ void generateSection() {
     float eClip = hasEndJoint ? endClip : 0.0f;
 
     vec3 end = section.endAndRadius.xyz;
+    vec3 directStart = directParent.endAndRadius.xyz;
     vec3 start = parent.endAndRadius.xyz;
     vec3 parentStart = grandParent.endAndRadius.xyz;
 
-    float startRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, parentSoma ? 1.0f : sClip);
-    float endRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, 1.0f - eClip);
+    float startRadius = mix(parent.endAndRadius.w, nextToParent.endAndRadius.w, parentSoma ? 1.0f : sClip);
+    float endRadius = mix(directParent.endAndRadius.w, section.endAndRadius.w, 1.0f - eClip);
     float radius = (first ? startRadius : endRadius) * radiusStrength;
 
     float angle = float(gl_LocalInvocationID.x) / float(verticesPerCircle) * 2.0f * M_PI;
 
-    vec3 unormDirection = end - start;
+    vec3 unormDirection = end - directStart;
+    vec3 parentUnormDirection = nextToParent.endAndRadius.xyz - start;
+
     vec3 direction = normalize(unormDirection);
     vec3 parentDirection = (parent.sectionId == grandParent.sectionId || parentSoma)
     ? direction
@@ -232,9 +255,9 @@ void generateEnd () {
 }
 
 void main() {
-   if(gl_WorkGroupID.x == 0) {
-       generateSection();
-   } else {
-       generateEnd();
-   }
+    if (gl_WorkGroupID.x == 0) {
+        generateSection();
+    } else {
+        generateEnd();
+    }
 }

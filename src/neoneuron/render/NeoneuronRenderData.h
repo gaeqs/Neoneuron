@@ -25,6 +25,7 @@ namespace neoneuron {
         float somaConnectionMaxWeight = 1.0f;
         rush::Vec4f defaultColor = rush::Vec4f(1.0f, 0.0f, 0.0f, 1.0f);
         rush::Vec4f selectedColor = rush::Vec4f(0.0f, 0.0f, 1.0f, 1.0f);
+        uint32_t lod = 0;
     };
 }
 #endif //NEONEURONRENDERDATA_H

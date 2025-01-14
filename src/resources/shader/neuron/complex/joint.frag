@@ -36,6 +36,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
     float somaConnectionMaxWeight;
     vec4 defaultColor;
     vec4 selectedColor;
+    uint lod;
 };
 
 void main() {

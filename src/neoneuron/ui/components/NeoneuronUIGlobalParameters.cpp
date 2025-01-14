@@ -61,6 +61,10 @@ namespace neoneuron {
                 ImGui::ColorEdit3("Default color", d.defaultColor.toPointer());
                 ImGui::ColorEdit3("Selected color", d.selectedColor.toPointer());
 
+                aux = static_cast<int>(d.lod);
+                ImGui::SliderInt("Level of detail", &aux, 0, 7);
+                d.lod = static_cast<uint32_t>(aux);
+
                 if (auto* complexScene = dynamic_cast<ComplexNeuronScene*>(scene)) {
                     bool wireframe = complexScene->isWireframeMode();
                     ImGui::Checkbox("Wireframe", &wireframe);

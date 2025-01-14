@@ -22,6 +22,15 @@ layout (set = 0, binding = 1) uniform GlobalData {
     float somaConnectionMaxWeight;
     vec4 defaultColor;
     vec4 selectedColor;
+    uint lod;
+};
+
+struct Section {
+    uint neuronIndex;
+    uint sectionId;
+    uint metadata;
+    uint parent;// This is the index inside the sections array! It is not the id of the section.
+    vec4 endAndRadius;
 };
 
 struct Joint {
@@ -29,6 +38,10 @@ struct Joint {
     uint amount;
     uint rotationIndex;// Rotation index data will always be 0-15!
     uint connection[8];
+};
+
+layout(std430, set = 2, binding = 1) buffer Data {
+    Section sections[];
 };
 
 layout(std430, set = 2, binding = 2) buffer Joints {
@@ -41,11 +54,18 @@ struct TaskData {
 
 taskPayloadSharedEXT TaskData td;
 
-void main() {
+uint calculateEmit() {
     Joint joint = joints[gl_WorkGroupID.x];
-    if(joint.amount >= minChildrenForJoint) {
-        td.instance = gl_WorkGroupID.x;
-        EmitMeshTasksEXT(1, 1, 1);
-    }
+
+    Section parent = sections[joint.parent];
+    uint parentLOD = (parent.metadata >> 11u) & 7u;
+    if (parentLOD > lod) return 0;
+    if (joint.amount >= minChildrenForJoint) return 1;
+    return 0;
+}
+
+void main() {
+    td.instance = gl_WorkGroupID.x;
+    EmitMeshTasksEXT(calculateEmit(), 1, 1);
 }
     

@@ -38,6 +38,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
     float somaConnectionMaxWeight;
     vec4 defaultColor;
     vec4 selectedColor;
+    uint lod;
 };
 
 struct Neuron {
@@ -255,7 +256,7 @@ void joint2(Joint joint) {
 
     bool isSelected = selected[joint.parent];
 
-    for(int i = 0; i < joint.amount; ++i) {
+    for (int i = 0; i < joint.amount; ++i) {
         isSelected = isSelected || selected[joint.connection[i]];
     }
 

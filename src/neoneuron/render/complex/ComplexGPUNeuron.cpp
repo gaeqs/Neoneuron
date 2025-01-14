@@ -90,6 +90,7 @@ namespace neoneuron {
             if (joint.has_value()) {
                 metadata += (static_cast<uint32_t>(joint.value()->getChildren().size()) & 0b111) << 8;
             }
+            metadata += (segment.getLod() & 0b111) << 11;
 
             ComplexGPUNeuronSegment gpu(
                 *_globalInstance.id,
