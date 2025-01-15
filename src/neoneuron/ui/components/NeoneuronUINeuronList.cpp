@@ -13,17 +13,19 @@ namespace neoneuron {
     bool NeoneuronUINeuronList::neuronSection(const PrototypeNeuron& neuron, size_t id, bool selected) const {
         std::string name;
         if (auto opt = neuron.getProperty<std::string>(PROPERTY_NAME); opt.has_value()) {
-            name = opt.value() + "##" + std::to_string(id);
+            name = opt.value();
         } else {
-            name = "Neuron " + std::to_string(id) + "##" + std::to_string(id);
+            name = "Neuron " + std::to_string(id);
         }
+
+        std::string taggedName = name + "##" + std::to_string(id);
 
         bool deleted = false;
         if (selected) {
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 1, 0, 1));
         }
-        if (ImGui::Button(name.c_str(), ImVec2(-1.0f, 25.0f))) {
+        if (ImGui::Button(taggedName.c_str(), ImVec2(-1.0f, 25.0f))) {
             bool control = ImGui::IsKeyDown(ImGuiKey_ModCtrl);
             auto& selector = _render->getNeuronScene()->getSelector();
             if (!control) {
@@ -44,10 +46,18 @@ namespace neoneuron {
 
         if (ImGui::BeginPopupContextItem()) // <-- use last item id as popup id
         {
-            if (ImGui::Button("Delete")) {
+            ImGui::Text(name.c_str());
+            ImGui::Separator();
+            if (ImGui::MenuItem("Delete")) {
                 auto& scene = _render->getNeuronScene();
                 deleted = scene->removeNeuron(neuron.getId());
                 ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::MenuItem("Duplicate")) {
+                PrototypeNeuron copy(neuron);
+                copy.setId(_render->getNeuronScene()->findAvailableUID());
+                copy.defineAndSetProperty(PROPERTY_NAME, name + " (copy)");
+                _render->getNeuronScene()->addNeuron(std::move(copy));
             }
             ImGui::EndPopup();
         }
