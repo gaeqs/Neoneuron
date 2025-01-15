@@ -19,6 +19,7 @@
 #include <neoneuron/structure/prototype/NeuronProperties.h>
 
 #include "components/NeoneuronUIOpenFile.h"
+#include "components/actions/ActionShuffle.h"
 #include "settings/NeoneuronUiSettings.h"
 #include "style/Fonts.h"
 
@@ -87,6 +88,12 @@ namespace neoneuron {
         }
     }
 
+    void NeoneuronTopBar::actionsMenu() const {
+        if (ImGui::MenuItem("Shuffle")) {
+            _render->getRoom()->newGameObject()->newComponent<ActionShuffle>(_render->getNeuronScene().get());
+        }
+    }
+
     void NeoneuronTopBar::demo() const {
         auto& s = _render->getNeoneuronApplication()->getSettings();
         bool opened = s.value(NeoneuronApplication::SETTINGS_TOOL_DEMO, false);
@@ -124,6 +131,12 @@ namespace neoneuron {
             if (ImGui::BeginMenu("Tools")) {
                 fonts::imGuiPushFont(fonts::SS3_18);
                 toolsMenu();
+                ImGui::PopFont();
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Actions")) {
+                fonts::imGuiPushFont(fonts::SS3_18);
+                actionsMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
