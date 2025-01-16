@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <utility>
+#include <neon/util/Chronometer.h>
 #include <neoneuron/structure/prototype/NeuronProperties.h>
 
 #include "SWCLoader.h"
@@ -142,6 +143,7 @@ namespace neoneuron {
             auto result = splitUID(att.as_string(""), ',');
             if (!result.isOk()) return {result.getError()};
             auto uids = std::move(result.getResult());
+            if (uids.empty()) continue;
 
             auto fileName = std::string(fileAtt.as_string(""));
             auto file = _fileSystem->readFile(fileName);

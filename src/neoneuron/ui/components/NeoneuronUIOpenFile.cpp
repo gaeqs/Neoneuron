@@ -4,6 +4,7 @@
 
 #include "NeoneuronUIOpenFile.h"
 
+#include <neon/util/Chronometer.h>
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/loader/SWCLoader.h>
 #include <neoneuron/loader/XMLLoader.h>
@@ -82,6 +83,8 @@ namespace neoneuron {
         ImGui::SetCursorPosY(ImGui::GetContentRegionMax().y - 40.0f);
         ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 140.0f);
         if (ImGui::Button("Load", ImVec2(120, 0))) {
+            neon::Chronometer chrono;
+
             if (auto result = generateLoader()->build(); result.isOk()) {
                 for (auto& prototype: result.getResult()) {
                     changeNeuronUID(prototype);
@@ -92,6 +95,10 @@ namespace neoneuron {
                 getLogger().error(result.getError());
             }
             ImGui::CloseCurrentPopup();
+            getLogger().debug(neon::MessageBuilder()
+                .print("Time required to load: ")
+                .print(chrono.elapsedSeconds())
+                .print(" seconds."));
         }
         ImGui::EndDisabled();
     }
