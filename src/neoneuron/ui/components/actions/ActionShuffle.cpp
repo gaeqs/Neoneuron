@@ -10,9 +10,11 @@
 
 namespace neoneuron {
     void ActionShuffle::shuffle(PrototypeNeuron* neuron) {
-        std::uniform_real_distribution dis(-_radius, _radius);
+        std::uniform_real_distribution dis(-1.0f, 1.0f);
+        std::uniform_real_distribution rDis(0.0f, 1.0f);
 
         auto v = rush::Vec3f(dis(_randomGenerator), dis(_randomGenerator), dis(_randomGenerator));
+        v = v.normalized() * std::cbrt(rDis(_randomGenerator)) * _radius;
 
         NeuronTransform transform;
         transform.setPosition(_center + v);
