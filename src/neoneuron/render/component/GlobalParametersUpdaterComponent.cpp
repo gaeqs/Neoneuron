@@ -26,8 +26,9 @@ namespace neoneuron {
                 camera.getView(),
                 camera.getViewProjection(),
                 camera.getFrustum().getInverseProjection(),
+                camera.getPlanes(),
                 camera.getFrustum().getNear(),
-                camera.getFrustum().getFar()
+                camera.getFrustum().getFar(),
             }
         );
 

@@ -33,6 +33,7 @@ namespace neoneuron {
         * 0-7 -> Type
         * 8 - 10 -> Amount of children.
         * 11 - 13 -> Min LOD level
+        * 14 - 16 -> LOD used to generate the LOD parent. If LOD is the MAX, the parent may not be generated.
         */
         uint32_t metadata;
 

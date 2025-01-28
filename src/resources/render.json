@@ -8,7 +8,7 @@
     "bindings": [
       {
         "type": "uniform_buffer",
-        "size": 200
+        "size": 224
       },
       {
         "type": "uniform_buffer",

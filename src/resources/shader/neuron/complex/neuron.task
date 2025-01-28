@@ -4,6 +4,15 @@
 
 layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
+layout (set = 0, binding = 0) uniform Matrices {
+    mat4 view;
+    mat4 viewProjection;
+    mat4 inverseProjection;
+    vec4 planes[6];
+    float near;
+    float far;
+};
+
 layout (set = 0, binding = 1) uniform GlobalData {
     float currentTime;
     float radiusStrength;
@@ -34,6 +43,12 @@ struct TaskData {
     uint childrenAmount;
 };
 
+struct Neuron {
+    uint neuronId;
+    mat4 model;
+    mat4 normal;
+};
+
 struct Section {
     uint neuronIndex;
     uint sectionId;
@@ -42,14 +57,36 @@ struct Section {
     vec4 endAndRadius;
 };
 
+layout(std430, set = 2, binding = 0) buffer Neurons {
+    Neuron neurons[];
+};
+
 layout(std430, set = 2, binding = 1) buffer Data {
     Section sections[];
 };
 
+layout(std430, set = 2, binding = 6) buffer SectionGPUData {
+    uint lodParent[];
+};
 
 taskPayloadSharedEXT TaskData td;
 
-uint findNextToParent(uint firstParent) {
+bool sphereInFrustum(Neuron neuron, vec3 center, float radius) {
+    vec3 globalCenter = (neuron.model * vec4(center, 1.0f)).xyz;
+    for (uint i = 0; i < 6; ++i) {
+        vec3 normal = planes[i].xyz;
+        float distance = planes[i].w;
+        float side = dot(globalCenter, normal) + distance;
+        if (side < -radius) return false;
+    }
+
+    return true;
+}
+
+uint findNextToParent(uint firstParent, uint computedLodParent) {
+    if(computedLodParent < 7 && computedLodParent == lod) {
+        return lodParent[firstParent];
+    }
 
     Section segment = sections[firstParent];
     uint previous = firstParent;
@@ -65,26 +102,67 @@ uint findNextToParent(uint firstParent) {
         notFound = segmentLod > lod && previous != current;
     } while (notFound);
 
+    lodParent[firstParent] = previous;
+
     return previous;
+}
+
+bool cullSection(Neuron neuron, Section section, Section parent) {
+    vec3 end = section.endAndRadius.xyz;
+    vec3 start = parent.endAndRadius.xyz;
+
+    float length = length(section.endAndRadius.xyz - parent.endAndRadius.xyz);
+    float radius = section.endAndRadius.w;
+    vec3 center = (section.endAndRadius.xyz + parent.endAndRadius.xyz) * 0.5f;
+
+    if (!sphereInFrustum(neuron, center, length + radius)) {
+        return false;
+    }
+
+    // Split into four
+    float subLength = length * 0.25f;
+
+    for (uint i = 0; i < 4; ++i) {
+        vec3 subCenter = start + (end - start) * (float(i) * 0.25f + 0.125f);
+        if (sphereInFrustum(neuron, subCenter, subLength + radius)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
 void main() {
     Section section = sections[gl_GlobalInvocationID.x];
-    uint sectionChildren = (section.metadata >> 8u) & 7u;
-    uint segmentLod = (section.metadata >> 11u) & 7u;
+    Neuron neuron = neurons[section.neuronIndex];
 
-    bool render = segmentLod <= lod;
+    uint metadata = section.metadata;
+    uint sectionChildren = (metadata >> 8u) & 7u;
+    uint segmentLod = (metadata >> 11u) & 7u;
+    uint computedLodParent = (metadata >> 14u) & 7u;
+
+    uint nextToParentIndex = findNextToParent(gl_GlobalInvocationID.x, computedLodParent);
+
+    // Update LOD
+    metadata = metadata & ~(7u << 14u);
+    metadata = metadata + ((lod & 7u) << 14u);
+    sections[gl_GlobalInvocationID.x].metadata = metadata;
+
+    Section nextToParent = sections[nextToParentIndex];
+    Section parent = sections[nextToParent.parent];
+
+    bool render = segmentLod <= lod && cullSection(neuron, section, parent);
     uvec4 vote = subgroupBallot(render);
     uint amount = subgroupBallotBitCount(vote);
 
     if (render) {
         uint index = subgroupBallotExclusiveBitCount(vote);
         td.section[index] = gl_GlobalInvocationID.x;
-        td.lodNextToParent[index] = findNextToParent(gl_GlobalInvocationID.x);
+        td.lodNextToParent[index] = nextToParentIndex;
     }
 
-    bool renderChildren = render && sectionChildren == 0;
+    bool renderChildren = segmentLod <= lod && sectionChildren == 0;
     uvec4 childrenVote = subgroupBallot(renderChildren);
     uint childrenAmount = subgroupBallotBitCount(childrenVote);
 

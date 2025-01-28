@@ -13,6 +13,7 @@ layout (set = 0, binding = 0) uniform Matrices {
     mat4 view;
     mat4 viewProjection;
     mat4 inverseProjection;
+    vec4 planes[6];
     float near;
     float far;
 };

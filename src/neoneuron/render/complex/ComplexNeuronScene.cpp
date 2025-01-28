@@ -36,7 +36,9 @@ namespace neoneuron {
             // SELECTION
             neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSelectionData) * SEGMENT_INSTANCES),
             // SOMA GPU DATA
-            neon::ShaderUniformBinding::storageBuffer(STORAGE_PER_SOMA * SOMA_INSTANCES)
+            neon::ShaderUniformBinding::storageBuffer(STORAGE_PER_SOMA * SOMA_INSTANCES),
+            // SECTION GPU DATA
+            neon::ShaderUniformBinding::storageBuffer(STORAGE_PER_SECTION * SEGMENT_INSTANCES)
         };
 
         _uboDescriptor = std::make_shared<neon::ShaderUniformDescriptor>(

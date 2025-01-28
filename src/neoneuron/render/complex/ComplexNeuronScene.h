@@ -30,6 +30,7 @@ namespace neoneuron {
         static constexpr size_t JOINT_INSTANCES = 10000000;
         static constexpr size_t SOMA_INSTANCES = 100000;
         static constexpr size_t STORAGE_PER_SOMA = 64 * 64;
+        static constexpr size_t STORAGE_PER_SECTION = sizeof(uint32_t);
 
     private:
         NeoneuronRender* _render;

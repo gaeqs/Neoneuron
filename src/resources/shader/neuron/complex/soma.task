@@ -12,6 +12,15 @@ const uint STORAGE_PER_SOMA = MAX_VERTICES;
 
 layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
+layout (set = 0, binding = 0) uniform Matrices {
+    mat4 view;
+    mat4 viewProjection;
+    mat4 inverseProjection;
+    vec4 planes[6];
+    float near;
+    float far;
+};
+
 layout (set = 0, binding = 1) uniform GlobalData {
     float currentTime;
     float radiusStrength;
@@ -50,6 +59,16 @@ struct Soma {
     uint sectionIndex;
     uint amount;
     uint connection[MAX_SOMA_CONNECTIONS];
+};
+
+struct Neuron {
+    uint neuronId;
+    mat4 model;
+    mat4 normal;
+};
+
+layout(std430, set = 2, binding = 0) buffer Neurons {
+    Neuron neurons[];
 };
 
 layout(std430, set = 2, binding = 1) buffer Data {
@@ -295,12 +314,12 @@ void generateSomaGPUData() {
 
         bool draw1 = connection[a] != connection[b] || connection[a] != connection[c] || connection[a] == MAX_SOMA_CONNECTIONS;
         bool draw2 = connection[d] != connection[b] || connection[d] != connection[c] || connection[d] == MAX_SOMA_CONNECTIONS;
-        if(draw1) {
+        if (draw1) {
             inside[a] = false;
             inside[b] = false;
             inside[c] = false;
         }
-        if(draw2) {
+        if (draw2) {
             inside[b] = false;
             inside[c] = false;
             inside[d] = false;
@@ -321,12 +340,59 @@ void generateSomaGPUData() {
     }
 }
 
+bool sphereInFrustum(Neuron neuron, vec3 center, float radius2) {
+    vec3 globalCenter = (neuron.model * vec4(center, 1.0f)).xyz;
+    for (uint i = 0; i < 6; ++i) {
+        vec3 normal = planes[i].xyz;
+        float distance = planes[i].w;
+        float side = dot(globalCenter, normal) + distance;
+        if (side < 0.0f && side * side > radius2) return false;
+    }
+
+    return true;
+}
+
+void generateSomaBoundingBoxSphere (Soma soma, out vec3 center, out float radius2) {
+    Section somaSection = sections[soma.sectionIndex];
+    center = vec3(0.0f, 0.0f, 0.0f);
+    for (uint i = 0; i < soma.amount; ++i) {
+        Section segment = sections[soma.connection[i]];
+        center += segment.endAndRadius.xyz;
+    }
+    center /= soma.amount;
+
+    // Calculate soma max radius
+    float somaDistToCenter = length(somaSection.endAndRadius.xyz - center);
+
+    radius2 = somaDistToCenter + somaSection.endAndRadius.w;
+    radius2 *= radius2;
+    for (uint i = 0; i < soma.amount; ++i) {
+        Section segment = sections[soma.connection[i]];
+        vec3 dist = segment.endAndRadius.xyz - somaSection.endAndRadius.xyz;
+        float localRadius2 = dot(dist, dist);
+        if (localRadius2 > radius2) {
+            radius2 = localRadius2;
+        }
+    }
+}
+
 void main() {
     Soma soma = somas[gl_WorkGroupID.x];
-    generateSomaGPUData();
-    if (gl_LocalInvocationID.x == 0) {
-        td.somaIndex = gl_WorkGroupID.x;
-        EmitMeshTasksEXT(somaLatitudes - 1 + soma.amount, 1, 1);
+    Section somaSection = sections[soma.sectionIndex];
+    Neuron neuron = neurons[somaSection.neuronIndex];
+
+    vec3 center;
+    float radius2;
+    generateSomaBoundingBoxSphere(soma, center, radius2);
+
+    if(sphereInFrustum(neuron, center, radius2)) {
+        generateSomaGPUData();
+        if (gl_LocalInvocationID.x == 0) {
+            td.somaIndex = gl_WorkGroupID.x;
+            EmitMeshTasksEXT(somaLatitudes - 1 + soma.amount, 1, 1);
+        }
+    } else {
+        EmitMeshTasksEXT(0, 1, 1);
     }
 }
     

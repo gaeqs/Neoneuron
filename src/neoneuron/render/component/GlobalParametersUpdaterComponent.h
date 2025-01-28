@@ -5,6 +5,7 @@
 #ifndef NEON_GLOBALPARAMETERSUPDATERCOMPONENT_H
 #define NEON_GLOBALPARAMETERSUPDATERCOMPONENT_H
 
+#include <array>
 #include <neon/Neon.h>
 
 namespace neoneuron {
@@ -14,6 +15,7 @@ namespace neoneuron {
         rush::Mat4f view;
         rush::Mat4f projectionView;
         rush::Mat4f inverseProjection;
+        std::array<rush::Plane<float>, 6> planes;
         float near;
         float far;
     };
