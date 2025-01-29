@@ -37,6 +37,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
     vec4 defaultColor;
     vec4 selectedColor;
     uint lod;
+    uint frame;
 };
 
 void main() {

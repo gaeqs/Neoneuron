@@ -447,9 +447,10 @@ namespace neoneuron {
         _gpuNeurons.erase(_gpuNeurons.begin() + index);
         _prototypes.erase(_prototypes.begin() + index);
 
+        auto frame = _render->getApplication().getCurrentFrameInformation().currentFrame;
         for (auto& neuron: _neurons) {
             if (auto gpuNeuron = findGPUNeuron(neuron.getId()); gpuNeuron.has_value()) {
-                gpuNeuron.value()->refreshGPUData(&neuron);
+                gpuNeuron.value()->refreshGPUData(&neuron, frame);
             }
         }
 
@@ -466,10 +467,11 @@ namespace neoneuron {
     }
 
     void ComplexNeuronScene::refreshNeuronProperty(UID neuronId, const std::string& propertyName) {
+        auto frame = _render->getApplication().getCurrentFrameInformation().currentFrame;
         if (auto neuron = findNeuron(neuronId); neuron.has_value()) {
             neuron.value()->refreshProperty(propertyName);
             if (auto gpuNeuron = findGPUNeuron(neuronId); gpuNeuron.has_value()) {
-                gpuNeuron.value()->refreshProperty(neuron.value(), propertyName);
+                gpuNeuron.value()->refreshProperty(neuron.value(), frame, propertyName);
             }
         }
 

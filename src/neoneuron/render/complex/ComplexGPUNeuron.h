@@ -12,7 +12,9 @@
 namespace neoneuron {
     struct ComplexGPUNeuronGlobalData {
         uint32_t neuronId;
-        uint32_t dummy[3];
+        uint32_t lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
+        uint32_t updateFrame;
+        uint32_t dummy;
         rush::Mat4f model;
         rush::Mat4f normal;
     };
@@ -33,7 +35,6 @@ namespace neoneuron {
         * 0-7 -> Type
         * 8 - 10 -> Amount of children.
         * 11 - 13 -> Min LOD level
-        * 14 - 16 -> LOD used to generate the LOD parent. If LOD is the MAX, the parent may not be generated.
         */
         uint32_t metadata;
 
@@ -112,7 +113,7 @@ namespace neoneuron {
 
         void generateSomaInstances(const ComplexNeuron* neuron);
 
-        void refreshGlobalData(const ComplexNeuron* neuron) const;
+        void refreshGlobalData(const ComplexNeuron* neuron, uint32_t frame) const;
 
         void refreshSegments(const ComplexNeuron* neuron) const;
 
@@ -138,9 +139,9 @@ namespace neoneuron {
 
         ~ComplexGPUNeuron();
 
-        void refreshGPUData(const ComplexNeuron* neuron) const;
+        void refreshGPUData(const ComplexNeuron* neuron, uint32_t frame) const;
 
-        void refreshProperty(const ComplexNeuron* neuron, const std::string& propertyName);
+        void refreshProperty(const ComplexNeuron* neuron, uint32_t frame, const std::string& propertyName);
 
         std::optional<neon::InstanceData::Instance> findSegment(UID uid) const;
 

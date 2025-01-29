@@ -40,10 +40,12 @@ layout (set = 0, binding = 1) uniform GlobalData {
     vec4 defaultColor;
     vec4 selectedColor;
     uint lod;
+    uint frame;
 };
 
 struct Neuron {
     uint neuronId;
+    uint lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
     mat4 model;
     mat4 normal;
 };

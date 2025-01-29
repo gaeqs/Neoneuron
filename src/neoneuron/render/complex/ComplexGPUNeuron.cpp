@@ -47,12 +47,14 @@ namespace neoneuron {
         }
     }
 
-    void ComplexGPUNeuron::refreshGlobalData(const ComplexNeuron* neuron) const {
+    void ComplexGPUNeuron::refreshGlobalData(const ComplexNeuron* neuron, uint32_t frame) const {
         auto buffer = _globalInstanceData.lock();
         if (buffer == nullptr) return;
 
         ComplexGPUNeuronGlobalData data{
             .neuronId = neuron->getId(),
+            .lodMode = 8,
+            .updateFrame = frame,
             .model = rush::Mat4f(1.0f),
             .normal = rush::Mat4f(1.0f)
         };
@@ -231,17 +233,18 @@ namespace neoneuron {
         invalidate();
     }
 
-    void ComplexGPUNeuron::refreshGPUData(const ComplexNeuron* neuron) const {
+    void ComplexGPUNeuron::refreshGPUData(const ComplexNeuron* neuron, uint32_t frame) const {
         if (!_valid) return;
-        refreshGlobalData(neuron);
+        refreshGlobalData(neuron, frame);
         refreshSegments(neuron);
         refreshJoints(neuron);
         refreshSomas(neuron);
     }
 
-    void ComplexGPUNeuron::refreshProperty(const ComplexNeuron* neuron, const std::string& propertyName) {
+    void ComplexGPUNeuron::refreshProperty(const ComplexNeuron* neuron, uint32_t frame,
+                                           const std::string& propertyName) {
         if (propertyName == PROPERTY_TRANSFORM) {
-            refreshGlobalData(neuron);
+            refreshGlobalData(neuron, frame);
         }
     }
 

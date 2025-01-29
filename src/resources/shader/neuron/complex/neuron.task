@@ -33,6 +33,12 @@ layout (set = 0, binding = 1) uniform GlobalData {
     vec4 defaultColor;
     vec4 selectedColor;
     uint lod;
+    uint frame;
+};
+
+layout (set = 0, binding = 2) uniform Scene {
+    vec3 sceneCenter;
+    vec3 sceneRadius;
 };
 
 struct TaskData {
@@ -45,6 +51,8 @@ struct TaskData {
 
 struct Neuron {
     uint neuronId;
+    uint lodMode;// 0-7 = forced, 8 = dynamic, 9 = static
+    uint updateFrame;
     mat4 model;
     mat4 normal;
 };
@@ -83,23 +91,43 @@ bool sphereInFrustum(Neuron neuron, vec3 center, float radius) {
     return true;
 }
 
-uint findNextToParent(uint firstParent, uint computedLodParent) {
-    if(computedLodParent < 7 && computedLodParent == lod) {
+uint computeLOD(Neuron neuron, Section segment, out bool shouldUpdate) {
+    if (neuron.lodMode == 8) {
+        shouldUpdate = (neuron.neuronId & 63u) == (frame & 63u) || neuron.updateFrame == frame;
+        if (!shouldUpdate) return 0; // Do not calculate!
+        float sceneRadius = min(sceneRadius.x, min(sceneRadius.y, sceneRadius.z));
+        vec3 viewPosition = vec3(view * neuron.model * vec4(segment.endAndRadius.xyz, 1.0f));
+        float distance = length(viewPosition);
+        return min(uint(distance * 7.0f / sceneRadius), 7);
+    } else {
+        shouldUpdate = neuron.updateFrame == frame;
+        return neuron.lodMode < 8 ? neuron.lodMode : lod;
+    }
+}
+
+
+uint findNextToParent(Neuron neuron, Section segment, uint firstParent, uint computedLodParent) {
+    bool update;
+    uint lod = computeLOD(neuron, )
+
+
+    if (computedLodParent < 7 && computedLodParent == lod) {
         return lodParent[firstParent];
     }
 
     Section segment = sections[firstParent];
     uint previous = firstParent;
     uint current = firstParent;
-    uint segmentLod;
     bool notFound = false;
     do {
         previous = current;
         current = segment.parent;
 
         segment = sections[current];
-        segmentLod = (segment.metadata >> 11u) & 7u;
-        notFound = segmentLod > lod && previous != current;
+        uint requiredLod = (segment.metadata >> 11u) & 7u;
+        uint segmentLod = computeLOD(neuron, segment);
+
+        notFound = requiredLod > segmentLod && previous != current;
     } while (notFound);
 
     lodParent[firstParent] = previous;
@@ -132,7 +160,6 @@ bool cullSection(Neuron neuron, Section section, Section parent) {
     return false;
 }
 
-
 void main() {
     Section section = sections[gl_GlobalInvocationID.x];
     Neuron neuron = neurons[section.neuronIndex];
@@ -142,12 +169,7 @@ void main() {
     uint segmentLod = (metadata >> 11u) & 7u;
     uint computedLodParent = (metadata >> 14u) & 7u;
 
-    uint nextToParentIndex = findNextToParent(gl_GlobalInvocationID.x, computedLodParent);
-
-    // Update LOD
-    metadata = metadata & ~(7u << 14u);
-    metadata = metadata + ((lod & 7u) << 14u);
-    sections[gl_GlobalInvocationID.x].metadata = metadata;
+    uint nextToParentIndex = findNextToParent(neuron, section, gl_GlobalInvocationID.x, computedLodParent);
 
     Section nextToParent = sections[nextToParentIndex];
     Section parent = sections[nextToParent.parent];

@@ -35,6 +35,7 @@ namespace neoneuron {
 
         auto& renderData = _render.getRenderData();
         renderData.currentTime = _render.getCurrentTime();
+        renderData.frame = _render.getApplication().getCurrentFrameInformation().currentFrame;
         buffer.uploadData<NeoneuronRenderData>(1, renderData);
 
         auto bb = _render.getNeuronScene()->getSceneBoundingBox();
