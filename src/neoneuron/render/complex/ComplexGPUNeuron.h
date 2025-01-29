@@ -35,6 +35,7 @@ namespace neoneuron {
         * 0-7 -> Type
         * 8 - 10 -> Amount of children.
         * 11 - 13 -> Min LOD level
+        * 14 - 16 -> Current calculated LOD level.
         */
         uint32_t metadata;
 

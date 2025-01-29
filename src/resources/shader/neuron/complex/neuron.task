@@ -160,18 +160,27 @@ void main() {
     Neuron neuron = neurons[segment.neuronIndex];
 
     bool update = shouldUpdate(neuron);
-    uint localLod = computeLOD(neuron, segment);
+    uint localLod;
     uint nextToParentIndex;
-    if(update) {
-        nextToParentIndex = findNextToParent(neuron, gl_GlobalInvocationID.x);
-        lodParent[gl_GlobalInvocationID.x] = nextToParentIndex;
-    } else {
-        nextToParentIndex = lodParent[gl_GlobalInvocationID.x];
-    }
 
     uint metadata = segment.metadata;
     uint sectionChildren = (metadata >> 8u) & 7u;
     uint segmentLod = (metadata >> 11u) & 7u;
+
+    if(update) {
+        nextToParentIndex = findNextToParent(neuron, gl_GlobalInvocationID.x);
+        lodParent[gl_GlobalInvocationID.x] = nextToParentIndex;
+        localLod = computeLOD(neuron, segment);
+
+        // Update LOD
+        metadata = metadata & ~(7u << 14u);
+        metadata = metadata + ((localLod & 7u) << 14u);
+        sections[gl_GlobalInvocationID.x].metadata = metadata;
+    } else {
+        nextToParentIndex = lodParent[gl_GlobalInvocationID.x];
+        localLod = (metadata >> 14u) & 7u;
+    }
+
 
     Section nextToParent = sections[nextToParentIndex];
     Section parent = sections[nextToParent.parent];
