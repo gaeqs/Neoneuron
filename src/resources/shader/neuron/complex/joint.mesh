@@ -46,6 +46,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
 struct Neuron {
     uint neuronId;
     uint lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
+    uint updateFrame;
     mat4 model;
     mat4 normal;
 };

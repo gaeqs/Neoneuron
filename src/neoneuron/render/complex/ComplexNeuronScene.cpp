@@ -402,7 +402,8 @@ namespace neoneuron {
             _globalInstanceData,
             _neuronModel, _jointModel, _somaModel,
             0, 0, 0,
-            &_neurons.back()
+            &_neurons.back(),
+            _render->getApplication().getCurrentFrameInformation().currentFrame
         );
         if (_neurons.size() == 1) {
             _sceneBoundingBox = bb;
@@ -422,7 +423,8 @@ namespace neoneuron {
             _globalInstanceData,
             _neuronModel, _jointModel, _somaModel,
             0, 0, 0,
-            &_neurons.back()
+            &_neurons.back(),
+            _render->getApplication().getCurrentFrameInformation().currentFrame
         );
         if (_neurons.size() == 1) {
             _sceneBoundingBox = bb;

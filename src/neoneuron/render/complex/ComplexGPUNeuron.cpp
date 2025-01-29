@@ -210,7 +210,8 @@ namespace neoneuron {
                                        size_t segmentInstanceDataIndex,
                                        size_t jointInstanceDataIndex,
                                        size_t somaInstanceDataIndex,
-                                       const ComplexNeuron* neuron)
+                                       const ComplexNeuron* neuron,
+                                       uint32_t frame)
         : _globalInstanceData(std::move(globalInstanceData)),
           _segmentModel(std::move(neuronModel)),
           _jointModel(std::move(jointModel)),
@@ -226,7 +227,7 @@ namespace neoneuron {
         generateJointInstances(neuron);
         generateSomaInstances(neuron);
 
-        refreshGPUData(neuron);
+        refreshGPUData(neuron, frame);
     }
 
     ComplexGPUNeuron::~ComplexGPUNeuron() {

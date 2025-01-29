@@ -135,7 +135,8 @@ namespace neoneuron {
                          size_t segmentInstanceDataIndex,
                          size_t jointInstanceDataIndex,
                          size_t somaInstanceDataIndex,
-                         const ComplexNeuron* neuron);
+                         const ComplexNeuron* neuron,
+                         uint32_t frame);
 
         ~ComplexGPUNeuron();
 
