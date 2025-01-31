@@ -81,12 +81,13 @@ namespace neoneuron {
         ImGuiListClipper clipper;
         clipper.Begin(neurons.size());
 
-        while (clipper.Step()) {
+        bool deleted = false;
+        while (!deleted && clipper.Step()) {
             for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-                auto* neuron = neurons[row].get();
+                auto* neuron = neurons.at(row).get();
                 if (neuronSection(*neuron, row, selectedNeurons.contains(neuron->getId()))) {
-                    --clipper.DisplayEnd;
-                    --row;
+                    deleted = true;
+                    break;
                 }
             }
         }
