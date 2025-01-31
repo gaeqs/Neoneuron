@@ -54,6 +54,11 @@ layout (set = 0, binding = 1) uniform GlobalData {
     uint frame;
 };
 
+layout (set = 0, binding = 2) uniform Scene {
+    vec3 sceneCenter;
+    vec3 sceneRadius;
+};
+
 struct Neuron {
     uint neuronId;
     uint lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
@@ -111,6 +116,12 @@ layout(location = 3) flat out float fragSelected[];
 shared uint connectionVerticesIndices[MAX_CONNECTION_VERTICES];
 shared vec3 connectionVertices[MAX_CONNECTION_VERTICES];
 shared float connectionVerticesAngles[MAX_CONNECTION_VERTICES];
+
+uint getVerticesPerCircle(Section segment) {
+    uint metadata = segment.metadata;
+    uint localLod = (metadata >> 14u) & 7u;
+    return 4 + localLod * (MAX_POINTS_PER_CIRCLE - 4) / 7;
+}
 
 vec3 closestPointInSegment(vec3 from, vec3 to, vec3 point) {
     vec3 v = point - from;
@@ -251,15 +262,15 @@ void pushVertex(uint i, vec3 position, vec3 normal, uint type, Neuron neuron, ui
 }
 
 
-void generateConnectionVertices(uint offset, Section soma, Section connection, Neuron neuron, bool isSelected) {
-    if (gl_LocalInvocationID.x >= verticesPerCircle) return;
+void generateConnectionVertices(uint offset, Section soma, Section connection, Neuron neuron, uint sectionVPC, bool isSelected) {
+    if (gl_LocalInvocationID.x >= sectionVPC) return;
 
     uint sectionChildren = (connection.metadata >> 8u) & 7u;
     bool hasEndJoint = sectionChildren >= minChildrenForJoint;
     float eClip = hasEndJoint ? endClip : 0.0f;
 
     float radius = connection.endAndRadius.w * radiusStrength;
-    float angle = float(gl_LocalInvocationID.x) / float(verticesPerCircle) * 2.0f * M_PI;
+    float angle = float(gl_LocalInvocationID.x) / float(sectionVPC) * 2.0f * M_PI;
 
     vec3 unormDirection = connection.endAndRadius.xyz - soma.endAndRadius.xyz;
     vec3 direction = normalize(unormDirection);
@@ -368,6 +379,8 @@ void generateConnection () {
     Neuron neuron = neurons[somaSection.neuronIndex];
     bool isSelected = selected[soma.connection[currentConnection]];
 
+    uint sectionVPC = getVerticesPerCircle(connectionSection);
+
     // Find the indices of all vertices that have been selected by this connection.
 
     uint verticesAmount = 0;
@@ -441,18 +454,18 @@ void generateConnection () {
     }
 
     // Push connection vertices
-    generateConnectionVertices(verticesAmount, somaSection, connectionSection, neuron, isSelected);
+    generateConnectionVertices(verticesAmount, somaSection, connectionSection, neuron, sectionVPC, isSelected);
 
     // Generate the triangles!
-    float somaPerConnection = min(float(verticesAmount) / float(verticesPerCircle), 1.0f);
-    float connectionPerSoma = min(float(verticesPerCircle) / float(verticesAmount), 1.0f);
+    float somaPerConnection = min(float(verticesAmount) / float(sectionVPC), 1.0f);
+    float connectionPerSoma = min(float(sectionVPC) / float(verticesAmount), 1.0f);
 
-    for (uint i = gl_LocalInvocationID.x; i < max(verticesAmount, verticesPerCircle); i += gl_WorkGroupSize.x) {
+    for (uint i = gl_LocalInvocationID.x; i < max(verticesAmount, sectionVPC); i += gl_WorkGroupSize.x) {
         uint somaIndex = uint(somaPerConnection * i);
         uint somaIndex2 = uint(somaPerConnection * (i + 1)) % verticesAmount;
 
         uint connectionIndex = uint(connectionPerSoma * i);
-        uint connectionIndex2 = uint(connectionPerSoma * (i + 1)) % verticesPerCircle;
+        uint connectionIndex2 = uint(connectionPerSoma * (i + 1)) % sectionVPC;
 
         uint a = somaIndex;
         uint b = somaIndex2;
@@ -462,8 +475,8 @@ void generateConnection () {
         gl_PrimitiveTriangleIndicesEXT[i * 2 + 1] = uvec3(c, b, d);
     }
 
-    uint triangles = max(verticesAmount, verticesPerCircle) * 2;
-    SetMeshOutputsEXT(verticesAmount + verticesPerCircle, triangles);
+    uint triangles = max(verticesAmount, sectionVPC) * 2;
+    SetMeshOutputsEXT(verticesAmount + sectionVPC, triangles);
 }
 
 void main() {

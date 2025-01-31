@@ -44,7 +44,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
 
 struct Neuron {
     uint neuronId;
-    uint lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
+    uint lodMode;// 0-7 = forced, 8 = dynamic, 9 = static
     uint updateFrame;
     mat4 model;
     mat4 normal;
@@ -86,6 +86,12 @@ layout(location = 2) flat out float fragNeuronId[];
 layout(location = 3) flat out float fragSectionId[];
 layout(location = 4) flat out float fragSelected[];
 
+uint getVerticesPerCircle(Section segment) {
+    uint metadata = segment.metadata;
+    uint localLod = (metadata >> 14u) & 7u;
+    return 4 + localLod * (MAX_POINTS_PER_CIRCLE - 4) / 7;
+}
+
 void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
     gl_MeshVerticesEXT[i].gl_Position = viewProjection * neuron.model * position;
     fragNormal[i] = mat3(neuron.normal) * normal;
@@ -100,7 +106,6 @@ vec3 rotate (vec3 v, vec3 n, float a) {
 }
 
 void generateSection(uint sectionIndex, uint nextToParentIndex) {
-    if (gl_LocalInvocationID.x >= verticesPerCircle * 2) return;
 
     Section section = sections[sectionIndex];
     Section directParent = sections[section.parent];
@@ -110,6 +115,10 @@ void generateSection(uint sectionIndex, uint nextToParentIndex) {
     Section parent = sections[nextToParent.parent];
     Section grandParent = sections[parent.parent];
     Neuron neuron = neurons[section.neuronIndex];
+
+    uint sectionVPC = getVerticesPerCircle(section);
+    uint parentVPC = getVerticesPerCircle(parent);
+    uint totalVertices = sectionVPC + parentVPC;
 
     uint parentType = parent.metadata & 255u;
     uint sectionType = section.metadata & 255u;
@@ -121,76 +130,95 @@ void generateSection(uint sectionIndex, uint nextToParentIndex) {
         return;
     }
 
-    // Fetch initial data.
-    bool first = gl_LocalInvocationID.x < verticesPerCircle;
-    bool isSelected = selected[sectionIndex];
-    uint parentChildren = (parent.metadata >> 8u) & 7u;
-    uint sectionChildren = (section.metadata >> 8u) & 7u;
-    bool hasStartJoint = parentChildren >= minChildrenForJoint;
-    bool hasEndJoint = sectionChildren >= minChildrenForJoint;
+    if (gl_LocalInvocationID.x < totalVertices) {
+        // Fetch initial data.
+        bool first = gl_LocalInvocationID.x < parentVPC;
+        bool isSelected = selected[sectionIndex];
+        uint parentChildren = (parent.metadata >> 8u) & 7u;
+        uint sectionChildren = (section.metadata >> 8u) & 7u;
+        bool hasStartJoint = parentChildren >= minChildrenForJoint;
+        bool hasEndJoint = sectionChildren >= minChildrenForJoint;
 
-    float sClip = hasStartJoint ? startClip : 0.0f;
-    float eClip = hasEndJoint ? endClip : 0.0f;
+        float sClip = hasStartJoint ? startClip : 0.0f;
+        float eClip = hasEndJoint ? endClip : 0.0f;
 
-    vec3 end = section.endAndRadius.xyz;
-    vec3 directStart = directParent.endAndRadius.xyz;
-    vec3 start = parent.endAndRadius.xyz;
-    vec3 parentStart = grandParent.endAndRadius.xyz;
+        vec3 end = section.endAndRadius.xyz;
+        vec3 directStart = directParent.endAndRadius.xyz;
+        vec3 start = parent.endAndRadius.xyz;
+        vec3 parentStart = grandParent.endAndRadius.xyz;
 
-    float startRadius = mix(parent.endAndRadius.w, nextToParent.endAndRadius.w, parentSoma ? 1.0f : sClip);
-    float endRadius = mix(directParent.endAndRadius.w, section.endAndRadius.w, 1.0f - eClip);
-    float radius = (first ? startRadius : endRadius) * radiusStrength;
+        float startRadius = mix(parent.endAndRadius.w, nextToParent.endAndRadius.w, parentSoma ? 1.0f : sClip);
+        float endRadius = mix(directParent.endAndRadius.w, section.endAndRadius.w, 1.0f - eClip);
+        float radius = (first ? startRadius : endRadius) * radiusStrength;
 
-    float angle = float(gl_LocalInvocationID.x) / float(verticesPerCircle) * 2.0f * M_PI;
+        float angle = float(gl_LocalInvocationID.x - (first ? 0 : parentVPC)) / float(first ? parentVPC : sectionVPC) * 2.0f * M_PI;
 
-    vec3 unormDirection = end - directStart;
-    vec3 parentUnormDirection = nextToParent.endAndRadius.xyz - start;
+        vec3 unormDirection = end - directStart;
+        vec3 parentUnormDirection = nextToParent.endAndRadius.xyz - start;
 
-    vec3 direction = normalize(unormDirection);
-    vec3 parentDirection = (parent.sectionId == grandParent.sectionId || parentSoma)
-    ? direction
-    : normalize(start - parentStart);
+        vec3 direction = normalize(unormDirection);
+        vec3 parentDirection = (parent.sectionId == grandParent.sectionId || parentSoma)
+        ? direction
+        : normalize(start - parentStart);
 
-    // Correctly align the initial basis for the start circle
-    vec3 tangent = (first && !hasStartJoint) ? parentDirection : direction;
+        // Correctly align the initial basis for the start circle
+        vec3 tangent = (first && !hasStartJoint) ? parentDirection : direction;
 
-    // Handle edge cases where the tangent might align with the default normal
-    vec3 initialNormal = vec3(0, 0, -1);
-    if (abs(dot(tangent, initialNormal)) > 0.99) {
-        initialNormal = vec3(0, 1, 0);// Use a different axis to avoid parallel vectors
+        // Handle edge cases where the tangent might align with the default normal
+        vec3 initialNormal = vec3(0, 0, -1);
+        if (abs(dot(tangent, initialNormal)) > 0.99) {
+            initialNormal = vec3(0, 1, 0);// Use a different axis to avoid parallel vectors
+        }
+
+        vec3 normal = normalize(cross(tangent, initialNormal));
+        vec3 binormal = cross(tangent, normal);
+
+        // Smoothly transition basis along the tube.
+        // Here we want to generate the tube using the parent direction,
+        // but avoiding the candy-wrap effect.
+        if (!first && !hasStartJoint) {
+            vec3 projectedNormal = normal - dot(normal, tangent) * tangent;// Project onto the tangent plane
+            normal = normalize(projectedNormal);
+            binormal = cross(tangent, normal);
+        }
+
+        // Compute the rotated position for each vertex
+        vec3 rotated = cos(angle) * normal + sin(angle) * binormal;
+
+        vec3 center = first ? (start + unormDirection * sClip) : end - unormDirection * eClip;
+
+        vec3 point = center + rotated * radius;
+        pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected);
     }
 
-    vec3 normal = normalize(cross(tangent, initialNormal));
-    vec3 binormal = cross(tangent, normal);
+    // Generate the triangles!
+    float parentPerSection = min(float(parentVPC) / float(sectionVPC), 1.0f);
+    float sectionPerParent = min(float(sectionVPC) / float(parentVPC), 1.0f);
 
-    // Smoothly transition basis along the tube.
-    // Here we want to generate the tube using the parent direction,
-    // but avoiding the candy-wrap effect.
-    if (!first && !hasStartJoint) {
-        vec3 projectedNormal = normal - dot(normal, tangent) * tangent;// Project onto the tangent plane
-        normal = normalize(projectedNormal);
-        binormal = cross(tangent, normal);
+    for (uint i = gl_LocalInvocationID.x; i < max(parentVPC, sectionVPC); i += gl_WorkGroupSize.x) {
+        uint parentIndex = uint(parentPerSection * i);
+        uint parentIndex2 = uint(parentPerSection * (i + 1)) % parentVPC;
+
+        uint sectionIndex = uint(sectionPerParent * i);
+        uint sectionIndex2 = uint(sectionPerParent * (i + 1)) % sectionVPC;
+
+        uint a = parentIndex;
+        uint b = parentIndex2;
+        uint c = sectionIndex + parentVPC;
+        uint d = sectionIndex2 + parentVPC;
+        gl_PrimitiveTriangleIndicesEXT[i * 2 + 0] = uvec3(a, b, c);
+        gl_PrimitiveTriangleIndicesEXT[i * 2 + 1] = uvec3(c, b, d);
     }
 
-    // Compute the rotated position for each vertex
-    vec3 rotated = cos(angle) * normal + sin(angle) * binormal;
-
-    vec3 center = first ? (start + unormDirection * sClip) : end - unormDirection * eClip;
-
-    vec3 point = center + rotated * radius;
-    SetMeshOutputsEXT(verticesPerCircle * 2, verticesPerCircle * 2);
-    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected);
-
-    uint a = gl_LocalInvocationID.x;
-    uint b = (gl_LocalInvocationID.x + 1) % verticesPerCircle;
-    uint c = (gl_LocalInvocationID.x + (first ? 0 : 1)) % verticesPerCircle + verticesPerCircle;
-    gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(a, b, c);
+    uint triangles = max(parentVPC, sectionVPC) * 2;
+    SetMeshOutputsEXT(totalVertices, triangles);
 }
 
 void generateEnd (uint sectionIndex) {
-    if (gl_LocalInvocationID.x >= verticesPerCircle) return;
-
     Section section = sections[sectionIndex];
+    uint sectionVPC = getVerticesPerCircle(section);
+    if (gl_LocalInvocationID.x >= sectionVPC) return;
+
     Section parent = sections[section.parent];
     Neuron neuron = neurons[section.neuronIndex];
 
@@ -203,7 +231,7 @@ void generateEnd (uint sectionIndex) {
     }
 
     // Fetch initial data.
-    bool first = gl_LocalInvocationID.x < verticesPerCircle;
+    bool first = gl_LocalInvocationID.x < sectionVPC;
     bool isSelected = selected[sectionIndex];
     uint parentChildren = (parent.metadata >> 8u) & 7u;
     uint sectionChildren = (section.metadata >> 8u) & 7u;
@@ -217,7 +245,7 @@ void generateEnd (uint sectionIndex) {
 
     float radius = section.endAndRadius.w * radiusStrength;
 
-    float angle = float(gl_LocalInvocationID.x) / float(verticesPerCircle) * 2.0f * M_PI;
+    float angle = float(gl_LocalInvocationID.x) / float(sectionVPC) * 2.0f * M_PI;
 
     vec3 tangent = normalize(end - start);
 
@@ -237,13 +265,13 @@ void generateEnd (uint sectionIndex) {
 
     vec3 edge = end + tangent * radius;
 
-    SetMeshOutputsEXT(verticesPerCircle + 1, verticesPerCircle);
+    SetMeshOutputsEXT(sectionVPC + 1, sectionVPC);
     pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected);
-    pushVertex(verticesPerCircle, vec4(edge, 1), tangent, 0, neuron, section.sectionId, isSelected);
+    pushVertex(sectionVPC, vec4(edge, 1), tangent, 0, neuron, section.sectionId, isSelected);
 
     uint a = gl_LocalInvocationID.x;
-    uint b = (gl_LocalInvocationID.x + 1) % verticesPerCircle;
-    gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(a, b, verticesPerCircle);
+    uint b = (gl_LocalInvocationID.x + 1) % sectionVPC;
+    gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(a, b, sectionVPC);
 }
 
 void main() {
