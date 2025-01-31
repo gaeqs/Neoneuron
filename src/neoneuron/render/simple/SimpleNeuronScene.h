@@ -46,6 +46,12 @@ namespace neoneuron {
 
         [[nodiscard]] size_t getNeuronsAmount() override;
 
+        [[nodiscard]] size_t getSectionsAmount() override;
+
+        [[nodiscard]] size_t getJointsAmount() override;
+
+        [[nodiscard]] size_t getSomasAmount() override;
+
         [[nodiscard]] std::optional<SimpleNeuron*> findNeuron(UID uid);
 
         [[nodiscard]] std::optional<const SimpleNeuron*> findNeuron(UID uid) const;

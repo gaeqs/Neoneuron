@@ -125,6 +125,18 @@ namespace neoneuron {
         return _neurons.size();
     }
 
+    size_t SimpleNeuronScene::getSectionsAmount() {
+        return _neuronModel->getInstanceData(0)->getInstanceAmount();
+    }
+
+    size_t SimpleNeuronScene::getJointsAmount() {
+        return 0;
+    }
+
+    size_t SimpleNeuronScene::getSomasAmount() {
+        return 0;
+    }
+
     std::optional<SimpleNeuron*> SimpleNeuronScene::findNeuron(UID uid) {
         auto it = std::find_if(
             _neurons.begin(), _neurons.end(),

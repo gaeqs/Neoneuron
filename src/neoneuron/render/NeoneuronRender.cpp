@@ -29,6 +29,7 @@ namespace neoneuron {
         _renderFrameBuffer = _application.getAssets()
                 .get<neon::FrameBuffer>("neoneuron:frame_buffer")
                 .value_or(nullptr);
+        _renderFrameBuffer->setClearColor(0, rush::Vec4f(1.0f, 1.0f, 1.0f, 1.0f));
         return render;
     }
 

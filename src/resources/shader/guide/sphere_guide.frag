@@ -24,6 +24,7 @@ layout (set = 0, binding = 1) uniform Time {
 layout (set = 0, binding = 2) uniform Scene {
     vec3 sceneCenter;
     vec3 sceneRadius;
+    uint sectionsAmount;
 };
 
 float gridAlpha (float entry, float widthScale) {

@@ -102,6 +102,12 @@ namespace neoneuron {
 
         [[nodiscard]] size_t getNeuronsAmount() override;
 
+        [[nodiscard]] size_t getSectionsAmount() override;
+
+        [[nodiscard]] size_t getJointsAmount() override;
+
+        [[nodiscard]] size_t getSomasAmount() override;
+
         [[nodiscard]] const std::vector<std::shared_ptr<PrototypeNeuron>>& getPrototypeNeurons() const override;
 
         [[nodiscard]] std::optional<PrototypeNeuron*> findPrototypeNeuron(UID uid) override;

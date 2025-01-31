@@ -39,6 +39,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
 layout (set = 0, binding = 2) uniform Scene {
     vec3 sceneCenter;
     vec3 sceneRadius;
+    uint sectionsAmount;
 };
 
 struct TaskData {
@@ -156,10 +157,12 @@ bool cullSection(Neuron neuron, Section section, Section parent) {
 }
 
 void main() {
+    bool valid = gl_GlobalInvocationID.x < sectionsAmount;
+
     Section segment = sections[gl_GlobalInvocationID.x];
     Neuron neuron = neurons[segment.neuronIndex];
 
-    bool update = shouldUpdate(neuron);
+    bool update = valid && shouldUpdate(neuron);
     uint localLod;
     uint nextToParentIndex;
 
@@ -176,7 +179,7 @@ void main() {
         metadata = metadata & ~(7u << 14u);
         metadata = metadata + ((localLod & 7u) << 14u);
         sections[gl_GlobalInvocationID.x].metadata = metadata;
-    } else {
+    } else if(valid) {
         nextToParentIndex = lodParent[gl_GlobalInvocationID.x];
         localLod = (metadata >> 14u) & 7u;
     }
@@ -185,7 +188,7 @@ void main() {
     Section nextToParent = sections[nextToParentIndex];
     Section parent = sections[nextToParent.parent];
 
-    bool render = segmentLod <= localLod && cullSection(neuron, segment, parent);
+    bool render = valid && segmentLod <= localLod && cullSection(neuron, segment, parent);
     uvec4 vote = subgroupBallot(render);
     uint amount = subgroupBallotBitCount(vote);
 
@@ -195,7 +198,7 @@ void main() {
         td.lodNextToParent[index] = nextToParentIndex;
     }
 
-    bool renderChildren = segmentLod <= localLod && sectionChildren == 0;
+    bool renderChildren = valid && segmentLod <= localLod && sectionChildren == 0;
     uvec4 childrenVote = subgroupBallot(renderChildren);
     uint childrenAmount = subgroupBallotBitCount(childrenVote);
 

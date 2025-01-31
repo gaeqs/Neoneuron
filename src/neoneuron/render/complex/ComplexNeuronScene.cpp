@@ -319,6 +319,18 @@ namespace neoneuron {
         return _neurons.size();
     }
 
+    size_t ComplexNeuronScene::getSectionsAmount() {
+        return _neuronModel->getInstanceData(0)->getInstanceAmount();
+    }
+
+    size_t ComplexNeuronScene::getJointsAmount() {
+        return _jointModel->getInstanceData(0)->getInstanceAmount();
+    }
+
+    size_t ComplexNeuronScene::getSomasAmount() {
+        return _somaModel->getInstanceData(0)->getInstanceAmount();
+    }
+
     const std::vector<std::shared_ptr<PrototypeNeuron>>& ComplexNeuronScene::getPrototypeNeurons() const {
         return _prototypes;
     }
