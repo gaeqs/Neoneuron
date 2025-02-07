@@ -136,7 +136,7 @@ bool cullSection(Neuron neuron, Section section, Section parent) {
     vec3 start = parent.endAndRadius.xyz;
 
     float length = length(section.endAndRadius.xyz - parent.endAndRadius.xyz);
-    float radius = section.endAndRadius.w;
+    float radius = section.endAndRadius.w * radiusStrength;
     vec3 center = (section.endAndRadius.xyz + parent.endAndRadius.xyz) * 0.5f;
 
     if (!sphereInFrustum(neuron, center, length + radius)) {

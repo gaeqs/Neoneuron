@@ -80,7 +80,8 @@ namespace neoneuron {
 
             uint32_t parentIndex;
             if (segment.getParentId().has_value()) {
-                size_t index = neuron->findSegmentIndex(segment.getParentId().value()).value();
+                auto optional = neuron->findSegmentIndex(segment.getParentId().value());
+                size_t index = optional.value_or(i);
                 parentIndex = *_segmentInstances[index].id;
             } else {
                 parentIndex = *_segmentInstances[i].id;
