@@ -1,0 +1,54 @@
+{
+  "name": "neoneuron:selector_resolver",
+  "save": true,
+  "use_present": true,
+  "maximum_instances": 1,
+  "auto_flush": true,
+  "custom_instance_sizes": [],
+  "meshes": [
+    {
+      "name": "neoneuron:selector_resolver",
+      "save": true,
+      "use_present": true,
+      "vertices": [
+        -1.0, 1.0,
+        1.0, 1.0,
+        1.0, -1.0,
+        -1.0, -1.0
+      ],
+      "indices": [
+        0, 1, 2, 0, 2, 3
+      ],
+      "materials": [
+        {
+          "name": "neoneuron:selector_resolver",
+          "save": true,
+          "use_present": true,
+          "frame_buffer": "A:neoneuron:picker_frame_buffer",
+          "shader": "/shader/selector/selector_resolver.json",
+          "descriptions": {
+            "vertex": {
+              "stride": 8,
+              "attributes": {
+                "size_in_floats": 2,
+                "offset_in_bytes": 0
+              }
+            },
+            "uniform": {
+              "name": "neoneuron:selector_resolver_uniforms",
+              "save": false,
+              "bindings": {
+                "type": "image"
+              }
+            }
+          },
+          "rasterizer": {
+            "cull_mode": "none"
+          },
+          "topology": "triangle_list",
+          "priority": 0
+        }
+      ]
+    }
+  ]
+}

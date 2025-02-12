@@ -40,11 +40,21 @@
         {
           "name": "neoneuron:frame_buffer_picker",
           "save": true,
-          "format": "R32FG32FB32FA32F",
-          "resolved": {
-            "name": "neoneuron:frame_buffer_picker_resolved",
-            "save": true
-          }
+          "format": "R32FG32FB32FA32F"
+        }
+      ]
+    },
+    {
+      "name": "neoneuron:picker_frame_buffer",
+      "save": true,
+      "type": "simple",
+      "depth": false,
+      "samples": "COUNT_1",
+      "textures": [
+        {
+          "name": "neoneuron:frame_buffer_picker_resolved",
+          "save": true,
+          "format": "R32FG32FB32FA32F"
         }
       ]
     },

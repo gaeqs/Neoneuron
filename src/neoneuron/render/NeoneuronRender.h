@@ -28,15 +28,18 @@ namespace neoneuron {
         NeoneuronApplication* _neoneuronApplication;
         neon::Application _application;
         neon::CMRCFileSystem _fileSystem;
-        std::shared_ptr<neon::FrameBuffer> _renderFrameBuffer;
+        std::shared_ptr<neon::SimpleFrameBuffer> _renderFrameBuffer;
         std::shared_ptr<neon::Room> _room;
         std::chrono::high_resolution_clock::time_point _startTime;
         std::unique_ptr<Components> _components;
         NeoneuronRenderData _renderData;
+        std::shared_ptr<neon::Model> _selectionResolver;
 
         std::shared_ptr<neon::Render> initRender();
 
         void initGameObjects();
+
+        void initSelectionResolver();
 
     public:
         NeoneuronRender(const NeoneuronRender& other) = delete;
@@ -56,7 +59,7 @@ namespace neoneuron {
 
         const neon::CMRCFileSystem getFileSystem() const;
 
-        [[nodiscard]] const std::shared_ptr<neon::FrameBuffer>& getRenderFrameBuffer() const;
+        [[nodiscard]] const std::shared_ptr<neon::SimpleFrameBuffer>& getRenderFrameBuffer() const;
 
         [[nodiscard]] const std::shared_ptr<neon::Room>& getRoom() const;
 

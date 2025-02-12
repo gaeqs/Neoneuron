@@ -5,6 +5,7 @@
 #include "NeoneuronRender.h"
 
 #include <vector>
+#include <neon/util/DeferredUtils.h>
 
 #include <neoneuron/render/component/GlobalParametersUpdaterComponent.h>
 #include <neoneuron/render/component/camera/OrbitalCameraController.h>
@@ -26,9 +27,10 @@ namespace neoneuron {
         if (render == nullptr) {
             _application.getLogger().error("Render is null!");
         }
-        _renderFrameBuffer = _application.getAssets()
+        auto fb = _application.getAssets()
                 .get<neon::FrameBuffer>("neoneuron:frame_buffer")
                 .value_or(nullptr);
+        _renderFrameBuffer = std::dynamic_pointer_cast<neon::SimpleFrameBuffer>(fb);
         _renderFrameBuffer->setClearColor(0, rush::Vec4f(1.0f, 1.0f, 1.0f, 1.0f));
         return render;
     }
@@ -39,12 +41,24 @@ namespace neoneuron {
         parameterUpdaterGO->newComponent<GlobalParametersUpdaterComponent>(*this);
     }
 
+    void NeoneuronRender::initSelectionResolver() {
+        neon::AssetLoaderContext context(&_application, nullptr, &_fileSystem);
+        _selectionResolver = neon::loadAssetFromFile<neon::Model>("model/selector/selector_resolver.json", context);
+        _selectionResolver->getInstanceData(0)->createInstance();
+        _room->markUsingModel(_selectionResolver.get());
+
+        auto output = _renderFrameBuffer->getOutputs()[1].texture;
+        auto& materials = _selectionResolver->getMeshes()[0]->getMaterials();
+        for (auto& material: materials) {
+            material->getUniformBuffer()->setTexture(0, output);
+        }
+    }
+
     NeoneuronRender::NeoneuronRender(NeoneuronApplication* neoneuron,
                                      const neon::vulkan::VKApplicationCreateInfo& createInfo)
-        :
-        _neoneuronApplication(neoneuron),
-        _application(std::make_unique<neon::vulkan::VKApplication>(createInfo)),
-        _fileSystem(cmrc::resources::get_filesystem()) {
+        : _neoneuronApplication(neoneuron),
+          _application(std::make_unique<neon::vulkan::VKApplication>(createInfo)),
+          _fileSystem(cmrc::resources::get_filesystem()) {
         _application.init();
         _application.setRender(initRender());
 
@@ -56,9 +70,12 @@ namespace neoneuron {
         _components = std::make_unique<Components>(this);
 
         initGameObjects();
+        initSelectionResolver();
     }
 
-    NeoneuronRender::~NeoneuronRender() = default;
+    NeoneuronRender::~NeoneuronRender() {
+        _room->unmarkUsingModel(_selectionResolver.get());
+    }
 
     NeoneuronApplication* NeoneuronRender::getNeoneuronApplication() {
         return _neoneuronApplication;
@@ -80,7 +97,7 @@ namespace neoneuron {
         return _fileSystem;
     }
 
-    const std::shared_ptr<neon::FrameBuffer>& NeoneuronRender::getRenderFrameBuffer() const {
+    const std::shared_ptr<neon::SimpleFrameBuffer>& NeoneuronRender::getRenderFrameBuffer() const {
         return _renderFrameBuffer;
     }
 

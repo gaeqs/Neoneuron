@@ -1,0 +1,11 @@
+{
+  "name": "neoneuron:selector_resolver",
+  "save": true,
+  "use_present": true,
+  "vertex": {
+    "file": "selector_resolver.vert"
+  },
+  "fragment": {
+    "file": "selector_resolver.frag"
+  }
+}

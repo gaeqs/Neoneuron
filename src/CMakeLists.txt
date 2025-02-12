@@ -7,15 +7,17 @@ cmrc_add_resource_library(
         WHENCE resources
         resources/font/SourceSans3.ttf
         resources/model/guide/plane_guide.json
+        resources/model/guide/sphere_guide.json
+        resources/model/guide/sphere_guide.obj
+        resources/model/guide/point_guide.json
+        resources/model/selector/selector_resolver.json
+
         resources/shader/guide/plane_guide.vert
         resources/shader/guide/plane_guide.frag
         resources/shader/guide/plane_guide.json
-        resources/model/guide/sphere_guide.json
-        resources/model/guide/sphere_guide.obj
         resources/shader/guide/sphere_guide.vert
         resources/shader/guide/sphere_guide.frag
         resources/shader/guide/sphere_guide.json
-        resources/model/guide/point_guide.json
         resources/shader/guide/point_guide.vert
         resources/shader/guide/point_guide.frag
         resources/shader/guide/point_guide.json
@@ -33,6 +35,9 @@ cmrc_add_resource_library(
         resources/shader/neuron/complex/soma.frag
         resources/shader/neuron/complex/soma.mesh
         resources/shader/neuron/complex/soma.task
+        resources/shader/selector/selector_resolver.frag
+        resources/shader/selector/selector_resolver.vert
+        resources/shader/selector/selector_resolver.json
         resources/swc/data.swc
         resources/swc/test.swc
         resources/render.json

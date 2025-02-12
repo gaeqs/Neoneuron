@@ -51,8 +51,8 @@ namespace neoneuron {
                                                  size_t binding)
         : _scene(scene),
           _uniformBuffer(uniformBuffer),
-          _binding(binding)
-          , _centerAccumulatorAmount(0) {}
+          _binding(binding),
+          _centerAccumulatorAmount(0) {}
 
     const std::unordered_set<UID> ComplexNeuronSelector::getSelectedNeurons() {
         return _selectedNeurons;

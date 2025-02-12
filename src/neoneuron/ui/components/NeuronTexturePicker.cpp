@@ -33,9 +33,9 @@ namespace neoneuron {
         : _render(render), _viewport(viewport) {}
 
     void NeuronTexturePicker::onStart() {
-        _texture = getAssets().get<neon::Texture>("neoneuron:frame_buffer_picker").value_or(nullptr);
+        _texture = getAssets().get<neon::Texture>("neoneuron:frame_buffer_picker_resolved").value_or(nullptr);
         if (_texture == nullptr) {
-            getLogger().error("Cannot find the texture neoneuron:frame_buffer_picker!");
+            getLogger().error("Cannot find the texture neoneuron:frame_buffer_picker_resolved!");
         }
     }
 
