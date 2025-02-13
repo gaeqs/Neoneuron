@@ -79,6 +79,8 @@ namespace neoneuron {
 
         [[nodiscard]] const NeoneuronRenderData& getRenderData() const;
 
+        void setSkybox(const std::shared_ptr<neon::Texture>& skybox) const;
+
         float getCurrentTime() const;
 
         bool renderLoop();

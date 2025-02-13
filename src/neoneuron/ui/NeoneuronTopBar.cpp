@@ -15,8 +15,6 @@
 #include <neoneuron/loader/XMLLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
-#include <neoneuron/structure/NeuronTransform.h>
-#include <neoneuron/structure/prototype/NeuronProperties.h>
 
 #include "components/NeoneuronUIOpenFile.h"
 #include "components/actions/ActionShuffle.h"

@@ -31,7 +31,7 @@ namespace neoneuron {
                 .get<neon::FrameBuffer>("neoneuron:frame_buffer")
                 .value_or(nullptr);
         _renderFrameBuffer = std::dynamic_pointer_cast<neon::SimpleFrameBuffer>(fb);
-        _renderFrameBuffer->setClearColor(0, rush::Vec4f(1.0f, 1.0f, 1.0f, 1.0f));
+        _renderFrameBuffer->setClearColor(0, rush::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
         return render;
     }
 
@@ -47,10 +47,14 @@ namespace neoneuron {
         _selectionResolver->getInstanceData(0)->createInstance();
         _room->markUsingModel(_selectionResolver.get());
 
-        auto output = _renderFrameBuffer->getOutputs()[1].texture;
+        auto colorOutput = _renderFrameBuffer->getOutputs()[0].resolvedTexture;
+        auto selectionOutput = _renderFrameBuffer->getOutputs()[1].texture;
         auto& materials = _selectionResolver->getMeshes()[0]->getMaterials();
         for (auto& material: materials) {
-            material->getUniformBuffer()->setTexture(0, output);
+            auto& ubo = material->getUniformBuffer();
+            ubo->setTexture(0, colorOutput);
+            ubo->setTexture(1, selectionOutput);
+            ubo->uploadData(3, 0);
         }
     }
 
@@ -135,6 +139,15 @@ namespace neoneuron {
 
     const NeoneuronRenderData& NeoneuronRender::getRenderData() const {
         return _renderData;
+    }
+
+    void NeoneuronRender::setSkybox(const std::shared_ptr<neon::Texture>& skybox) const {
+        auto& materials = _selectionResolver->getMeshes()[0]->getMaterials();
+        for (auto& material: materials) {
+            auto& ubo = material->getUniformBuffer();
+            ubo->setTexture(2, skybox);
+            ubo->uploadData(3, 1);
+        }
     }
 
     float NeoneuronRender::getCurrentTime() const {

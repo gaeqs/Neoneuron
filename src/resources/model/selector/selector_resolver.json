@@ -11,13 +11,22 @@
       "save": true,
       "use_present": true,
       "vertices": [
-        -1.0, 1.0,
-        1.0, 1.0,
-        1.0, -1.0,
-        -1.0, -1.0
+        -1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        -1.0,
+        -1.0,
+        -1.0
       ],
       "indices": [
-        0, 1, 2, 0, 2, 3
+        0,
+        1,
+        2,
+        0,
+        2,
+        3
       ],
       "materials": [
         {
@@ -37,9 +46,21 @@
             "uniform": {
               "name": "neoneuron:selector_resolver_uniforms",
               "save": false,
-              "bindings": {
-                "type": "image"
-              }
+              "bindings": [
+                {
+                  "type": "image"
+                },
+                {
+                  "type": "image"
+                },
+                {
+                  "type": "image"
+                },
+                {
+                  "type": "uniform_buffer",
+                  "size": 4
+                }
+              ]
             }
           },
           "rasterizer": {

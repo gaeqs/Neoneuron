@@ -17,6 +17,12 @@
 
 CMRC_DECLARE(resources);
 
+std::shared_ptr<neon::Texture> loadSkybox(neon::Room* room) {
+    neon::CMRCFileSystem fileSystem(cmrc::resources::get_filesystem());
+    neon::AssetLoaderContext context(room->getApplication(), nullptr, &fileSystem);
+    return loadAssetFromFile<neon::Texture>("texture/skybox/skybox.json", context);
+}
+
 int main() {
     NFD::Init();
 
@@ -54,6 +60,9 @@ int main() {
     info.vSync = false;
 
     neoneuron::NeoneuronApplication app(info);
+
+    app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
+
     bool result = app.getRender().renderLoop();
     app.saveSettings();
     return result ? 0 : 1;

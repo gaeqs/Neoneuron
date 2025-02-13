@@ -5,7 +5,9 @@ cmrc_add_resource_library(
         ALIAS neoneuron::resources
         NAMESPACE resources
         WHENCE resources
+
         resources/font/SourceSans3.ttf
+
         resources/model/guide/plane_guide.json
         resources/model/guide/sphere_guide.json
         resources/model/guide/sphere_guide.obj
@@ -38,6 +40,15 @@ cmrc_add_resource_library(
         resources/shader/selector/selector_resolver.frag
         resources/shader/selector/selector_resolver.vert
         resources/shader/selector/selector_resolver.json
+
+        resources/texture/skybox/back.png
+        resources/texture/skybox/bottom.png
+        resources/texture/skybox/front.png
+        resources/texture/skybox/left.png
+        resources/texture/skybox/right.png
+        resources/texture/skybox/top.png
+        resources/texture/skybox/skybox.json
+
         resources/swc/data.swc
         resources/swc/test.swc
         resources/render.json
