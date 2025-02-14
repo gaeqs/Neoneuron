@@ -15,6 +15,7 @@
 namespace neoneuron {
     class PrototypeNeuron : public Identifiable {
         std::unordered_map<std::string, UID> _properties;
+        std::unordered_map<UID, std::string> _propertiesNames;
         std::vector<PrototypeNeuronSegment> _segments;
         std::unordered_map<UID, std::any> _globalProperties;
 
@@ -34,9 +35,11 @@ namespace neoneuron {
 
         [[nodiscard]] std::optional<UID> getPropertyUID(const std::string& name) const;
 
-        [[nodiscard]] std::unordered_map<std::string, UID>& getPropertiesUID();
+        [[nodiscard]] const std::unordered_map<std::string, UID>& getPropertiesUIDs() const;
 
-        [[nodiscard]] const std::unordered_map<std::string, UID>& getPropertiesUID() const;
+        [[nodiscard]] const std::unordered_map<UID, std::string>& getPropertiesNames() const;
+
+        [[nodiscard]] const std::unordered_map<UID, std::any>& getGlobalProperties() const;
 
         void addSegment(PrototypeNeuronSegment segment);
 

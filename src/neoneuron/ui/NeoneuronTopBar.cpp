@@ -11,6 +11,7 @@
 #include <imgui_internal.h>
 #include <nfd.hpp>
 #include <nfd_glfw3.h>
+#include <neoneuron/loader/SceneLoader.h>
 #include <neoneuron/loader/SWCLoader.h>
 #include <neoneuron/loader/XMLLoader.h>
 
@@ -58,6 +59,42 @@ namespace neoneuron {
             path,
             std::move(optional.value())
         );
+    }
+
+    void NeoneuronTopBar::saveFile(const std::string& data) const {
+        auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
+
+        nfdwindowhandle_t handle;
+        NFD_GetNativeWindowFromGLFWWindow(app->getWindow(), &handle);
+
+        nfdu8filteritem_t filters = {"JSON", "json"};
+        NFD::UniquePath outPath = NULL;
+        nfdresult_t result = NFD::SaveDialog(
+            outPath,
+            &filters,
+            0,
+            nullptr,
+            "scene.json",
+            handle
+        );
+        std::string file;
+        if (result == NFD_OKAY) {
+            file = std::string(outPath.get());
+        } else if (result == NFD_CANCEL) {
+            return;
+        } else {
+            getLogger().error(neon::MessageBuilder()
+                .print("Error while choosing file: ")
+                .print(NFD_GetError()));
+            return;
+        }
+
+        std::filesystem::path path(file);
+
+        std::ofstream out(path);
+        if (!out) return;
+        out << data;
+        out.close();
     }
 
     void NeoneuronTopBar::toolsMenu() const {
@@ -119,6 +156,9 @@ namespace neoneuron {
                 fonts::imGuiPushFont(fonts::SS3_18);
                 if (ImGui::MenuItem("Open file", "Ctrl+O")) {
                     openFile();
+                }
+                if (ImGui::MenuItem("Save scene")) {
+                    saveFile(saveScene(_render).dump(4));
                 }
                 if (ImGui::MenuItem("Settings", "Ctrl+S")) {
                     openSettings = true;

@@ -24,6 +24,8 @@ namespace neoneuron {
 
         PrototypeNeuronSegment& operator=(PrototypeNeuronSegment&& other) noexcept;
 
+        [[nodiscard]] const std::unordered_map<UID, std::any>& getProperties() const;
+
         explicit PrototypeNeuronSegment(UID uid);
 
         void setPropertyAny(UID uid, std::any value);

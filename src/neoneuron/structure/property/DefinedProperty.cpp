@@ -27,8 +27,21 @@ namespace neoneuron {
           _type(type),
           _target(target),
           _displayName(std::move(displayName)),
-          _editor(editor),
-          _generator(generator) {}
+          _editor(std::move(editor)),
+          _generator(std::move(generator)) {}
+
+    DefinedProperty::DefinedProperty(std::string name, std::type_index type, PropertyTarget target,
+                                     std::string displayName, EditorFunction editor, GeneratorFunction generator,
+                                     ToJsonFunction toJson,
+                                     FromJsonFunction fromJson)
+        : _name(std::move(name)),
+          _type(type),
+          _target(target),
+          _displayName(std::move(displayName)),
+          _editor(std::move(editor)),
+          _generator(std::move(generator)),
+          _toJson(std::move(toJson)),
+          _fromJson(std::move(fromJson)) {}
 
     const std::string& DefinedProperty::getName() const {
         return _name;
@@ -64,6 +77,22 @@ namespace neoneuron {
 
     void DefinedProperty::setGenerator(const GeneratorFunction& generator) {
         _generator = generator;
+    }
+
+    DefinedProperty::ToJsonFunction DefinedProperty::getToJson() const {
+        return _toJson;
+    }
+
+    void DefinedProperty::setToJson(const ToJsonFunction& toJson) {
+        _toJson = toJson;
+    }
+
+    DefinedProperty::FromJsonFunction DefinedProperty::getFromJson() const {
+        return _fromJson;
+    }
+
+    void DefinedProperty::setFromJson(const FromJsonFunction& fromJson) {
+        _fromJson = fromJson;
     }
 
     bool DefinedProperty::operator==(const DefinedProperty& other) const {

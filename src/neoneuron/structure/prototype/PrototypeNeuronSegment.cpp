@@ -25,6 +25,10 @@ namespace neoneuron {
         return *this;
     }
 
+    const std::unordered_map<UID, std::any>& PrototypeNeuronSegment::getProperties() const {
+        return _properties;
+    }
+
     PrototypeNeuronSegment::PrototypeNeuronSegment(UID uid)
         : Identifiable(uid) {}
 

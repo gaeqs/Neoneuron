@@ -15,6 +15,8 @@ namespace neoneuron {
 
         void openFile() const;
 
+        void saveFile(const std::string& data) const;
+
         void toolsMenu() const;
 
         void actionsMenu() const;

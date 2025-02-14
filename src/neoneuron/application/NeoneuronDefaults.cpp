@@ -19,7 +19,9 @@ namespace neoneuron {
                 PropertyTarget::NEURON,
                 "Transform",
                 property::transformEditor,
-                property::transformGenerator
+                property::transformGenerator,
+                property::transformToJson,
+                property::transformFromJson
             }
         );
         storage.add(
@@ -30,7 +32,65 @@ namespace neoneuron {
                 PropertyTarget::NEURON,
                 "Name",
                 property::nameEditor,
-                property::nameGenerator
+                property::nameGenerator,
+                property::nameToJson,
+                property::nameFromJson
+            }
+        );
+
+        storage.add(
+            PROPERTY_END,
+            {
+                PROPERTY_END,
+                typeid(rush::Vec3f),
+                PropertyTarget::SEGMENT,
+                "End",
+                nullptr,
+                nullptr,
+                property::vec3fToJson,
+                property::vec3fFromJson
+            }
+        );
+
+        storage.add(
+            PROPERTY_RADIUS,
+            {
+                PROPERTY_RADIUS,
+                typeid(float),
+                PropertyTarget::SEGMENT,
+                "Radius",
+                nullptr,
+                nullptr,
+                property::floatToJson,
+                property::floatFromJson
+            }
+        );
+
+        storage.add(
+            PROPERTY_PARENT,
+            {
+                PROPERTY_PARENT,
+                typeid(int64_t),
+                PropertyTarget::SEGMENT,
+                "Parent",
+                nullptr,
+                nullptr,
+                property::int64ToJson,
+                property::int64FromJson
+            }
+        );
+
+        storage.add(
+            PROPERTY_TYPE,
+            {
+                PROPERTY_TYPE,
+                typeid(int64_t),
+                PropertyTarget::SEGMENT,
+                "Type",
+                nullptr,
+                nullptr,
+                property::uint32ToJson,
+                property::uint32FromJson
             }
         );
     }

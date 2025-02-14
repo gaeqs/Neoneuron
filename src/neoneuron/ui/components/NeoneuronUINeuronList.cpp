@@ -129,7 +129,7 @@ namespace neoneuron {
         std::vector<std::string> segmentProperties;
         std::vector<std::string> undefinedProperties;
 
-        for (const auto& [name, uid]: prototype->getPropertiesUID()) {
+        for (const auto& [name, uid]: prototype->getPropertiesUIDs()) {
             auto optionalValue = prototype->getPropertyAsAny(uid);
             if (!optionalValue.has_value()) continue;
             auto prop = storage.get(name);

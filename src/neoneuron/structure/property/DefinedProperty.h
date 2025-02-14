@@ -10,6 +10,7 @@
 #include <typeindex>
 #include <neoneuron/render/AbstractNeuronScene.h>
 #include <neoneuron/structure/prototype/PrototypeNeuron.h>
+#include <nlohmann/json_fwd.hpp>
 
 namespace neoneuron {
     enum class PropertyTarget {
@@ -27,6 +28,9 @@ namespace neoneuron {
         using GeneratorFunction = std::function<std::any(const PrototypeNeuron* neuron,
                                                          const AbstractNeuronScene* scene)>;
 
+        using ToJsonFunction = std::function<nlohmann::json(const std::any& any)>;
+        using FromJsonFunction = std::function<std::any(const nlohmann::json& json)>;
+
     private:
         std::string _name;
         std::type_index _type;
@@ -34,6 +38,8 @@ namespace neoneuron {
         std::string _displayName;
         EditorFunction _editor;
         GeneratorFunction _generator;
+        ToJsonFunction _toJson;
+        FromJsonFunction _fromJson;
 
     public:
         DefinedProperty(std::string name, std::type_index type, PropertyTarget target);
@@ -42,6 +48,9 @@ namespace neoneuron {
 
         DefinedProperty(std::string name, std::type_index type, PropertyTarget target, std::string displayName,
             EditorFunction editor, GeneratorFunction generator);
+
+        DefinedProperty(std::string name, std::type_index type, PropertyTarget target, std::string displayName,
+            EditorFunction editor, GeneratorFunction generator, ToJsonFunction toJson, FromJsonFunction fromJson);
 
         [[nodiscard]] const std::string& getName() const;
 
@@ -60,6 +69,14 @@ namespace neoneuron {
         [[nodiscard]] GeneratorFunction getGenerator() const;
 
         void setGenerator(const GeneratorFunction& generator);
+
+        [[nodiscard]] ToJsonFunction getToJson() const;
+
+        void setToJson(const ToJsonFunction& toJson);
+
+        [[nodiscard]] FromJsonFunction getFromJson() const;
+
+        void setFromJson(const FromJsonFunction& fromJson);
 
         bool operator==(const DefinedProperty& other) const;
 
