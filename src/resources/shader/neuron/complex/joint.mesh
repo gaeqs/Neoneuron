@@ -41,6 +41,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
     vec4 selectedColor;
     uint lod;
     uint frame;
+    uint savingNeuron;
 };
 
 struct Neuron {
@@ -80,6 +81,14 @@ layout(std430, set = 2, binding = 2) buffer Joints {
 
 layout(std430, set = 2, binding = 4) buffer Selection {
     bool selected[];
+};
+
+layout(std430, set = 2, binding = 7) buffer SavingVertices {
+    vec4 savingVertices[];
+};
+
+layout(std430, set = 2, binding = 8) buffer SavingIndices {
+    uvec4 savingIndices[];
 };
 
 struct TaskData {

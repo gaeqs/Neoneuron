@@ -5,6 +5,7 @@ const float M_PI = 3.1415926535897932384626433832795f;
 
 const int MAX_POINTS_PER_CIRCLE = 16;
 const int GROUPS_SIZE = MAX_POINTS_PER_CIRCLE * 2;
+const int SAVING_SPACE_PER_SECTION = GROUPS_SIZE * 2;
 
 layout (local_size_x = GROUPS_SIZE, local_size_y = 1, local_size_z = 1) in;
 layout (triangles) out;
@@ -40,6 +41,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
     vec4 selectedColor;
     uint lod;
     uint frame;
+    uint savingNeuron;
 };
 
 struct Neuron {
@@ -70,6 +72,14 @@ layout(std430, set = 2, binding = 4) buffer Selection {
     bool selected[];
 };
 
+layout(std430, set = 2, binding = 7) buffer SavingVertices {
+    vec4 savingVertices[];
+};
+
+layout(std430, set = 2, binding = 8) buffer SavingIndices {
+    uvec4 savingIndices[];
+};
+
 struct TaskData {
     uint section[32];
     uint lodNextToParent[32];
@@ -92,13 +102,29 @@ uint getVerticesPerCircle(Section segment) {
     return 4 + localLod * (MAX_POINTS_PER_CIRCLE - 4) / 7;
 }
 
-void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
-    gl_MeshVerticesEXT[i].gl_Position = viewProjection * neuron.model * position;
+void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel, bool end) {
+    vec4 globalPosition = neuron.model * position;
+    gl_MeshVerticesEXT[i].gl_Position = viewProjection * globalPosition;
     fragNormal[i] = mat3(neuron.normal) * normal;
     fragType[i] = uintBitsToFloat(type);
     fragNeuronId[i] = uintBitsToFloat(neuron.neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
     fragSelected[i] = sel ? 1.0f : 0.0f;
+
+    if (neuron.neuronId == savingNeuron + 1) {
+        uint index = SAVING_SPACE_PER_SECTION * sectionId + i + (end ?  SAVING_SPACE_PER_SECTION / 2 : 0);
+        savingVertices[index] = globalPosition;
+    }
+}
+
+void pushTriangle(uint i, uvec3 triangle, Neuron neuron, uint sectionId, bool end) {
+    gl_PrimitiveTriangleIndicesEXT[i] = triangle;
+    if (neuron.neuronId == savingNeuron + 1) {
+        gl_PrimitiveTriangleIndicesEXT[i] = triangle;
+        uint start = SAVING_SPACE_PER_SECTION * sectionId + (end ?  SAVING_SPACE_PER_SECTION / 2 : 0);
+        uint index = start + i;
+        savingIndices[index] = uvec4(triangle + uvec3(start), 1);
+    }
 }
 
 vec3 rotate (vec3 v, vec3 n, float a) {
@@ -188,7 +214,7 @@ void generateSection(uint sectionIndex, uint nextToParentIndex) {
         vec3 center = first ? (start + unormDirection * sClip) : end - unormDirection * eClip;
 
         vec3 point = center + rotated * radius;
-        pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected);
+        pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected, false);
     }
 
     // Generate the triangles!
@@ -206,8 +232,9 @@ void generateSection(uint sectionIndex, uint nextToParentIndex) {
         uint b = parentIndex2;
         uint c = sectionIndex + parentVPC;
         uint d = sectionIndex2 + parentVPC;
-        gl_PrimitiveTriangleIndicesEXT[i * 2 + 0] = uvec3(a, b, c);
-        gl_PrimitiveTriangleIndicesEXT[i * 2 + 1] = uvec3(c, b, d);
+
+        pushTriangle(i * 2 + 0, uvec3(a, b, c), neuron, section.sectionId, false);
+        pushTriangle(i * 2 + 1, uvec3(c, b, d), neuron, section.sectionId, false);
     }
 
     uint triangles = max(parentVPC, sectionVPC) * 2;
@@ -266,12 +293,12 @@ void generateEnd (uint sectionIndex) {
     vec3 edge = end + tangent * radius;
 
     SetMeshOutputsEXT(sectionVPC + 1, sectionVPC);
-    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected);
-    pushVertex(sectionVPC, vec4(edge, 1), tangent, 0, neuron, section.sectionId, isSelected);
+    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected, true);
+    pushVertex(sectionVPC, vec4(edge, 1), tangent, 0, neuron, section.sectionId, isSelected, true);
 
     uint a = gl_LocalInvocationID.x;
     uint b = (gl_LocalInvocationID.x + 1) % sectionVPC;
-    gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(a, b, sectionVPC);
+    pushTriangle(gl_LocalInvocationID.x, uvec3(a, b, sectionVPC), neuron, section.sectionId, true);
 }
 
 void main() {
