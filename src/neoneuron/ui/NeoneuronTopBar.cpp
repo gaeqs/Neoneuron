@@ -18,6 +18,7 @@
 #include <neoneuron/render/NeoneuronRender.h>
 
 #include "components/NeoneuronUIOpenFile.h"
+#include "components/actions/ActionSave.h"
 #include "components/actions/ActionShuffle.h"
 #include "settings/NeoneuronUiSettings.h"
 #include "style/Fonts.h"
@@ -126,6 +127,9 @@ namespace neoneuron {
     void NeoneuronTopBar::actionsMenu() const {
         if (ImGui::MenuItem("Shuffle")) {
             _render->getRoom()->newGameObject()->newComponent<ActionShuffle>(_render->getNeuronScene().get());
+        }
+        if (ImGui::MenuItem("Save neuron model")) {
+            _render->getRoom()->newGameObject()->newComponent<ActionSave>(_render->getNeuronScene().get());
         }
     }
 

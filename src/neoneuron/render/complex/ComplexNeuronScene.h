@@ -31,6 +31,7 @@ namespace neoneuron {
         static constexpr size_t SOMA_INSTANCES = 100000;
         static constexpr size_t STORAGE_PER_SOMA = 64 * 64;
         static constexpr size_t STORAGE_PER_SECTION = sizeof(uint32_t);
+        static constexpr size_t MAX_SAVE_VERTICES = 1000000;
 
     private:
         NeoneuronRender* _render;
@@ -129,6 +130,8 @@ namespace neoneuron {
         bool removeNeuron(UID neuronId) override;
 
         [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
+
+        const std::shared_ptr<neon::ShaderUniformBuffer>& getUBO() const;
 
         void refreshNeuronProperty(UID neuronId, const std::string& propertyName) override;
 

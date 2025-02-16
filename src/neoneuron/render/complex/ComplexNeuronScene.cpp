@@ -38,7 +38,13 @@ namespace neoneuron {
             // SOMA GPU DATA
             neon::ShaderUniformBinding::storageBuffer(STORAGE_PER_SOMA * SOMA_INSTANCES),
             // SECTION GPU DATA
-            neon::ShaderUniformBinding::storageBuffer(STORAGE_PER_SECTION * SEGMENT_INSTANCES)
+            neon::ShaderUniformBinding::storageBuffer(STORAGE_PER_SECTION * SEGMENT_INSTANCES),
+
+            neon::ShaderUniformBinding::storageBuffer(MAX_SAVE_VERTICES * sizeof(rush::Vec4f),
+                                                      neon::UniformBindingBufferType::SIMPLE),
+
+            neon::ShaderUniformBinding::storageBuffer(MAX_SAVE_VERTICES * sizeof(rush::Vec4i),
+                                                      neon::UniformBindingBufferType::SIMPLE),
         };
 
         _uboDescriptor = std::make_shared<neon::ShaderUniformDescriptor>(
@@ -478,6 +484,10 @@ namespace neoneuron {
 
     rush::AABB<3, float> ComplexNeuronScene::getSceneBoundingBox() const {
         return _sceneBoundingBox;
+    }
+
+    const std::shared_ptr<neon::ShaderUniformBuffer>& ComplexNeuronScene::getUBO() const {
+        return _ubo;
     }
 
     void ComplexNeuronScene::refreshNeuronProperty(UID neuronId, const std::string& propertyName) {

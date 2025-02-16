@@ -4,6 +4,7 @@
 
 #ifndef NEONEURONRENDERDATA_H
 #define NEONEURONRENDERDATA_H
+#undef max
 
 namespace neoneuron {
     struct NeoneuronRenderData {
@@ -27,6 +28,7 @@ namespace neoneuron {
         rush::Vec4f selectedColor = rush::Vec4f(0.0f, 0.0f, 1.0f, 1.0f);
         uint32_t lod = 0;
         uint32_t frame = 0;
+        uint32_t savingNeuron = std::numeric_limits<uint32_t>::max();
     };
 }
 #endif //NEONEURONRENDERDATA_H

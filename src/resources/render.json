@@ -8,11 +8,11 @@
     "bindings": [
       {
         "type": "uniform_buffer",
-        "size": 224
+        "size": 296
       },
       {
         "type": "uniform_buffer",
-        "size": 104
+        "size": 108
       },
       {
         "type": "uniform_buffer",

@@ -38,6 +38,7 @@ layout (set = 0, binding = 1) uniform GlobalData {
     vec4 selectedColor;
     uint lod;
     uint frame;
+    uint savingNeuron;
 };
 
 void main() {
