@@ -4,6 +4,10 @@
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
+const int SAVING_SPACE_PER_SECTION = 64;
+const int SAVING_SPACE_PER_JOINT = 68;
+const int SAVING_SPACE_PER_SOMA_PART = 128;
+
 const uint MAX_SOMA_CONNECTIONS = 8;
 
 const uint MAX_LAT_VERTICES = 64;
@@ -65,6 +69,7 @@ struct Neuron {
     uint neuronId;
     uint lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
     uint updateFrame;
+    uint maxSegmentId;
     mat4 model;
     mat4 normal;
 };
@@ -101,6 +106,14 @@ layout(std430, set = 2, binding = 4) buffer Selection {
 
 layout(std430, set = 2, binding = 5) buffer SomaGPUData {
     uint packedConnection[];
+};
+
+layout(std430, set = 2, binding = 7) buffer SavingVertices {
+    vec4 savingVertices[];
+};
+
+layout(std430, set = 2, binding = 8) buffer SavingIndices {
+    uvec4 savingIndices[];
 };
 
 struct TaskData {
@@ -256,13 +269,28 @@ vec3 generateWeightedPosition(uint index, vec3 position, Soma soma, vec3 center,
 }
 
 void pushVertex(uint i, vec3 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
-    gl_MeshVerticesEXT[i].gl_Position = viewProjection * neuron.model * vec4(position, 1.0f);
+    vec4 globalPosition = neuron.model * vec4(position, 1.0f);
+    gl_MeshVerticesEXT[i].gl_Position = viewProjection * globalPosition;
     fragNormal[i] = mat3(neuron.normal) * normal;
     fragNeuronId[i] = uintBitsToFloat(neuron.neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
     fragSelected[i] = sel ? 1.0f : 0.0f;
+
+    if (neuron.neuronId == savingNeuron) {
+        uint max = neuron.maxSegmentId + 1;
+        uint offset = SAVING_SPACE_PER_SECTION * max + SAVING_SPACE_PER_JOINT * max + gl_WorkGroupID.x * SAVING_SPACE_PER_SOMA_PART;
+        savingVertices[offset + i] = globalPosition;
+    }
 }
 
+void pushTriangle(uint i, uvec3 triangle, Neuron neuron, bool save) {
+    gl_PrimitiveTriangleIndicesEXT[i] = triangle;
+    if (neuron.neuronId == savingNeuron && save) {
+        uint max = neuron.maxSegmentId + 1;
+        uint offset = SAVING_SPACE_PER_SECTION * max + SAVING_SPACE_PER_JOINT * max + gl_WorkGroupID.x * SAVING_SPACE_PER_SOMA_PART;
+        savingIndices[offset + i] = uvec4(triangle + uvec3(offset), 1);
+    }
+}
 
 void generateConnectionVertices(uint offset, Section soma, Section connection, Neuron neuron, uint sectionVPC, bool isSelected) {
     if (gl_LocalInvocationID.x >= sectionVPC) return;
@@ -360,14 +388,14 @@ void generateSomaPart () {
         uint id = fetchConnection(latitude * somaLongitudes + d);
 
         if (ia != ib || ia != ic || ia == MAX_SOMA_CONNECTIONS) {
-            gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 0] = uvec3(a, b, c);
+            pushTriangle(longitude * 2 + 0, uvec3(a, b, c), neuron, true);
         } else {
-            gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 0] = uvec3(a, a, a);
+            pushTriangle(longitude * 2 + 0, uvec3(a, a, a), neuron, false);
         }
         if (id != ib || id != ic || id == MAX_SOMA_CONNECTIONS) {
-            gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 1] = uvec3(c, b, d);
+            pushTriangle(longitude * 2 + 1, uvec3(c, b, d), neuron, true);
         } else {
-            gl_PrimitiveTriangleIndicesEXT[longitude * 2 + 1] = uvec3(d, d, d);
+            pushTriangle(longitude * 2 + 1, uvec3(d, d, d), neuron, false);
         }
     }
 }
@@ -473,8 +501,8 @@ void generateConnection () {
         uint b = somaIndex2;
         uint c = connectionIndex + verticesAmount;
         uint d = connectionIndex2 + verticesAmount;
-        gl_PrimitiveTriangleIndicesEXT[i * 2 + 0] = uvec3(a, b, c);
-        gl_PrimitiveTriangleIndicesEXT[i * 2 + 1] = uvec3(c, b, d);
+        pushTriangle(i * 2 + 0, uvec3(a, b, c), neuron, true);
+        pushTriangle(i * 2 + 1, uvec3(c, b, d), neuron, true);
     }
 
     uint triangles = max(verticesAmount, sectionVPC) * 2;

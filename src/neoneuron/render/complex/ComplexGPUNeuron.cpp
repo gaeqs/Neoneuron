@@ -51,10 +51,16 @@ namespace neoneuron {
         auto buffer = _globalInstanceData.lock();
         if (buffer == nullptr) return;
 
+        UID maxSegment = 0;
+        for (auto& segment: neuron->getSegments()) {
+            maxSegment = std::max(maxSegment, segment.getId());
+        }
+
         ComplexGPUNeuronGlobalData data{
             .neuronId = neuron->getId(),
             .lodMode = 8,
             .updateFrame = frame,
+            .segmentsAmount = maxSegment,
             .model = rush::Mat4f(1.0f),
             .normal = rush::Mat4f(1.0f)
         };

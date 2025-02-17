@@ -48,6 +48,7 @@ struct Neuron {
     uint neuronId;
     uint lodMode;// 0-7 = forced, 8 = dynamic, 9 = static
     uint updateFrame;
+    uint maxSegmentId;
     mat4 model;
     mat4 normal;
 };
@@ -111,7 +112,7 @@ void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, ui
     fragSectionId[i] = uintBitsToFloat(sectionId);
     fragSelected[i] = sel ? 1.0f : 0.0f;
 
-    if (neuron.neuronId == savingNeuron + 1) {
+    if (neuron.neuronId == savingNeuron) {
         uint index = SAVING_SPACE_PER_SECTION * sectionId + i + (end ?  SAVING_SPACE_PER_SECTION / 2 : 0);
         savingVertices[index] = globalPosition;
     }
@@ -119,8 +120,7 @@ void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, ui
 
 void pushTriangle(uint i, uvec3 triangle, Neuron neuron, uint sectionId, bool end) {
     gl_PrimitiveTriangleIndicesEXT[i] = triangle;
-    if (neuron.neuronId == savingNeuron + 1) {
-        gl_PrimitiveTriangleIndicesEXT[i] = triangle;
+    if (neuron.neuronId == savingNeuron) {
         uint start = SAVING_SPACE_PER_SECTION * sectionId + (end ?  SAVING_SPACE_PER_SECTION / 2 : 0);
         uint index = start + i;
         savingIndices[index] = uvec4(triangle + uvec3(start), 1);
