@@ -65,8 +65,9 @@ struct Soma {
 
 struct Neuron {
     uint neuronId;
-    uint lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
+    uint lodMode;// 0-7 = forced, 8 = dynamic, 9 = static
     uint updateFrame;
+    uint maxSegmentId;
     mat4 model;
     mat4 normal;
 };
@@ -389,7 +390,7 @@ void main() {
     float radius2;
     generateSomaBoundingBoxSphere(soma, center, radius2);
 
-    if(sphereInFrustum(neuron, center, radius2)) {
+    if (sphereInFrustum(neuron, center, radius2)) {
         generateSomaGPUData();
         if (gl_LocalInvocationID.x == 0) {
             td.somaIndex = gl_WorkGroupID.x;
