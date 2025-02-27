@@ -82,25 +82,27 @@ layout(std430, set = 2, binding = 6) buffer SectionGPUData {
 
 taskPayloadSharedEXT TaskData td;
 
-bool sphereInFrustum(Neuron neuron, vec3 center, float radius) {
-    vec3 globalCenter = (neuron.model * vec4(center, 1.0f)).xyz;
+bool sphereInFrustum(vec3 center, float radius) {
     for (uint i = 0; i < 6; ++i) {
         vec3 normal = planes[i].xyz;
         float distance = planes[i].w;
-        float side = dot(globalCenter, normal) + distance;
+        float side = dot(center, normal) + distance;
         if (side < -radius) return false;
     }
 
     return true;
 }
 
-bool shouldUpdate(Neuron neuron) {
+bool shouldUpdate(Neuron neuron, uint currentLocalLod) {
     if (neuron.lodMode == 8) {
         // Dynamic mode
         return (neuron.neuronId & 63u) == (frame & 63u) || neuron.updateFrame == frame;
     } else {
-        // Static or LOD mode.
-        return neuron.updateFrame == frame;
+        if(neuron.lodMode < 8) {
+            return currentLocalLod != neuron.lodMode;
+        } else {
+            return currentLocalLod != lod;
+        }
     }
 }
 
@@ -134,14 +136,14 @@ uint findNextToParent(Neuron neuron, uint firstParent) {
 }
 
 bool cullSection(Neuron neuron, Section section, Section parent) {
-    vec3 end = section.endAndRadius.xyz;
-    vec3 start = parent.endAndRadius.xyz;
+    vec3 end = (neuron.model * vec4(section.endAndRadius.xyz, 1.0f)).xyz;
+    vec3 start = (neuron.model * vec4(parent.endAndRadius.xyz, 1.0f)).xyz;
 
-    float length = length(section.endAndRadius.xyz - parent.endAndRadius.xyz);
+    float length = length(end - start);
     float radius = section.endAndRadius.w * radiusStrength;
-    vec3 center = (section.endAndRadius.xyz + parent.endAndRadius.xyz) * 0.5f;
+    vec3 center = (end + start) * 0.5f;
 
-    if (!sphereInFrustum(neuron, center, length + radius)) {
+    if (!sphereInFrustum(center, length + radius)) {
         return false;
     }
 
@@ -150,12 +152,12 @@ bool cullSection(Neuron neuron, Section section, Section parent) {
 
     for (uint i = 0; i < 4; ++i) {
         vec3 subCenter = start + (end - start) * (float(i) * 0.25f + 0.125f);
-        if (sphereInFrustum(neuron, subCenter, subLength + radius)) {
+        if (sphereInFrustum(subCenter, subLength + radius)) {
             return true;
         }
     }
 
-    return false;
+    return true;
 }
 
 void main() {
@@ -164,13 +166,14 @@ void main() {
     Section segment = sections[gl_GlobalInvocationID.x];
     Neuron neuron = neurons[segment.neuronIndex];
 
-    bool update = valid && shouldUpdate(neuron);
-    uint localLod;
-    uint nextToParentIndex;
-
     uint metadata = segment.metadata;
     uint sectionChildren = (metadata >> 8u) & 7u;
     uint segmentLod = (metadata >> 11u) & 7u;
+    uint currentLocalLod = (metadata >> 14u) & 7u;
+
+    bool update = valid && shouldUpdate(neuron, currentLocalLod);
+    uint localLod;
+    uint nextToParentIndex;
 
     if(update) {
         nextToParentIndex = findNextToParent(neuron, gl_GlobalInvocationID.x);

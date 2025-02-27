@@ -132,9 +132,19 @@ shared uint connectionVerticesIndices[MAX_CONNECTION_VERTICES];
 shared vec3 connectionVertices[MAX_CONNECTION_VERTICES];
 shared float connectionVerticesAngles[MAX_CONNECTION_VERTICES];
 
-uint getVerticesPerCircle(Section segment) {
-    uint metadata = segment.metadata;
-    uint localLod = (metadata >> 14u) & 7u;
+uint computeLOD(Neuron neuron, Section segment) {
+    if (neuron.lodMode == 8) {
+        float sceneRadius = max(sceneRadius.x, max(sceneRadius.y, sceneRadius.z));
+        vec3 viewPosition = vec3(view * neuron.model * vec4(segment.endAndRadius.xyz, 1.0f));
+        float distance = length(viewPosition);
+        return 7 - min(uint(distance * 7.0f / sceneRadius), 7);
+    } else {
+        return neuron.lodMode < 8 ? neuron.lodMode : lod;
+    }
+}
+
+uint getVerticesPerCircle(Neuron neuron, Section segment) {
+    uint localLod = computeLOD(neuron, segment);
     return 4 + localLod * (MAX_POINTS_PER_CIRCLE - 4) / 7;
 }
 
@@ -409,7 +419,7 @@ void generateConnection () {
     Neuron neuron = neurons[somaSection.neuronIndex];
     bool isSelected = selected[soma.connection[currentConnection]];
 
-    uint sectionVPC = getVerticesPerCircle(connectionSection);
+    uint sectionVPC = getVerticesPerCircle(neuron, connectionSection);
 
     // Find the indices of all vertices that have been selected by this connection.
 
