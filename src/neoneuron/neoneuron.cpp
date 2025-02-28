@@ -61,7 +61,7 @@ int main() {
 
     neoneuron::NeoneuronApplication app(info);
 
-    app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
+    //app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
 
     bool result = app.getRender().renderLoop();
     app.saveSettings();

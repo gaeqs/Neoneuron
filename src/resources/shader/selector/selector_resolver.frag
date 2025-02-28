@@ -38,7 +38,7 @@ void main() {
         mat3 inverseView = transpose(mat3(view));
         background = texture(skybox, inverseView * position).rgb;
     } else {
-        background = vec3(1.0f, 1.0f, 0.0f);
+        background = vec3(1.0f, 1.0f, 1.0f);
     }
     colorResult = vec4(mix(background, color.rgb, color.a), 1.0f);
 
