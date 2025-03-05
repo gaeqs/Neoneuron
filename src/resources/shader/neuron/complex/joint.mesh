@@ -52,6 +52,7 @@ struct Neuron {
     uint lodMode;// 0-7 = forced, 8 = dynamic, 9 = static
     uint updateFrame;
     uint maxSegmentId;
+    float radius;
     mat4 model;
     mat4 normal;
 };

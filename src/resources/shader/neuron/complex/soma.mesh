@@ -67,9 +67,10 @@ layout (set = 0, binding = 2) uniform Scene {
 
 struct Neuron {
     uint neuronId;
-    uint lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
+    uint lodMode;// 0-7 = forced, 8 = dynamic, 9 = static
     uint updateFrame;
     uint maxSegmentId;
+    float radius;
     mat4 model;
     mat4 normal;
 };
@@ -134,7 +135,7 @@ shared float connectionVerticesAngles[MAX_CONNECTION_VERTICES];
 
 uint computeLOD(Neuron neuron, Section segment) {
     if (neuron.lodMode == 8) {
-        float sceneRadius = max(sceneRadius.x, max(sceneRadius.y, sceneRadius.z));
+        float sceneRadius = neuron.radius;
         vec3 viewPosition = vec3(view * neuron.model * vec4(segment.endAndRadius.xyz, 1.0f));
         float distance = length(viewPosition);
         return 7 - min(uint(distance * 7.0f / sceneRadius), 7);

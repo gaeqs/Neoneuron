@@ -15,6 +15,8 @@ namespace neoneuron {
         uint32_t lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
         uint32_t updateFrame;
         uint32_t segmentsAmount;
+        float radius;
+        uint32_t dummy[3];
         rush::Mat4f model;
         rush::Mat4f normal;
     };

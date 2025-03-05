@@ -58,9 +58,10 @@ namespace neoneuron {
 
         ComplexGPUNeuronGlobalData data{
             .neuronId = neuron->getId(),
-            .lodMode = 9,
+            .lodMode = 8,
             .updateFrame = frame,
             .segmentsAmount = maxSegment,
+            .radius = neuron->getBoundingBox().radius.length(),
             .model = rush::Mat4f(1.0f),
             .normal = rush::Mat4f(1.0f)
         };
