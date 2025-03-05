@@ -35,7 +35,7 @@ namespace neoneuron {
                 _instances.push_back(result.getResult());
                 _instancesByUID[segment.getId()] = result.getResult();
             } else {
-                neon::Logger::defaultLogger()->error("Cannot create new instances!");
+                neon::error() << "Cannot create new instances!";
                 break;
             }
         }

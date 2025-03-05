@@ -194,7 +194,7 @@ namespace neoneuron {
         std::optional<UID> propRadius = prototype->getPropertyUID(PROPERTY_RADIUS);
         std::optional<UID> propParent = prototype->getPropertyUID(PROPERTY_PARENT);
         if (!propType.has_value() || !propEnd.has_value() || !propRadius.has_value() || !propParent.has_value()) {
-            neon::Logger::defaultLogger()->error("Cannot load neuron, properties are not found.");
+            neon::error() << "Cannot load neuron, properties are not found.";
             return;
         }
 
@@ -206,15 +206,13 @@ namespace neoneuron {
             auto parent = segment.getProperty<int64_t>(propParent.value());
 
             if (!type.has_value() || !end.has_value() || !radius.has_value() || !parent.has_value()) {
-                std::stringstream ss;
-                ss << "Cannot load section ";
-                ss << segment.getId();
-                ss << ". Properties are not found. ";
-                ss << "Type: " << type.has_value();
-                ss << ", End: " << end.has_value();
-                ss << ", Radius: " << radius.has_value();
-                ss << ", Parent: " << parent.has_value();
-                neon::Logger::defaultLogger()->error(ss.str());
+                neon::error() << "Cannot load section "
+                        << segment.getId()
+                        << ". Properties are not found. "
+                        << "Type: " << type.has_value()
+                        << ", End: " << end.has_value()
+                        << ", Radius: " << radius.has_value()
+                        << ", Parent: " << parent.has_value();
                 continue;
             }
 
@@ -236,11 +234,7 @@ namespace neoneuron {
             if (!segment.getParentId().has_value()) continue;
             auto parentIndex = _segmentsByUID.find(segment.getParentId().value());
             if (parentIndex == _segmentsByUID.end()) {
-                std::stringstream ss;
-                ss << "Cannot find parent ";
-                ss << segment.getParentId().value();
-                ss << ".";
-                neon::Logger::defaultLogger()->error(ss.str());
+                neon::error() << "Cannot find parent " << segment.getParentId().value() << ".";
                 continue;
             }
 

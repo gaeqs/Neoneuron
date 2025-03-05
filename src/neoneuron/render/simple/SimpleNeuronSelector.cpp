@@ -63,7 +63,7 @@ namespace neoneuron {
             if (any.type() != typeid(rush::Vec<2, UID>)) continue;
             auto pair = std::any_cast<rush::Vec<2, UID>>(any);
 
-            neon::Logger::defaultLogger()->debug(neon::MessageBuilder().print("Selected: ").print(pair));
+            neon::debug() << "Selected: " << pair;
 
             UID neuronId = pair[0];
             UID sectionId = pair[1];

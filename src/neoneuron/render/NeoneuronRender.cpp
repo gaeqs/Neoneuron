@@ -25,7 +25,7 @@ namespace neoneuron {
         neon::AssetLoaderContext context(&_application, nullptr, &_fileSystem);
         auto render = neon::loadAssetFromFile<neon::Render>("render.json", context);
         if (render == nullptr) {
-            neon::log.error("Render is null!");
+            neon::error() << "Render is null!";
         }
         auto fb = _application.getAssets()
                 .get<neon::FrameBuffer>("neoneuron:frame_buffer")
@@ -158,7 +158,7 @@ namespace neoneuron {
     bool NeoneuronRender::renderLoop() {
         auto result = _application.startGameLoop();
         if (!result.isOk()) {
-            neon::Logger::defaultLogger()->error(result.getError());
+            neon::error() << result.getError();
         }
         return result.isOk();
     }

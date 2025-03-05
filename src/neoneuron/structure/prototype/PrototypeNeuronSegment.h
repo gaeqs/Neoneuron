@@ -45,12 +45,8 @@ namespace neoneuron {
             try {
                 return std::any_cast<T>(any);
             } catch (const std::bad_any_cast& e) {
-                neon::Logger::defaultLogger()->error(neon::MessageBuilder()
-                    .print("Error while casting std::any. ")
-                    .print("Expected: ")
-                    .print(typeid(T).name())
-                    .print(", Found: ")
-                    .print(any.type().name()));
+                neon::error() << "Error while casting std::any. Expected: "
+                        << typeid(T).name() << ", Found: " << any.type().name();
                 return {};
             }
         }

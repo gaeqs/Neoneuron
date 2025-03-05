@@ -15,7 +15,7 @@ namespace neoneuron {
                 _segmentInstances.push_back(result.getResult());
                 _segmentInstancesByUID[segment.getId()] = result.getResult();
             } else {
-                neon::Logger::defaultLogger()->error("Cannot create new instances!");
+                neon::error() << "Cannot create new instances!";
                 break;
             }
         }
@@ -28,7 +28,7 @@ namespace neoneuron {
                 _jointInstances.push_back(result.getResult());
                 _jointInstancesByUID[joint.getId()] = result.getResult();
             } else {
-                neon::Logger::defaultLogger()->error("Cannot create new instances!");
+                neon::error() << "Cannot create new instances!";
                 break;
             }
         }
@@ -41,7 +41,7 @@ namespace neoneuron {
                 _somaInstances.push_back(result.getResult());
                 _somaInstancesByUID[soma.getId()] = result.getResult();
             } else {
-                neon::Logger::defaultLogger()->error("Cannot create new instances!");
+                neon::error() << "Cannot create new instances!";
                 break;
             }
         }
