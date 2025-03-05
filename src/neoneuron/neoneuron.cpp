@@ -29,9 +29,6 @@ int main() {
     using MeshFeature = VkPhysicalDeviceMeshShaderFeaturesEXT;
     constexpr VkStructureType MESH_FEATURE = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT;
 
-    auto logger = neon::Logger(true, true, true);
-    logger.debug("Hello world!");
-
     neon::vulkan::VKApplicationCreateInfo info;
     info.name = "Neoneuron";
 

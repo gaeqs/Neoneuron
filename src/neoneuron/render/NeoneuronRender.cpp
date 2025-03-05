@@ -25,7 +25,7 @@ namespace neoneuron {
         neon::AssetLoaderContext context(&_application, nullptr, &_fileSystem);
         auto render = neon::loadAssetFromFile<neon::Render>("render.json", context);
         if (render == nullptr) {
-            _application.getLogger().error("Render is null!");
+            neon::log.error("Render is null!");
         }
         auto fb = _application.getAssets()
                 .get<neon::FrameBuffer>("neoneuron:frame_buffer")

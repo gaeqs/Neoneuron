@@ -49,7 +49,7 @@ namespace neoneuron {
         shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/simple/neuron.frag"));
 
         if (auto result = shader->compile(); result.has_value()) {
-            render->getApplication().getLogger().error(result.value());
+            neon::log.error(result.value());
             return;
         }
 

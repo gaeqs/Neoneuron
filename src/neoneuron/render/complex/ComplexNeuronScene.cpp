@@ -76,7 +76,7 @@ namespace neoneuron {
         _neuronShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/neuron.frag"));
 
         if (auto result = _neuronShader->compile(); result.has_value()) {
-            _render->getApplication().getLogger().error(result.value());
+            neon::log.error(result.value());
         }
     }
 
@@ -89,7 +89,7 @@ namespace neoneuron {
         _jointShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/joint.frag"));
 
         if (auto result = _jointShader->compile(); result.has_value()) {
-            _render->getApplication().getLogger().error(result.value());
+            neon::log.error(result.value());
         }
     }
 
@@ -102,7 +102,7 @@ namespace neoneuron {
         shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/soma.frag"));
 
         if (auto result = shader->compile(); result.has_value()) {
-            _render->getApplication().getLogger().error(result.value());
+            neon::log.error(result.value());
         } else {
             _somaShader = std::move(shader);
         }
