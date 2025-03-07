@@ -5,6 +5,7 @@
 #include "ComplexGPUNeuron.h"
 
 #include <utility>
+#include <neoneuron/structure/NeuronTransform.h>
 
 
 namespace neoneuron {
@@ -61,7 +62,7 @@ namespace neoneuron {
             .lodMode = 8,
             .updateFrame = frame,
             .segmentsAmount = maxSegment,
-            .radius = neuron->getBoundingBox().radius.length(),
+            .radius = neuron->getBoundingBox().radius.length() * 5,
             .model = rush::Mat4f(1.0f),
             .normal = rush::Mat4f(1.0f)
         };
@@ -72,6 +73,11 @@ namespace neoneuron {
             if (transform.has_value()) {
                 data.model = transform->getModel();
                 data.normal = transform->getNormal();
+            }
+
+            auto lod = prototype->getProperty<uint32_t>(PROPERTY_LOD);
+            if (lod.has_value()) {
+                data.lodMode = *lod;
             }
         }
 
@@ -253,6 +259,8 @@ namespace neoneuron {
     void ComplexGPUNeuron::refreshProperty(const ComplexNeuron* neuron, uint32_t frame,
                                            const std::string& propertyName) {
         if (propertyName == PROPERTY_TRANSFORM) {
+            refreshGlobalData(neuron, frame);
+        } else if (propertyName == PROPERTY_LOD) {
             refreshGlobalData(neuron, frame);
         }
     }

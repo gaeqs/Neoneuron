@@ -7,10 +7,8 @@
 
 #include <vector>
 #include <unordered_map>
-#include <neon/util/Result.h>
 
 #include <neoneuron/structure/Identifiable.h>
-#include <neoneuron/structure/NeuronTransform.h>
 #include <neoneuron/structure/complex/ComplexNeuronSegment.h>
 
 #include <neoneuron/structure/prototype/PrototypeNeuron.h>

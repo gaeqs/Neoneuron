@@ -214,6 +214,7 @@ namespace neoneuron {
                 auto val = prop->getGenerator()(prototype, _render->getNeuronScene().get());
                 auto uid = prototype->defineProperty(prop->getName());
                 prototype->setPropertyAny(uid, val);
+                _render->getNeuronScene()->refreshNeuronProperty(prototype->getId(), prop->getName());
             }
             ImGui::EndDisabled();
         }

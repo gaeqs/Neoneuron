@@ -5,8 +5,11 @@
 #include "ComplexNeuron.h"
 
 #include <neon/logging/Logger.h>
+#include <neoneuron/structure/NeuronTransform.h>
 
 namespace neoneuron {
+    class NeuronTransform;
+
     void ComplexNeuron::calculateBoundingBox() {
         if (_segments.empty()) {
             _boundingBox = {};

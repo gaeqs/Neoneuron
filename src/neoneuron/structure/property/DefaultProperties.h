@@ -26,6 +26,10 @@ namespace neoneuron::property {
 
     nlohmann::json nameToJson(const std::any& any);
 
+    bool lodEditor(std::any* property, const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+
+    std::any lodGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+
     std::any int32FromJson(const nlohmann::json& json);
 
     nlohmann::json int32ToJson(const std::any& any);

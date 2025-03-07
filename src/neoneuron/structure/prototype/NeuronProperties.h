@@ -22,6 +22,7 @@ namespace neoneuron {
 
     const std::string PROPERTY_NAME = "name";
     const std::string PROPERTY_TYPE = "type";
+    const std::string PROPERTY_LOD = "lod";
     const std::string PROPERTY_END = "end";
     const std::string PROPERTY_RADIUS = "radius";
     const std::string PROPERTY_PARENT = "parent";

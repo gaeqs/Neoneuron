@@ -273,8 +273,8 @@ void joint1(Joint joint) {
 }
 
 vec3 generateCircle (uint start, uint rotationIndex, vec3 center, vec3 direction,
-vec3 parentDirection, float radius, Neuron neuron, uint sectionId, bool isSelected) {
-    float angle = float(gl_LocalInvocationID.x + rotationIndex) / float(verticesPerCircle) * 2.0f * M_PI;
+vec3 parentDirection, float radius, Neuron neuron, uint sectionId, bool isSelected, uint vpc) {
+    float angle = float(gl_LocalInvocationID.x + rotationIndex) / float(vpc) * 2.0f * M_PI;
 
     // Correctly align the initial basis for the start circle
     vec3 tangent = direction;
@@ -301,12 +301,12 @@ vec3 parentDirection, float radius, Neuron neuron, uint sectionId, bool isSelect
     return point;
 }
 
-uint toParentIndex2(uint index, uint childIndex) {
+uint toParentIndex2(uint index, uint childIndex, uint vpc) {
     if (childIndex == 0) {
-        if (index < verticesPerCircle / 2) return index;
-        else return verticesPerCircle * 3 + index - verticesPerCircle / 2;
+        if (index < vpc / 2) return index;
+        else return vpc * 3 + index - vpc / 2;
     } else {
-        if (index < verticesPerCircle / 2) return verticesPerCircle * 3 + (verticesPerCircle / 2 - index - 1);
+        if (index < vpc / 2) return vpc * 3 + (vpc / 2 - index - 1);
         else return index;
     }
 }
@@ -323,16 +323,17 @@ void joint2(Joint joint) {
     // - 2 extra faces to fill the gaps.
     // Total: 68 faces. (POINTS_PER_CIRCLE * 4 + 2)
 
-    uint slipVerticesAmount = verticesPerCircle / 2 + ((verticesPerCircle & 1) == 0 ? 0 : 1);
-    SetMeshOutputsEXT(verticesPerCircle * 3 + slipVerticesAmount, verticesPerCircle * 4 + 2);
-    // Generate the parent's circle first.
-
-    uint rotationIndex = uint(ceil((joint.rotationIndex + rotationIndexOffset) * verticesPerCircle / 16.0f));
-    uint childrenRotationIndex = uint(ceil((joint.rotationIndex + rotationIndexOffset + childrenRotationIndexOffset) * verticesPerCircle / 16.0f));
-
     Section parent = sections[joint.parent];
     Section grandParent = sections[parent.parent];
     Neuron neuron = neurons[parent.neuronIndex];
+    uint parentVPC = getVerticesPerCircle(parent);
+
+    uint slipVerticesAmount = parentVPC / 2u + ((parentVPC & 1u) == 0u ? 0 : 1);
+    SetMeshOutputsEXT(parentVPC * 3 + slipVerticesAmount, parentVPC * 4 + 2);
+    // Generate the parent's circle first.
+
+    uint rotationIndex = uint(ceil((joint.rotationIndex + rotationIndexOffset) * parentVPC / 16.0f));
+    uint childrenRotationIndex = uint(ceil((joint.rotationIndex + rotationIndexOffset + childrenRotationIndexOffset) * parentVPC / 16.0f));
 
     float parentRadius = mix(grandParent.endAndRadius.w, parent.endAndRadius.w, 1.0f - endClip);
 
@@ -346,25 +347,33 @@ void joint2(Joint joint) {
         isSelected = isSelected || selected[joint.connection[i]];
     }
 
-    if (gl_LocalInvocationID.x < verticesPerCircle) {
+    if (gl_LocalInvocationID.x < parentVPC) {
         parentCircle[gl_LocalInvocationID.x] =
-        generateCircle(0, rotationIndex, startCenter, startDirection, startDirection, parentRadius, neuron, parent.sectionId, isSelected);
+        generateCircle(0, rotationIndex, startCenter, startDirection, startDirection, parentRadius, neuron, parent.sectionId, isSelected, parentVPC);
     }
 
-    uint childIndex = gl_LocalInvocationID.x / verticesPerCircle;
-    uint localIndex = gl_LocalInvocationID.x % verticesPerCircle;
-    Section section = parent;
+    uint childIndex = gl_LocalInvocationID.x / parentVPC;
+    uint localIndex = gl_LocalInvocationID.x % parentVPC;
+    Section children[2];
+    vec3 childrenUnormDirections[2];
+    vec3 childrenDirections[2];
 
-    if (gl_LocalInvocationID.x < verticesPerCircle * 2) {
+    for(int i = 0; i < 2; ++i) {
+        children[i] = sections[joint.connection[i]];
+        childrenUnormDirections[i] = children[i].endAndRadius.xyz - parent.endAndRadius.xyz;
+        childrenDirections[i] = normalize(childrenUnormDirections[i]);
+    }
+
+    if (gl_LocalInvocationID.x < parentVPC * 2) {
         // Generate the circles of all children.
         // (Yes, this will generate both circles).
-        section = sections[joint.connection[childIndex]];
-        vec3 endDirectionUnorm = section.endAndRadius.xyz - parent.endAndRadius.xyz;
-        vec3 endDirection = normalize(endDirectionUnorm);
+        Section section = children[childIndex];
+        vec3 endDirectionUnorm = childrenUnormDirections[childIndex];
+        vec3 endDirection = childrenDirections[childIndex];
         vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * startClip;
         float endRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, startClip);
-        generateCircle(verticesPerCircle, childrenRotationIndex, endCenter, endDirection, startDirection, endRadius,
-        neuron, parent.sectionId, isSelected);
+        generateCircle(parentVPC, childrenRotationIndex, endCenter, endDirection, startDirection, endRadius,
+        neuron, parent.sectionId, isSelected, parentVPC);
     }
 
     // Wait, we need the information of the first circle!
@@ -378,17 +387,21 @@ void joint2(Joint joint) {
     // - POINTS_PER_CIRCLE / 2 - 1
     // The split will contain half the amount of vertices inside a circle.
     // We start from half the circle and end on the start.
+
+    // Let's generate the direction vector between the two children.
+    vec3 halfDirection = normalize(startDirection + childrenDirections[0] + childrenDirections[1]);
+
     if (gl_LocalInvocationID.x < slipVerticesAmount) {
-        vec3 start = (parentCircle[verticesPerCircle / 2] + parentCircle[verticesPerCircle / 2 - 1]) / 2;
-        vec3 end = (parentCircle[0] + parentCircle[verticesPerCircle - 1]) / 2;
+        vec3 start = (parentCircle[parentVPC / 2] + parentCircle[parentVPC / 2 - 1]) / 2;
+        vec3 end = (parentCircle[0] + parentCircle[parentVPC - 1]) / 2;
         vec3 center = (start + end) / 2;
 
         // We calculate the percentage (0.0 - 1.0)
         float percentage = float(gl_LocalInvocationID.x) / float(slipVerticesAmount - 1);
         vec3 position = mix(start, end, percentage);
 
-        vec3 strength = startDirectionUnorm * endClip * splitArcStrength;
-        vec3 up = startDirectionUnorm * endClip * splitHeight;
+        vec3 strength = halfDirection * parent.endAndRadius.w * splitArcStrength;
+        vec3 up = halfDirection * parent.endAndRadius.w * splitHeight;
 
         // Now we move the position to the center.
         position += (-4 * percentage * percentage + 4 * percentage) * strength + up;
@@ -397,33 +410,33 @@ void joint2(Joint joint) {
         vec3 normal = normalize(position - center);
 
         // Finally, we can push the vertex
-        uint index = verticesPerCircle * 3 + gl_LocalInvocationID.x;
+        uint index = parentVPC * 3 + gl_LocalInvocationID.x;
 
         pushVertex(index, vec4(position, 1), normal, 0, neuron, parent.sectionId, isSelected);
     }
 
-    if (gl_LocalInvocationID.x < verticesPerCircle * 2) {
+    if (gl_LocalInvocationID.x < parentVPC * 2) {
         // Generate the triangles.
         // The tricky part here is to fetch the corresponding vertex from the parent circle.
         // Each local thread will generate one two triangles.
-        uint start = verticesPerCircle + childIndex * verticesPerCircle;
+        uint start = parentVPC + childIndex * parentVPC;
         uint child1 = localIndex + start;
-        uint child2 = ((localIndex + 1) % verticesPerCircle) + start;
+        uint child2 = ((localIndex + 1) % parentVPC) + start;
 
-        uint parent1 = toParentIndex2(localIndex, childIndex);
-        uint parent2 = toParentIndex2((localIndex + 1) % verticesPerCircle, childIndex);
+        uint parent1 = toParentIndex2(localIndex, childIndex, parentVPC);
+        uint parent2 = toParentIndex2((localIndex + 1) % parentVPC, childIndex, parentVPC);
 
 
         pushTriangle(gl_LocalInvocationID.x, uvec3(child1, child2, parent1), neuron, parent.sectionId);
-        pushTriangle(gl_LocalInvocationID.x + verticesPerCircle * 2, uvec3(parent1, parent2, child2), neuron, parent.sectionId);
+        pushTriangle(gl_LocalInvocationID.x + parentVPC * 2, uvec3(parent1, parent2, child2), neuron, parent.sectionId);
 
         // Now we have to fill the gaps at the edge.
         if (gl_LocalInvocationID.x == 0) {
-            uint gapStart = verticesPerCircle * 3;
-            uint start = verticesPerCircle * 4;
+            uint gapStart = parentVPC * 3;
+            uint start = parentVPC * 4;
 
-            pushTriangle(start, uvec3(verticesPerCircle / 2, verticesPerCircle / 2 - 1, gapStart), neuron, parent.sectionId);
-            pushTriangle(start + 1, uvec3(0, verticesPerCircle - 1, gapStart + verticesPerCircle / 2 - 1), neuron, parent.sectionId);
+            pushTriangle(start, uvec3(parentVPC / 2, parentVPC / 2 - 1, gapStart), neuron, parent.sectionId);
+            pushTriangle(start + 1, uvec3(0, parentVPC - 1, gapStart + parentVPC / 2 - 1), neuron, parent.sectionId);
         }
     }
 }

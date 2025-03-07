@@ -12,7 +12,7 @@ namespace neoneuron {
         float radiusStrength = 1.0f;
         float startClip = 0.2f;
         float endClip = 0.1f;
-        float splitHeight = 0.05f;
+        float splitHeight = 0.3f;
         float splitArcStrength = 0.15f;
         uint32_t rotationIndexOffset = 0;
         uint32_t childrenRotationIndexOffset = 0;

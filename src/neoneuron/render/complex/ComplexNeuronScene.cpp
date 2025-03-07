@@ -68,28 +68,52 @@ namespace neoneuron {
     }
 
     void ComplexNeuronScene::loadNeuronShader() {
-        _neuronShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
+        auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
+        auto fs = neon::DirectoryFileSystem(std::filesystem::current_path());
 
-        auto fs = cmrc::resources::get_filesystem();
-        _neuronShader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/neuron.task"));
-        _neuronShader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/neuron.mesh"));
-        _neuronShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/neuron.frag"));
+        auto task = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\neuron.task)");
+        auto mesh = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\neuron.mesh)");
+        auto frag = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\neuron.frag)");
 
-        if (auto result = _neuronShader->compile(); result.has_value()) {
+        if (task.has_value()) {
+            shader->addShader(neon::ShaderType::TASK, task.value().toString());
+        }
+        if (mesh.has_value()) {
+            shader->addShader(neon::ShaderType::MESH, mesh.value().toString());
+        }
+        if (frag.has_value()) {
+            shader->addShader(neon::ShaderType::FRAGMENT, frag.value().toString());
+        }
+
+        if (auto result = shader->compile(); result.has_value()) {
             neon::error() << result.value();
+        } else {
+            _neuronShader = std::move(shader);
         }
     }
 
     void ComplexNeuronScene::loadJointShader() {
-        _jointShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
+        auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Joint");
+        auto fs = neon::DirectoryFileSystem(std::filesystem::current_path());
 
-        auto fs = cmrc::resources::get_filesystem();
-        _jointShader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/joint.task"));
-        _jointShader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/joint.mesh"));
-        _jointShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/joint.frag"));
+        auto task = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\joint.task)");
+        auto mesh = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\joint.mesh)");
+        auto frag = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\joint.frag)");
 
-        if (auto result = _jointShader->compile(); result.has_value()) {
+        if (task.has_value()) {
+            shader->addShader(neon::ShaderType::TASK, task.value().toString());
+        }
+        if (mesh.has_value()) {
+            shader->addShader(neon::ShaderType::MESH, mesh.value().toString());
+        }
+        if (frag.has_value()) {
+            shader->addShader(neon::ShaderType::FRAGMENT, frag.value().toString());
+        }
+
+        if (auto result = shader->compile(); result.has_value()) {
             neon::error() << result.value();
+        } else {
+            _jointShader = std::move(shader);
         }
     }
 
@@ -541,6 +565,10 @@ namespace neoneuron {
     void ComplexNeuronScene::reloadShader() {
         std::vector materials = {_neuronMaterial, _jointMaterial, _somaMaterial};
 
+        loadNeuronShader();
+        loadNeuronMaterial();
+        loadJointShader();
+        loadJointMaterial();
         loadSomaShader();
         loadSomaMaterial();
         reassignMaterials();

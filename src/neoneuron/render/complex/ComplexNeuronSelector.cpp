@@ -6,6 +6,7 @@
 
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/render/component/camera/OrbitalCameraController.h>
+#include <neoneuron/structure/NeuronTransform.h>
 
 #include "ComplexNeuronScene.h"
 

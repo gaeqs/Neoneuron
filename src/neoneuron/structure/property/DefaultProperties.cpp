@@ -181,6 +181,39 @@ namespace neoneuron::property {
         return *s;
     }
 
+    bool lodEditor(std::any* property, const PrototypeNeuron* neuron, const AbstractNeuronScene* scene) {
+        auto* i = std::any_cast<uint32_t>(property);
+        if (i == nullptr) return false;
+
+        ImGui::PushItemWidth(-1.0f);
+
+        int item;
+        if (*i < 8) item = 0;
+        else if (*i == 8) item = 1;
+        else item = 2;
+
+        if (ImGui::Combo("Type", &item, "Static\0Dynamic\0Global\0")) {
+            if (item == 0) *i = 0;
+            else if (item == 1) *i = 8;
+            else *i = 9;
+            return true;
+        }
+
+        if (item == 0) {
+            int value = static_cast<int>(*i);
+            if (ImGui::SliderInt("Level of Detail", &value, 0, 7)) {
+                *i = value;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    std::any lodGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene) {
+        return 0u;
+    }
+
     std::any int32FromJson(const nlohmann::json& json) {
         return json.get<int32_t>();
     }

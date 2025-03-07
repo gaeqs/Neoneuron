@@ -100,9 +100,9 @@ bool shouldUpdate(Neuron neuron, uint currentLocalLod) {
         return (neuron.neuronId & 63u) == (frame & 63u) || neuron.updateFrame == frame;
     } else {
         if(neuron.lodMode < 8) {
-            return currentLocalLod != neuron.lodMode;
+            return currentLocalLod != neuron.lodMode || neuron.updateFrame == frame;
         } else {
-            return currentLocalLod != lod;
+            return currentLocalLod != lod || neuron.updateFrame == frame;
         }
     }
 }

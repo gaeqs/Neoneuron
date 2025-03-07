@@ -24,6 +24,7 @@ namespace neoneuron {
                 property::transformFromJson
             }
         );
+
         storage.add(
             PROPERTY_NAME,
             {
@@ -35,6 +36,20 @@ namespace neoneuron {
                 property::nameGenerator,
                 property::nameToJson,
                 property::nameFromJson
+            }
+        );
+
+        storage.add(
+            PROPERTY_LOD,
+            {
+                PROPERTY_LOD,
+                typeid(uint32_t),
+                PropertyTarget::NEURON,
+                "Level of Detail",
+                property::lodEditor,
+                property::lodGenerator,
+                property::uint32ToJson,
+                property::uint32FromJson
             }
         );
 
