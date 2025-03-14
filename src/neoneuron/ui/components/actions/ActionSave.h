@@ -15,7 +15,7 @@ namespace neoneuron {
 
         void run();
 
-        neon::Coroutine<> saveCoroutine(std::unordered_set<UID> uids);
+        neon::Coroutine<> saveCoroutine(std::unordered_set<mnemea::UID> uids);
 
     public:
         ActionSave(AbstractNeuronScene* scene);

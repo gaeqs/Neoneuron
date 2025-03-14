@@ -6,7 +6,10 @@
 #define ABSTRACTNEURONSCENE_H
 
 #include <rush/rush.h>
-#include <neoneuron/structure/prototype/PrototypeNeuron.h>
+
+#include <mnemea/Dataset.h>
+#include <mnemea/Neuron.h>
+
 #include <neoneuron/render/AbstractSelector.h>
 
 namespace neoneuron {
@@ -32,23 +35,27 @@ namespace neoneuron {
 
         [[nodiscard]] virtual size_t getSomasAmount() = 0;
 
-        [[nodiscard]] virtual const std::vector<std::shared_ptr<PrototypeNeuron>>& getPrototypeNeurons() const = 0;
+        [[nodiscard]] virtual mnemea::Dataset& getDataset() = 0;
 
-        [[nodiscard]] virtual std::optional<PrototypeNeuron*> findPrototypeNeuron(UID uid) = 0;
+        [[nodiscard]] virtual const mnemea::Dataset& getDataset() const = 0;
 
-        [[nodiscard]] virtual std::optional<const PrototypeNeuron*> findPrototypeNeuron(UID uid) const = 0;
+        [[nodiscard]] virtual std::optional<mnemea::Neuron*> findPrototypeNeuron(mnemea::UID uid) = 0;
 
-        virtual bool addNeuron(const PrototypeNeuron& neuron) = 0;
+        [[nodiscard]] virtual std::optional<const mnemea::Neuron*> findPrototypeNeuron(mnemea::UID uid) const = 0;
 
-        virtual bool addNeuron(PrototypeNeuron&& neuron) = 0;
+        virtual bool addNeuron(const mnemea::Neuron& neuron) = 0;
 
-        virtual bool removeNeuron(UID neuronId) = 0;
+        virtual bool addNeuron(mnemea::Neuron&& neuron) = 0;
+
+        virtual bool removeNeuron(mnemea::UID neuronId) = 0;
 
         [[nodiscard]] virtual rush::AABB<3, float> getSceneBoundingBox() const = 0;
 
-        virtual void refreshNeuronProperty(UID neuronId, const std::string& propertyName) = 0;
+        virtual void refreshNeuronProperty(mnemea::UID neuronId, const std::string& propertyName) = 0;
 
-        [[nodiscard]] virtual UID findAvailableUID() const = 0;
+        [[nodiscard]] virtual mnemea::UID findAvailableUID() const = 0;
+
+        virtual void checkForNewNeurons() = 0;
     };
 }
 

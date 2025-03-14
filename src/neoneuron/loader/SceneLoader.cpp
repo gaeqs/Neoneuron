@@ -9,13 +9,13 @@
 namespace neoneuron {
     nlohmann::json saveScene(NeoneuronRender* render) {
         nlohmann::json json;
-        nlohmann::json jsonNeurons = nlohmann::json::array();
+       /* nlohmann::json jsonNeurons = nlohmann::json::array();
 
         auto& props = render->getNeoneuronApplication()->getPropertyStorage();
 
-        for (auto& neuron: render->getNeuronScene()->getPrototypeNeurons()) {
+        for (auto& neuron: render->getNeuronScene()->getDataset().getNeurons()) {
             nlohmann::json jsonNeuron = nlohmann::json::object();
-            jsonNeuron["id"] = neuron->getId();
+            jsonNeuron["id"] = neuron.getUID();
 
             nlohmann::json jsonGlobalProperties = nlohmann::json::object();
             auto& propNames = neuron->getPropertiesNames();
@@ -53,7 +53,7 @@ namespace neoneuron {
             jsonNeurons.push_back(jsonNeuron);
         }
         json["neurons"] = jsonNeurons;
-
+*/
         return json;
     }
 }

@@ -5,18 +5,18 @@
 #include "ActionShuffle.h"
 
 #include <imgui.h>
-#include <neoneuron/structure/NeuronTransform.h>
-#include <neoneuron/structure/prototype/NeuronProperties.h>
+#include <mnemea/DefaultProperties.h>
+#include <mnemea/util/NeuronTransform.h>
 
 namespace neoneuron {
-    void ActionShuffle::shuffle(PrototypeNeuron* neuron) {
+    void ActionShuffle::shuffle(mnemea::UID prop, mnemea::Neuron* neuron) {
         std::uniform_real_distribution dis(-1.0f, 1.0f);
         std::uniform_real_distribution rDis(0.0f, 1.0f);
 
         auto v = rush::Vec3f(dis(_randomGenerator), dis(_randomGenerator), dis(_randomGenerator));
         v = v.normalized() * std::cbrt(rDis(_randomGenerator)) * _radius;
 
-        NeuronTransform transform;
+        mnemea::NeuronTransform transform;
         transform.setPosition(_center + v);
 
         if (_shuffleRotation) {
@@ -25,21 +25,22 @@ namespace neoneuron {
             transform.setRotation(r);
         }
 
-        neuron->defineAndSetProperty(PROPERTY_TRANSFORM, transform);
-        _scene->refreshNeuronProperty(neuron->getId(), PROPERTY_TRANSFORM);
+        neuron->setPropertyAsAny(prop, transform);
+        _scene->refreshNeuronProperty(neuron->getUID(), mnemea::PROPERTY_TRANSFORM);
     }
 
     void ActionShuffle::run() {
+        auto propId = _scene->getDataset().getProperties().defineProperty(mnemea::PROPERTY_TRANSFORM);
         auto& neurons = _scene->getSelector().getSelectedNeurons();
         if (neurons.empty()) {
             // Shuffle all neurons
-            for (auto& neuron: _scene->getPrototypeNeurons()) {
-                shuffle(neuron.get());
+            for (auto& neuron: _scene->getDataset().getNeurons()) {
+                shuffle(propId, &neuron);
             }
         } else {
             for (auto& uid: neurons) {
                 if (auto neuron = _scene->findPrototypeNeuron(uid); neuron.has_value()) {
-                    shuffle(neuron.value());
+                    shuffle(propId, neuron.value());
                 }
             }
         }

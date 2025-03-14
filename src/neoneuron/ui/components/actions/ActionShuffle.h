@@ -19,7 +19,7 @@ namespace neoneuron {
         std::random_device _randomDevice;
         std::mt19937 _randomGenerator;
 
-        void shuffle(PrototypeNeuron* neuron);
+        void shuffle(mnemea::UID prop, mnemea::Neuron* neuron);
 
         void run();
 

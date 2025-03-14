@@ -5,8 +5,8 @@
 #include "ComplexGPUNeuron.h"
 
 #include <utility>
-#include <neoneuron/structure/NeuronTransform.h>
-
+#include <mnemea/util/NeuronTransform.h>
+#include <neoneuron/application/NeoneuronDefaults.h>
 
 namespace neoneuron {
     void ComplexGPUNeuron::generateSegmentInstances(const ComplexNeuron* neuron) {
@@ -14,7 +14,7 @@ namespace neoneuron {
         for (auto& segments = neuron->getSegments(); auto& segment: segments) {
             if (auto result = instanceData->createInstance(); result.isOk()) {
                 _segmentInstances.push_back(result.getResult());
-                _segmentInstancesByUID[segment.getId()] = result.getResult();
+                _segmentInstancesByUID[segment.getUID()] = result.getResult();
             } else {
                 neon::error() << "Cannot create new instances!";
                 break;
@@ -27,7 +27,7 @@ namespace neoneuron {
         for (auto& joints = neuron->getJoints(); auto& joint: joints) {
             if (auto result = instanceData->createInstance(); result.isOk()) {
                 _jointInstances.push_back(result.getResult());
-                _jointInstancesByUID[joint.getId()] = result.getResult();
+                _jointInstancesByUID[joint.getUID()] = result.getResult();
             } else {
                 neon::error() << "Cannot create new instances!";
                 break;
@@ -40,7 +40,7 @@ namespace neoneuron {
         for (auto& somas = neuron->getSomas(); auto& soma: somas) {
             if (auto result = instanceData->createInstance(); result.isOk()) {
                 _somaInstances.push_back(result.getResult());
-                _somaInstancesByUID[soma.getId()] = result.getResult();
+                _somaInstancesByUID[soma.getUID()] = result.getResult();
             } else {
                 neon::error() << "Cannot create new instances!";
                 break;
@@ -52,13 +52,13 @@ namespace neoneuron {
         auto buffer = _globalInstanceData.lock();
         if (buffer == nullptr) return;
 
-        UID maxSegment = 0;
+        mnemea::UID maxSegment = 0;
         for (auto& segment: neuron->getSegments()) {
-            maxSegment = std::max(maxSegment, segment.getId());
+            maxSegment = std::max(maxSegment, segment.getUID());
         }
 
         ComplexGPUNeuronGlobalData data{
-            .neuronId = neuron->getId(),
+            .neuronId = neuron->getUID(),
             .lodMode = 8,
             .updateFrame = frame,
             .segmentsAmount = maxSegment,
@@ -67,17 +67,22 @@ namespace neoneuron {
             .normal = rush::Mat4f(1.0f)
         };
 
-        auto* prototype = neuron->getPrototypeNeuron().value_or(nullptr);
-        if (prototype != nullptr) {
-            auto transform = prototype->getProperty<NeuronTransform>(PROPERTY_TRANSFORM);
-            if (transform.has_value()) {
-                data.model = transform->getModel();
-                data.normal = transform->getNormal();
-            }
+        auto* prototype = neuron->getPrototypeNeuron();
+        auto* dataset = neuron->getDataset();
+        if (prototype != nullptr && dataset != nullptr) {
+            auto prop = dataset->getProperties().getPropertyUID(mnemea::PROPERTY_TRANSFORM);
+            if (prop.has_value()) {
+                auto transform = prototype->getProperty<mnemea::NeuronTransform>(prop.value());
+                if (transform.has_value()) {
+                    data.model = transform->getModel();
+                    data.normal = transform->getNormal();
+                }
 
-            auto lod = prototype->getProperty<uint32_t>(PROPERTY_LOD);
-            if (lod.has_value()) {
-                data.lodMode = *lod;
+                if (auto lodProp = dataset->getProperties().getPropertyUID(PROPERTY_LOD); lodProp.has_value()) {
+                    if (auto lod = prototype->getProperty<uint32_t>(lodProp.value()); lod.has_value()) {
+                        data.lodMode = *lod;
+                    }
+                }
             }
         }
 
@@ -100,7 +105,7 @@ namespace neoneuron {
                 parentIndex = *_segmentInstances[i].id;
             }
 
-            auto joint = neuron->findJoint(segment.getId());
+            auto joint = neuron->findJoint(segment.getUID());
 
             uint32_t metadata = static_cast<uint32_t>(segment.getType()) & 0b11111111;;
             if (joint.has_value()) {
@@ -111,7 +116,7 @@ namespace neoneuron {
 
             ComplexGPUNeuronSegment gpu(
                 *_globalInstance.id,
-                segment.getId(),
+                segment.getUID(),
                 metadata,
                 parentIndex,
                 rush::Vec4f(segment.getEnd(), segment.getEndRadius())
@@ -129,7 +134,7 @@ namespace neoneuron {
         for (size_t i = 0; i < _jointInstances.size(); ++i) {
             auto& joint = neuron->getJoints()[i];
 
-            uint32_t parentInstance = *_segmentInstances[neuron->findSegmentIndex(joint.getId()).value()].id;
+            uint32_t parentInstance = *_segmentInstances[neuron->findSegmentIndex(joint.getUID()).value()].id;
 
             ComplexGPUNeuronJoint gpu{
                 parentInstance,
@@ -152,7 +157,7 @@ namespace neoneuron {
 
         for (size_t i = 0; i < _somaInstances.size(); ++i) {
             auto& soma = neuron->getSomas()[i];
-            uint32_t segment = *_segmentInstances[neuron->findSegmentIndex(soma.getId()).value()].id;
+            uint32_t segment = *_segmentInstances[neuron->findSegmentIndex(soma.getUID()).value()].id;
 
             ComplexGPUNeuronSoma gpu{
                 segment,
@@ -258,20 +263,20 @@ namespace neoneuron {
 
     void ComplexGPUNeuron::refreshProperty(const ComplexNeuron* neuron, uint32_t frame,
                                            const std::string& propertyName) {
-        if (propertyName == PROPERTY_TRANSFORM) {
+        if (propertyName == mnemea::PROPERTY_TRANSFORM) {
             refreshGlobalData(neuron, frame);
         } else if (propertyName == PROPERTY_LOD) {
             refreshGlobalData(neuron, frame);
         }
     }
 
-    std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findSegment(UID uid) const {
+    std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findSegment(mnemea::UID uid) const {
         auto id = _segmentInstancesByUID.find(uid);
         if (id == _segmentInstancesByUID.end()) return {};
         return id->second;
     }
 
-    std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findJoint(UID uid) const {
+    std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findJoint(mnemea::UID uid) const {
         auto id = _jointInstancesByUID.find(uid);
         if (id == _segmentInstancesByUID.end()) return {};
         return id->second;

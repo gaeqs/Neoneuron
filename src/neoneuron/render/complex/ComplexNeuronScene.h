@@ -51,7 +51,7 @@ namespace neoneuron {
         std::shared_ptr<neon::Model> _jointModel;
         std::shared_ptr<neon::Model> _somaModel;
 
-        std::vector<std::shared_ptr<PrototypeNeuron>> _prototypes;
+        mnemea::Dataset _dataset;
         std::vector<ComplexNeuron> _neurons;
         std::vector<ComplexGPUNeuron> _gpuNeurons;
         rush::AABB<3, float> _sceneBoundingBox;
@@ -109,39 +109,43 @@ namespace neoneuron {
 
         [[nodiscard]] size_t getSomasAmount() override;
 
-        [[nodiscard]] const std::vector<std::shared_ptr<PrototypeNeuron>>& getPrototypeNeurons() const override;
+        [[nodiscard]] mnemea::Dataset& getDataset() override;
 
-        [[nodiscard]] std::optional<PrototypeNeuron*> findPrototypeNeuron(UID uid) override;
+        [[nodiscard]] const mnemea::Dataset& getDataset() const override;
 
-        [[nodiscard]] std::optional<const PrototypeNeuron*> findPrototypeNeuron(UID uid) const override;
+        [[nodiscard]] std::optional<mnemea::Neuron*> findPrototypeNeuron(mnemea::UID uid) override;
 
-        [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(UID uid);
+        [[nodiscard]] std::optional<const mnemea::Neuron*> findPrototypeNeuron(mnemea::UID uid) const override;
 
-        [[nodiscard]] std::optional<const ComplexNeuron*> findNeuron(UID uid) const;
+        [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(mnemea::UID uid);
 
-        [[nodiscard]] std::optional<ComplexGPUNeuron*> findGPUNeuron(UID uid);
+        [[nodiscard]] std::optional<const ComplexNeuron*> findNeuron(mnemea::UID uid) const;
 
-        [[nodiscard]] std::optional<const ComplexGPUNeuron*> findGPUNeuron(UID uid) const;
+        [[nodiscard]] std::optional<ComplexGPUNeuron*> findGPUNeuron(mnemea::UID uid);
 
-        bool addNeuron(const PrototypeNeuron& neuron) override;
+        [[nodiscard]] std::optional<const ComplexGPUNeuron*> findGPUNeuron(mnemea::UID uid) const;
 
-        bool addNeuron(PrototypeNeuron&& neuron) override;
+        bool addNeuron(const mnemea::Neuron& neuron) override;
 
-        bool removeNeuron(UID neuronId) override;
+        bool addNeuron(mnemea::Neuron&& neuron) override;
+
+        bool removeNeuron(mnemea::UID neuronId) override;
 
         [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
 
         const std::shared_ptr<neon::ShaderUniformBuffer>& getUBO() const;
 
-        void refreshNeuronProperty(UID neuronId, const std::string& propertyName) override;
+        void refreshNeuronProperty(mnemea::UID neuronId, const std::string& propertyName) override;
 
-        [[nodiscard]] UID findAvailableUID() const override;
+        [[nodiscard]] mnemea::UID findAvailableUID() const override;
 
         [[nodiscard]] bool isWireframeMode() const;
 
         void setWireframeMode(bool wireframe);
 
         void reloadShader();
+
+        void checkForNewNeurons() override;
     };
 }
 

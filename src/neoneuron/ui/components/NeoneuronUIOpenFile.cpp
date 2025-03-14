@@ -4,35 +4,41 @@
 
 #include "NeoneuronUIOpenFile.h"
 
+#include <mnemea/loader/BlueConfigLoader.h>
+#include <mnemea/loader/SWCLoader.h>
 #include <neon/util/Chronometer.h>
 #include <neoneuron/application/NeoneuronApplication.h>
-#include <neoneuron/loader/SWCLoader.h>
-#include <neoneuron/loader/XMLLoader.h>
 #include <neoneuron/render/NeoneuronRender.h>
 
 
 namespace neoneuron {
     std::string NeoneuronUiOpenFile::fetchBestLoaderName() const {
-        auto extension = _path.extension().string();
-        std::ranges::transform(extension, extension.begin(), [](unsigned char c) {
-            return std::tolower(c);
-        });
+        auto name = _path.filename().string();
+        for (auto& loader: _loaders) {
+            if (loader.supportsFile(name)) return loader.getDisplayName();
+        }
 
-        if (extension == ".xml") return XML_LOADER_NAME;
-        return SWC_LOADER_NAME;
+        return mnemea::SWC_LOADER_NAME;
     }
 
     int NeoneuronUiOpenFile::fetchLoaderIndex(const std::string& name) const {
         for (int i = 0; i < _loaders.size(); ++i) {
-            if (_loaders[i]->getName() == name) return i;
+            if (_loaders[i].getDisplayName() == name) return i;
         }
         return -1;
     }
 
-    std::unique_ptr<Loader> NeoneuronUiOpenFile::generateLoader() const {
-        auto loader = _loaders[_selectedLoader]->build(_fileSystem.get(), _file);
-        loader->setPath(_path);
-        return loader;
+    std::unique_ptr<mnemea::Loader> NeoneuronUiOpenFile::generateLoader() const {
+        auto fileProvider = [&](std::filesystem::path path) {
+            return _fileSystem->readFile(path)->readLines();
+        };
+
+        auto loader = _loaders[_selectedLoader].create(fileProvider, _path);
+        if (!loader.isOk()) {
+            std::cerr << loader.getError() << std::endl;
+            return nullptr;
+        }
+        return std::move(loader.getResult());
     }
 
     void NeoneuronUiOpenFile::loaderCombo() {
@@ -43,14 +49,14 @@ namespace neoneuron {
         ImGui::Combo(
             "##loader",
             &_selectedLoader,
-            _loaderNames.data(),
-            _loaderNames.size()
+            _loaderCNames.data(),
+            _loaderCNames.size()
         );
     }
 
     void NeoneuronUiOpenFile::uidProviderCombo() {
         if (_selectedLoader < 0 || _selectedLoader >= _loaders.size()) return;
-        if (!_loaders[_selectedLoader]->providesUIDs()) return;
+        if (!_loaders[_selectedLoader].providesUIDs()) return;
 
         ImGui::AlignTextToFramePadding();
         ImGui::Text("UID Provider:");
@@ -84,16 +90,25 @@ namespace neoneuron {
         ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 140.0f);
         if (ImGui::Button("Load", ImVec2(120, 0))) {
             neon::Chronometer chrono;
+            auto loader = generateLoader();
+            loader->addUIDProvider([&] {
+                return _scene->findAvailableUID();
+            });
 
-            if (auto result = generateLoader()->build(); result.isOk()) {
-                for (auto& prototype: result.getResult()) {
-                    changeNeuronUID(prototype);
-                    _scene->addNeuron(std::move(prototype));
-                }
-                _scene->getRender()->focusScene();
-            } else {
-                getLogger().error(result.getError());
+            if (auto* l = dynamic_cast<mnemea::BlueConfigLoader*>(loader.get())) {
+                l->addTarget("sergio");
             }
+
+            auto listener = loader->createListener([](mnemea::LoaderStatus status) {
+                std::cout << status.currentTask << " (" << status.stagesCompleted << "/" << status.stages << ")" <<
+                        std::endl;
+            });
+
+            loader->load(_scene->getDataset());
+            _scene->checkForNewNeurons();
+            _scene->getRender()->focusScene();
+
+
             ImGui::CloseCurrentPopup();
             getLogger().debug(neon::MessageBuilder()
                 .print("Time required to load: ")
@@ -101,12 +116,6 @@ namespace neoneuron {
                 .print(" seconds."));
         }
         ImGui::EndDisabled();
-    }
-
-    void NeoneuronUiOpenFile::changeNeuronUID(PrototypeNeuron& neuron) const {
-        auto& loader = _loaders[_selectedLoader];
-        if (loader->providesUIDs() && _uidProvider == UIDProvider::FILE) return;
-        neuron.setId(_scene->findAvailableUID());
     }
 
     NeoneuronUiOpenFile::NeoneuronUiOpenFile(AbstractNeuronScene* scene,
@@ -120,10 +129,14 @@ namespace neoneuron {
           _open(false),
           _selectedLoader(0),
           _uidProvider(UIDProvider::FILE) {
-        auto& loaders = scene->getRender()->getNeoneuronApplication()->getLoaderStorage();
-        for (auto& loader: loaders | std::views::values) {
-            _loaders.push_back(&loader);
-            _loaderNames.push_back(loader.getDisplayName().c_str());
+        auto& loaders = scene->getRender()->getNeoneuronApplication()->getLoaderRegistry();
+        for (auto& loader: loaders.getAll()) {
+            _loaders.push_back(loader);
+            _loaderNames.push_back(loader.getDisplayName());
+        }
+
+        for (auto& loader: _loaderNames) {
+            _loaderCNames.push_back(loader.c_str());
         }
 
         _selectedLoader = fetchLoaderIndex(fetchBestLoaderName());

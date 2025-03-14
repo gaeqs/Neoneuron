@@ -5,6 +5,10 @@
 #ifndef STORAGE_H
 #define STORAGE_H
 
+#include <string>
+#include <unordered_map>
+#include <optional>
+
 namespace neoneuron {
     template<typename Type, typename Key = std::string>
     class Storage {

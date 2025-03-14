@@ -9,8 +9,7 @@
 #include <string>
 #include <typeindex>
 #include <neoneuron/render/AbstractNeuronScene.h>
-#include <neoneuron/structure/prototype/PrototypeNeuron.h>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 
 namespace neoneuron {
     enum class PropertyTarget {
@@ -22,10 +21,10 @@ namespace neoneuron {
     class DefinedProperty {
     public:
         using EditorFunction = std::function<bool(std::any* property,
-                                                  const PrototypeNeuron* neuron,
+                                                  const mnemea::Neuron* neuron,
                                                   const AbstractNeuronScene* scene)>;
 
-        using GeneratorFunction = std::function<std::any(const PrototypeNeuron* neuron,
+        using GeneratorFunction = std::function<std::any(const mnemea::Neuron* neuron,
                                                          const AbstractNeuronScene* scene)>;
 
         using ToJsonFunction = std::function<nlohmann::json(const std::any& any)>;
@@ -47,10 +46,11 @@ namespace neoneuron {
         DefinedProperty(std::string name, std::type_index type, PropertyTarget target, std::string displayName);
 
         DefinedProperty(std::string name, std::type_index type, PropertyTarget target, std::string displayName,
-            EditorFunction editor, GeneratorFunction generator);
+                        EditorFunction editor, GeneratorFunction generator);
 
         DefinedProperty(std::string name, std::type_index type, PropertyTarget target, std::string displayName,
-            EditorFunction editor, GeneratorFunction generator, ToJsonFunction toJson, FromJsonFunction fromJson);
+                        EditorFunction editor, GeneratorFunction generator, ToJsonFunction toJson,
+                        FromJsonFunction fromJson);
 
         [[nodiscard]] const std::string& getName() const;
 

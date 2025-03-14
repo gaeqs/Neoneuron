@@ -2,33 +2,34 @@
 // Created by gaeqs on 23/12/2024.
 //
 
-#ifndef DEFAULTPROPERTIES_H
-#define DEFAULTPROPERTIES_H
-#include <neoneuron/render/AbstractNeuronScene.h>
-#include <neoneuron/structure/prototype/PrototypeNeuron.h>
+#ifndef NEONEURON_DEFAULTPROPERTIES_H
+#define NEONEURON_DEFAULTPROPERTIES_H
+
+#include <mnemea/Neuron.h>
 #include <nlohmann/json_fwd.hpp>
+#include <neoneuron/render/AbstractNeuronScene.h>
 
 
 namespace neoneuron::property {
-    bool transformEditor(std::any* property, const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+    bool transformEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
 
-    std::any transformGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+    std::any transformGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
 
     std::any transformFromJson(const nlohmann::json& json);
 
     nlohmann::json transformToJson(const std::any& any);
 
-    bool nameEditor(std::any* property, const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+    bool nameEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
 
-    std::any nameGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+    std::any nameGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
 
     std::any nameFromJson(const nlohmann::json& json);
 
     nlohmann::json nameToJson(const std::any& any);
 
-    bool lodEditor(std::any* property, const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+    bool lodEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
 
-    std::any lodGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene);
+    std::any lodGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
 
     std::any int32FromJson(const nlohmann::json& json);
 
@@ -53,4 +54,4 @@ namespace neoneuron::property {
 }
 
 
-#endif //DEFAULTPROPERTIES_H
+#endif //NEONEURON_DEFAULTPROPERTIES_H

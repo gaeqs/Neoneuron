@@ -9,10 +9,8 @@
 #include <neon/logging/Logger.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
-#include <neoneuron/loader/SWCLoader.h>
 
 #include "application/NeoneuronApplication.h"
-#include "loader/XMLLoader.h"
 
 
 CMRC_DECLARE(resources);

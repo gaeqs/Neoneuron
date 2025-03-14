@@ -3,10 +3,6 @@
 //
 
 #include "NeoneuronApplication.h"
-
-#include <neoneuron/loader/SWCLoader.h>
-#include <neoneuron/loader/XMLLoader.h>
-
 #include "NeoneuronDefaults.h"
 
 namespace neoneuron {
@@ -22,7 +18,6 @@ namespace neoneuron {
         : _settings(loadSettings()),
           _render(this, std::move(renderCreateInfo)) {
         initDefaultProperties(_propertyStorage);
-        initDefaultLoaders(_loaderStorage);
     }
 
     NeoneuronRender& NeoneuronApplication::getRender() {
@@ -49,11 +44,11 @@ namespace neoneuron {
         return _propertyStorage;
     }
 
-    Storage<LoaderBuilder>& NeoneuronApplication::getLoaderStorage() {
+    mnemea::LoaderRegistry& NeoneuronApplication::getLoaderRegistry() {
         return _loaderStorage;
     }
 
-    const Storage<LoaderBuilder>& NeoneuronApplication::getLoaderStorage() const {
+    const mnemea::LoaderRegistry& NeoneuronApplication::getLoaderRegistry() const {
         return _loaderStorage;
     }
 

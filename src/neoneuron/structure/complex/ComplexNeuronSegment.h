@@ -7,36 +7,35 @@
 
 #include <optional>
 
-#include <neoneuron/structure/Identifiable.h>
 #include <rush/rush.h>
-
-#include <neoneuron/structure/prototype/NeuronProperties.h>
+#include <mnemea/DefaultProperties.h>
+#include <mnemea/Identifiable.h>
 
 namespace neoneuron {
-    class ComplexNeuronSegment : public Identifiable {
-        SegmentType _type;
+    class ComplexNeuronSegment : public mnemea::Identifiable {
+        mnemea::NeuriteType _type;
         rush::Vec3f _start;
         rush::Vec3f _end;
         float _startRadius;
         float _endRadius;
-        std::optional<UID> _parentID;
+        std::optional<mnemea::UID> _parentID;
         uint32_t _lod;
 
     public:
         ComplexNeuronSegment(
-            UID id,
-            SegmentType type,
+            mnemea::UID id,
+            mnemea::NeuriteType type,
             const rush::Vec3f& start,
             const rush::Vec3f& end,
             float startRadius,
             float endRadius,
-            const std::optional<UID>& parentId = {},
+            const std::optional<mnemea::UID>& parentId = {},
             uint32_t lod = 0
         );
 
-        [[nodiscard]] SegmentType getType() const;
+        [[nodiscard]] mnemea::NeuriteType getType() const;
 
-        void setType(SegmentType type);
+        void setType(mnemea::NeuriteType type);
 
         [[nodiscard]] rush::Vec3f getStart() const;
 
@@ -54,9 +53,9 @@ namespace neoneuron {
 
         void setEndRadius(float endRadius);
 
-        [[nodiscard]] std::optional<UID> getParentId() const;
+        [[nodiscard]] std::optional<mnemea::UID> getParentId() const;
 
-        void setParentId(const UID& parentId);
+        void setParentId(const mnemea::UID& parentId);
 
         [[nodiscard]] uint32_t getLod() const;
 

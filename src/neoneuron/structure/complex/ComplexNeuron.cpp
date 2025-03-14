@@ -5,10 +5,9 @@
 #include "ComplexNeuron.h"
 
 #include <neon/logging/Logger.h>
-#include <neoneuron/structure/NeuronTransform.h>
+#include <mnemea/util/NeuronTransform.h>
 
 namespace neoneuron {
-    class NeuronTransform;
 
     void ComplexNeuron::calculateBoundingBox() {
         if (_segments.empty()) {
@@ -23,13 +22,17 @@ namespace neoneuron {
             max = rush::max(max, _segments[i].getEnd());
         }
 
-        auto prototype = _prototypeNeuron.lock();
-        if (prototype != nullptr) {
-            auto transform = prototype->getProperty<NeuronTransform>(PROPERTY_TRANSFORM);
-            if (transform.has_value()) {
-                auto model = transform.value().getModel();
-                min = model * rush::Vec4f(min, 1.0f);
-                max = model * rush::Vec4f(max, 1.0f);
+
+        if (_dataset != nullptr) {
+            auto prop = _dataset->getProperties().getPropertyUID(mnemea::PROPERTY_TRANSFORM);
+            auto prototype = getPrototypeNeuron();
+            if (prototype != nullptr && prop.has_value()) {
+                auto transform = prototype->getProperty<mnemea::NeuronTransform>(prop.value());
+                if (transform.has_value()) {
+                    auto model = transform.value().getModel();
+                    min = model * rush::Vec4f(min, 1.0f);
+                    max = model * rush::Vec4f(max, 1.0f);
+                }
             }
         }
         _boundingBox = rush::AABB<3, float>::fromEdges(min, max);
@@ -44,18 +47,18 @@ namespace neoneuron {
                 auto parent = _segmentsByUID.find(segment.getParentId().value());
                 if (parent == _segmentsByUID.end()) continue;
                 // Avoid adding somas!
-                if (_segments[parent->second].getType() == SegmentType::SOMA) continue;
+                if (_segments[parent->second].getType() == mnemea::NeuriteType::SOMA) continue;
 
                 auto it = _jointsByUID.find(segment.getParentId().value());
                 if (it == _jointsByUID.end()) {
                     ComplexJoint joint(
                         segment.getParentId().value(),
-                        {segment.getId()}
+                        {segment.getUID()}
                     );
                     _jointsByUID.insert({segment.getParentId().value(), _joints.size()});
                     _joints.push_back(std::move(joint));
                 } else {
-                    _joints[it->second].getChildren().push_back(segment.getId());
+                    _joints[it->second].getChildren().push_back(segment.getUID());
                 }
             }
         }
@@ -71,9 +74,9 @@ namespace neoneuron {
 
         // Find somas
         for (auto& segment: _segments) {
-            if (segment.getType() == SegmentType::SOMA) {
-                _somasByUID.insert({segment.getId(), _somas.size()});
-                _somas.emplace_back(segment.getId());
+            if (segment.getType() == mnemea::NeuriteType::SOMA) {
+                _somasByUID.insert({segment.getUID(), _somas.size()});
+                _somas.emplace_back(segment.getUID());
             }
         }
 
@@ -82,7 +85,7 @@ namespace neoneuron {
             if (!segment.getParentId().has_value()) continue;
             auto it = _somasByUID.find(segment.getParentId().value());
             if (it == _somasByUID.end()) continue;
-            _somas[it->second].getChildren().push_back(segment.getId());
+            _somas[it->second].getChildren().push_back(segment.getUID());
         }
     }
 
@@ -90,7 +93,7 @@ namespace neoneuron {
         for (auto& segment: _segments) {
             // We want to start the algorithm from the segment that represents
             // a joint with two or more children or a segment that has no children.
-            auto joint = findJoint(segment.getId());
+            auto joint = findJoint(segment.getUID());
             if (joint.has_value() && joint.value()->getChildren().size() == 1) continue;
             calculateLODFrom(&segment);
         }
@@ -122,7 +125,7 @@ namespace neoneuron {
             auto parent = &_segments[it->second];
             auto parentJoint = findJoint(parentId.value());
             if (parentJoint.has_value() && parentJoint.value()->getChildren().size() > 1) break;
-            if (parent->getType() == SegmentType::SOMA) break;
+            if (parent->getType() == mnemea::NeuriteType::SOMA) break;
             parent->setLod(0);
             segments.push_back(parent);
             parentId = parent->getParentId();
@@ -162,8 +165,8 @@ namespace neoneuron {
     }
 
     ComplexNeuron::ComplexNeuron(ComplexNeuron&& other) noexcept
-        : Identifiable(other.getId()),
-          _prototypeNeuron(std::move(other._prototypeNeuron)),
+        : Identifiable(other.getUID()),
+          _dataset(std::move(other._dataset)),
           _segments(std::move(other._segments)),
           _segmentsByUID(std::move(other._segmentsByUID)),
           _joints(std::move(other._joints)),
@@ -176,7 +179,7 @@ namespace neoneuron {
         if (this == &other)
             return *this;
         Identifiable::operator =(std::move(other));
-        _prototypeNeuron = std::move(other._prototypeNeuron);
+        _dataset = std::move(other._dataset);
         _segments = std::move(other._segments);
         _segmentsByUID = std::move(other._segmentsByUID);
         _joints = std::move(other._joints);
@@ -187,49 +190,54 @@ namespace neoneuron {
         return *this;
     }
 
-    ComplexNeuron::ComplexNeuron() : Identifiable(std::numeric_limits<UID>::max()) {}
+    ComplexNeuron::ComplexNeuron(mnemea::Dataset* dataset, mnemea::Neuron* prototype)
+        : Identifiable(prototype->getUID()),
+          _dataset(dataset) {
+        auto morphology = prototype->getMorphology();
+        if (!morphology.has_value()) {
+            neon::error() << "Morphology has not been set";
+            return;
+        }
 
-    ComplexNeuron::ComplexNeuron(std::shared_ptr<PrototypeNeuron> prototype)
-        : Identifiable(prototype->getId()),
-          _prototypeNeuron(prototype) {
-        std::optional<UID> propType = prototype->getPropertyUID(PROPERTY_TYPE);
-        std::optional<UID> propEnd = prototype->getPropertyUID(PROPERTY_END);
-        std::optional<UID> propRadius = prototype->getPropertyUID(PROPERTY_RADIUS);
-        std::optional<UID> propParent = prototype->getPropertyUID(PROPERTY_PARENT);
+        auto& props = dataset->getProperties();
+        std::optional<mnemea::UID> propType = props.getPropertyUID(mnemea::PROPERTY_NEURITE_TYPE);
+        std::optional<mnemea::UID> propEnd = props.getPropertyUID(mnemea::PROPERTY_POSITION);
+        std::optional<mnemea::UID> propRadius = props.getPropertyUID(mnemea::PROPERTY_RADIUS);
+        std::optional<mnemea::UID> propParent = props.getPropertyUID(mnemea::PROPERTY_PARENT);
         if (!propType.has_value() || !propEnd.has_value() || !propRadius.has_value() || !propParent.has_value()) {
             neon::error() << "Cannot load neuron, properties are not found.";
             return;
         }
 
-        _segments.reserve(prototype->getSegments().size());
-        for (auto& segment: prototype->getSegments()) {
-            auto type = segment.getProperty<SegmentType>(propType.value());
+        auto neurites = morphology.value()->getNeurites();
+        _segments.reserve(neurites.size());
+        for (auto& segment: neurites) {
+            auto type = segment.getProperty<mnemea::NeuriteType>(propType.value());
             auto end = segment.getProperty<rush::Vec3f>(propEnd.value());
             auto radius = segment.getProperty<float>(propRadius.value());
-            auto parent = segment.getProperty<int64_t>(propParent.value());
+            auto parent = segment.getProperty<mnemea::UID>(propParent.value());
 
-            if (!type.has_value() || !end.has_value() || !radius.has_value() || !parent.has_value()) {
+            if (!type.has_value() || !end.has_value() || !radius.has_value()) {
                 neon::error() << "Cannot load section "
-                        << segment.getId()
+                        << segment.getUID()
                         << ". Properties are not found. "
                         << "Type: " << type.has_value()
                         << ", End: " << end.has_value()
-                        << ", Radius: " << radius.has_value()
-                        << ", Parent: " << parent.has_value();
+                        << ", Radius: " << radius.has_value();
                 continue;
             }
 
             _segments.emplace_back(
-                segment.getId(),
+                segment.getUID(),
                 type.value(),
                 end.value(),
                 end.value(),
                 radius.value(),
                 radius.value(),
-                parent.value() >= 0 ? std::optional(static_cast<UID>(parent.value())) : std::optional<UID>()
+                parent
             );
 
-            _segmentsByUID.emplace(segment.getId(), _segmentsByUID.size());
+            _segmentsByUID.emplace(segment.getUID(), _segmentsByUID.size());
         }
 
         // Load parent data
@@ -250,34 +258,20 @@ namespace neoneuron {
         recalculateMetadata();
     }
 
-    ComplexNeuron::ComplexNeuron(UID uid, const std::vector<ComplexNeuronSegment>& segments)
-        : Identifiable(uid),
-          _segments(segments) {
-        for (size_t i = 0; i < _segments.size(); ++i) {
-            _segmentsByUID.emplace(_segments[i].getId(), i);
-        }
-        recalculateMetadata();
+    mnemea::Neuron* ComplexNeuron::getPrototypeNeuron() {
+        return _dataset->getNeuron(getUID()).value_or(nullptr);
     }
 
-    ComplexNeuron::ComplexNeuron(UID uid, std::vector<ComplexNeuronSegment>&& segments)
-        : Identifiable(uid),
-          _segments(std::move(segments)) {
-        for (size_t i = 0; i < _segments.size(); ++i) {
-            _segmentsByUID.emplace(_segments[i].getId(), i);
-        }
-        recalculateMetadata();
+    const mnemea::Neuron* ComplexNeuron::getPrototypeNeuron() const {
+        return _dataset->getNeuron(getUID()).value_or(nullptr);
     }
 
-    std::optional<PrototypeNeuron*> ComplexNeuron::getPrototypeNeuron() {
-        auto prototype = _prototypeNeuron.lock();
-        if (prototype == nullptr) return {};
-        return prototype.get();
+    mnemea::Dataset* ComplexNeuron::getDataset() {
+        return _dataset;
     }
 
-    std::optional<const PrototypeNeuron*> ComplexNeuron::getPrototypeNeuron() const {
-        auto prototype = _prototypeNeuron.lock();
-        if (prototype == nullptr) return {};
-        return prototype.get();
+    const mnemea::Dataset* ComplexNeuron::getDataset() const {
+        return _dataset;
     }
 
     rush::AABB<3, float> ComplexNeuron::getBoundingBox() const {
@@ -288,13 +282,13 @@ namespace neoneuron {
         return _segments;
     }
 
-    std::optional<const ComplexNeuronSegment*> ComplexNeuron::findSegment(UID uid) const {
+    std::optional<const ComplexNeuronSegment*> ComplexNeuron::findSegment(mnemea::UID uid) const {
         auto it = _segmentsByUID.find(uid);
         if (it == _segmentsByUID.end()) return {};
         return &_segments[it->second];
     }
 
-    std::optional<size_t> ComplexNeuron::findSegmentIndex(UID uid) const {
+    std::optional<size_t> ComplexNeuron::findSegmentIndex(mnemea::UID uid) const {
         auto it = _segmentsByUID.find(uid);
         if (it == _segmentsByUID.end()) return {};
         return it->second;
@@ -304,13 +298,13 @@ namespace neoneuron {
         return _joints;
     }
 
-    std::optional<const ComplexJoint*> ComplexNeuron::findJoint(UID uid) const {
+    std::optional<const ComplexJoint*> ComplexNeuron::findJoint(mnemea::UID uid) const {
         auto it = _jointsByUID.find(uid);
         if (it == _jointsByUID.end()) return {};
         return &_joints[it->second];
     }
 
-    std::optional<size_t> ComplexNeuron::findJointIndex(UID uid) const {
+    std::optional<size_t> ComplexNeuron::findJointIndex(mnemea::UID uid) const {
         auto it = _jointsByUID.find(uid);
         if (it == _jointsByUID.end()) return {};
         return it->second;
@@ -320,13 +314,13 @@ namespace neoneuron {
         return _somas;
     }
 
-    std::optional<const ComplexSoma*> ComplexNeuron::findSoma(UID uid) const {
+    std::optional<const ComplexSoma*> ComplexNeuron::findSoma(mnemea::UID uid) const {
         auto it = _somasByUID.find(uid);
         if (it == _somasByUID.end()) return {};
         return &_somas[it->second];
     }
 
-    std::optional<size_t> ComplexNeuron::findSomaIndex(UID uid) const {
+    std::optional<size_t> ComplexNeuron::findSomaIndex(mnemea::UID uid) const {
         auto it = _somasByUID.find(uid);
         if (it == _somasByUID.end()) return {};
         return it->second;
@@ -340,7 +334,7 @@ namespace neoneuron {
     }
 
     void ComplexNeuron::refreshProperty(const std::string& propertyName) {
-        if (propertyName == PROPERTY_TRANSFORM) {
+        if (propertyName == mnemea::PROPERTY_TRANSFORM) {
             calculateBoundingBox();
         }
     }

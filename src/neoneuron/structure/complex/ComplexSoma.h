@@ -6,21 +6,20 @@
 #define COMPLEXSOMA_H
 
 #include <vector>
-#include <neoneuron/structure/Identifiable.h>
-#include <rush/vector/vec.h>
+#include <mnemea/Identifiable.h>
 
 namespace neoneuron {
-    class ComplexSoma : public Identifiable {
-        std::vector<UID> _children;
+    class ComplexSoma : public mnemea::Identifiable {
+        std::vector<mnemea::UID> _children;
 
     public:
-        ComplexSoma(UID id, std::vector<UID> children);
+        ComplexSoma(mnemea::UID id, std::vector<mnemea::UID> children);
 
-        explicit ComplexSoma(UID id);
+        explicit ComplexSoma(mnemea::UID id);
 
-        [[nodiscard]] std::vector<UID>& getChildren();
+        [[nodiscard]] std::vector<mnemea::UID>& getChildren();
 
-        [[nodiscard]] const std::vector<UID>& getChildren() const;
+        [[nodiscard]] const std::vector<mnemea::UID>& getChildren() const;
     };
 }
 

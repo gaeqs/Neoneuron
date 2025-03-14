@@ -6,7 +6,7 @@
 #define NEONEURONUIOPENFILE_H
 
 #include <neon/Neon.h>
-#include <neoneuron/loader/Loader.h>
+#include <mnemea/loader/Loader.h>
 #include <neoneuron/render/AbstractNeuronScene.h>
 
 namespace neoneuron {
@@ -22,8 +22,9 @@ namespace neoneuron {
         neon::File _file;
         bool _open;
 
-        std::vector<LoaderBuilder*> _loaders;
-        std::vector<const char*> _loaderNames;
+        std::vector<mnemea::LoaderFactory> _loaders;
+        std::vector<std::string> _loaderNames;
+        std::vector<const char*> _loaderCNames;
         int _selectedLoader;
 
         UIDProvider _uidProvider;
@@ -32,15 +33,13 @@ namespace neoneuron {
 
         [[nodiscard]] int fetchLoaderIndex(const std::string& name) const;
 
-        [[nodiscard]] std::unique_ptr<Loader> generateLoader() const;
+        [[nodiscard]] std::unique_ptr<mnemea::Loader> generateLoader() const;
 
         void loaderCombo();
 
         void uidProviderCombo();
 
         void loadButton() const;
-
-        void changeNeuronUID(PrototypeNeuron& neuron) const;
 
     public:
         explicit NeoneuronUiOpenFile(AbstractNeuronScene* scene,

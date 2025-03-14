@@ -5,12 +5,12 @@
 #include "DefaultProperties.h"
 
 #include <imgui.h>
-#include <neoneuron/structure/NeuronTransform.h>
+#include <mnemea/util/NeuronTransform.h>
 #include <nlohmann/json.hpp>
 
 namespace neoneuron::property {
-    bool transformEditor(std::any* property, const PrototypeNeuron* neuron, const AbstractNeuronScene* scene) {
-        auto* t = std::any_cast<NeuronTransform>(property);
+    bool transformEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
+        auto* t = std::any_cast<mnemea::NeuronTransform>(property);
         if (t == nullptr) return false;
 
         auto p = t->getPosition();
@@ -49,12 +49,12 @@ namespace neoneuron::property {
         return updated;
     }
 
-    std::any transformGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene) {
-        return NeuronTransform();
+    std::any transformGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
+        return mnemea::NeuronTransform();
     }
 
     std::any transformFromJson(const nlohmann::json& json) {
-        NeuronTransform t;
+        mnemea::NeuronTransform t;
         if (json.contains("rotation")) {
             if (auto& rot = json["rotation"]; rot.is_object()) {
                 rush::Vec3f result;
@@ -127,7 +127,7 @@ namespace neoneuron::property {
     }
 
     nlohmann::json transformToJson(const std::any& any) {
-        const auto* t = std::any_cast<NeuronTransform>(&any);
+        const auto* t = std::any_cast<mnemea::NeuronTransform>(&any);
         if (t == nullptr) return nlohmann::json::object();
         nlohmann::json json = nlohmann::json::object();
         json["rotation"]["pitch"] = t->getRotation().x();
@@ -142,7 +142,7 @@ namespace neoneuron::property {
         return json;
     }
 
-    bool nameEditor(std::any* property, const PrototypeNeuron* neuron, const AbstractNeuronScene* scene) {
+    bool nameEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
         constexpr size_t BUF_SIZE = 64;
         auto* s = std::any_cast<std::string>(property);
         if (s == nullptr) return false;
@@ -167,7 +167,7 @@ namespace neoneuron::property {
         return false;
     }
 
-    std::any nameGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene) {
+    std::any nameGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
         return std::string();
     }
 
@@ -181,7 +181,7 @@ namespace neoneuron::property {
         return *s;
     }
 
-    bool lodEditor(std::any* property, const PrototypeNeuron* neuron, const AbstractNeuronScene* scene) {
+    bool lodEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
         auto* i = std::any_cast<uint32_t>(property);
         if (i == nullptr) return false;
 
@@ -210,7 +210,7 @@ namespace neoneuron::property {
         return false;
     }
 
-    std::any lodGenerator(const PrototypeNeuron* neuron, const AbstractNeuronScene* scene) {
+    std::any lodGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
         return 0u;
     }
 

@@ -446,7 +446,7 @@ void main() {
     Joint joint = joints[td.joint];
     if (joint.amount == 1) {
         joint1(joint);
-    } else if (joint.amount == 2) {
+    } else if (joint.amount >= 2) {
         joint2(joint);
     }
 }

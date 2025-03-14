@@ -102,11 +102,11 @@ namespace neoneuron {
         size_t _somaInstanceDataIndex;
         neon::InstanceData::Instance _globalInstance;
         std::vector<neon::InstanceData::Instance> _segmentInstances;
-        std::unordered_map<UID, neon::InstanceData::Instance> _segmentInstancesByUID;
+        std::unordered_map<mnemea::UID, neon::InstanceData::Instance> _segmentInstancesByUID;
         std::vector<neon::InstanceData::Instance> _jointInstances;
-        std::unordered_map<UID, neon::InstanceData::Instance> _jointInstancesByUID;
+        std::unordered_map<mnemea::UID, neon::InstanceData::Instance> _jointInstancesByUID;
         std::vector<neon::InstanceData::Instance> _somaInstances;
-        std::unordered_map<UID, neon::InstanceData::Instance> _somaInstancesByUID;
+        std::unordered_map<mnemea::UID, neon::InstanceData::Instance> _somaInstancesByUID;
         bool _valid;
 
 
@@ -147,9 +147,9 @@ namespace neoneuron {
 
         void refreshProperty(const ComplexNeuron* neuron, uint32_t frame, const std::string& propertyName);
 
-        std::optional<neon::InstanceData::Instance> findSegment(UID uid) const;
+        std::optional<neon::InstanceData::Instance> findSegment(mnemea::UID uid) const;
 
-        std::optional<neon::InstanceData::Instance> findJoint(UID uid) const;
+        std::optional<neon::InstanceData::Instance> findJoint(mnemea::UID uid) const;
 
         ComplexGPUNeuron& operator=(ComplexGPUNeuron&& other) noexcept;
     };

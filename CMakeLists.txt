@@ -16,6 +16,15 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/nativefiledialog/src/include
 
 add_subdirectory(lib)
 
+FetchContent_Declare(
+        mnemea
+        GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mnemea.git
+        GIT_TAG master
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/mnemea
+)
+
+FetchContent_MakeAvailable(mnemea)
+
 find_package(Vulkan REQUIRED)
 find_package(pugixml REQUIRED)
 
@@ -37,7 +46,7 @@ endif ()
 find_package(glfw3 CONFIG REQUIRED)
 list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
-list(APPEND LIBRARIES neon nfd hey pugixml)
+list(APPEND LIBRARIES neon nfd hey pugixml mnemea)
 
 include_directories(src)
 add_subdirectory(src)

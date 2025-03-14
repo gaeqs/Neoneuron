@@ -7,24 +7,23 @@
 
 #include <vector>
 #include <unordered_map>
+#include <mnemea/Dataset.h>
+#include <mnemea/Neuron.h>
 
-#include <neoneuron/structure/Identifiable.h>
 #include <neoneuron/structure/complex/ComplexNeuronSegment.h>
-
-#include <neoneuron/structure/prototype/PrototypeNeuron.h>
 
 #include "ComplexJoint.h"
 #include "ComplexSoma.h"
 
 namespace neoneuron {
-    class ComplexNeuron : public Identifiable {
-        std::weak_ptr<PrototypeNeuron> _prototypeNeuron;
+    class ComplexNeuron : public mnemea::Identifiable {
+        mnemea::Dataset* _dataset;
         std::vector<ComplexNeuronSegment> _segments;
-        std::unordered_map<UID, size_t> _segmentsByUID;
+        std::unordered_map<mnemea::UID, size_t> _segmentsByUID;
         std::vector<ComplexJoint> _joints;
-        std::unordered_map<UID, size_t> _jointsByUID;
+        std::unordered_map<mnemea::UID, size_t> _jointsByUID;
         std::vector<ComplexSoma> _somas;
-        std::unordered_map<UID, size_t> _somasByUID;
+        std::unordered_map<mnemea::UID, size_t> _somasByUID;
         rush::AABB<3, float> _boundingBox;
 
         void calculateBoundingBox();
@@ -44,37 +43,35 @@ namespace neoneuron {
 
         ComplexNeuron& operator=(ComplexNeuron&& other) noexcept;
 
-        ComplexNeuron();
+        ComplexNeuron(mnemea::Dataset* dataset, mnemea::Neuron* prototype);
 
-        explicit ComplexNeuron(std::shared_ptr<PrototypeNeuron> prototype);
+        mnemea::Neuron* getPrototypeNeuron();
 
-        ComplexNeuron(UID uid, const std::vector<ComplexNeuronSegment>& segments);
+        const mnemea::Neuron* getPrototypeNeuron() const;
 
-        ComplexNeuron(UID uid, std::vector<ComplexNeuronSegment>&& segments);
+        mnemea::Dataset* getDataset();
 
-        std::optional<PrototypeNeuron*> getPrototypeNeuron();
-
-        std::optional<const PrototypeNeuron*> getPrototypeNeuron() const;
+        const mnemea::Dataset* getDataset() const;
 
         [[nodiscard]] rush::AABB<3, float> getBoundingBox() const;
 
         [[nodiscard]] const std::vector<ComplexNeuronSegment>& getSegments() const;
 
-        [[nodiscard]] std::optional<const ComplexNeuronSegment*> findSegment(UID uid) const;
+        [[nodiscard]] std::optional<const ComplexNeuronSegment*> findSegment(mnemea::UID uid) const;
 
-        [[nodiscard]] std::optional<size_t> findSegmentIndex(UID uid) const;
+        [[nodiscard]] std::optional<size_t> findSegmentIndex(mnemea::UID uid) const;
 
         [[nodiscard]] const std::vector<ComplexJoint>& getJoints() const;
 
-        [[nodiscard]] std::optional<const ComplexJoint*> findJoint(UID uid) const;
+        [[nodiscard]] std::optional<const ComplexJoint*> findJoint(mnemea::UID uid) const;
 
-        [[nodiscard]] std::optional<size_t> findJointIndex(UID uid) const;
+        [[nodiscard]] std::optional<size_t> findJointIndex(mnemea::UID uid) const;
 
         [[nodiscard]] const std::vector<ComplexSoma>& getSomas() const;
 
-        [[nodiscard]] std::optional<const ComplexSoma*> findSoma(UID uid) const;
+        [[nodiscard]] std::optional<const ComplexSoma*> findSoma(mnemea::UID uid) const;
 
-        [[nodiscard]] std::optional<size_t> findSomaIndex(UID uid) const;
+        [[nodiscard]] std::optional<size_t> findSomaIndex(mnemea::UID uid) const;
 
         void recalculateMetadata();
 

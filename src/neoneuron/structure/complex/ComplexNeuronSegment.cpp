@@ -6,13 +6,13 @@
 
 namespace neoneuron {
     ComplexNeuronSegment::ComplexNeuronSegment(
-        UID id,
-        SegmentType type,
+        mnemea::UID id,
+        mnemea::NeuriteType type,
         const rush::Vec3f& start,
         const rush::Vec3f& end,
         float startRadius,
         float endRadius,
-        const std::optional<UID>& parentId,
+        const std::optional<mnemea::UID>& parentId,
         uint32_t lod
     ): Identifiable(id),
        _type(type),
@@ -23,7 +23,7 @@ namespace neoneuron {
        _parentID(parentId),
        _lod(lod) {}
 
-    SegmentType ComplexNeuronSegment::getType() const {
+    mnemea::NeuriteType ComplexNeuronSegment::getType() const {
         return _type;
     }
 
@@ -43,11 +43,11 @@ namespace neoneuron {
         return _endRadius;
     }
 
-    std::optional<UID> ComplexNeuronSegment::getParentId() const {
+    std::optional<mnemea::UID> ComplexNeuronSegment::getParentId() const {
         return _parentID;
     }
 
-    void ComplexNeuronSegment::setType(SegmentType type) {
+    void ComplexNeuronSegment::setType(mnemea::NeuriteType type) {
         _type = type;
     }
 
@@ -67,7 +67,7 @@ namespace neoneuron {
         _endRadius = endRadius;
     }
 
-    void ComplexNeuronSegment::setParentId(const UID& parentId) {
+    void ComplexNeuronSegment::setParentId(const mnemea::UID& parentId) {
         _parentID = parentId;
     }
 

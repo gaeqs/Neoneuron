@@ -4,17 +4,21 @@
 
 #include "ComplexNeuronSelector.h"
 
+#include <mnemea/Neuron.h>
+
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/render/component/camera/OrbitalCameraController.h>
-#include <neoneuron/structure/NeuronTransform.h>
+
+#include <mnemea/util/NeuronTransform.h>
 
 #include "ComplexNeuronScene.h"
 
 namespace neoneuron {
+
     namespace {
-        rush::Mat4f fetchTransform(const ComplexNeuron& neuron) {
-            if (auto prototype = neuron.getPrototypeNeuron(); prototype.value()) {
-                auto transform = prototype.value()->getProperty<NeuronTransform>(PROPERTY_TRANSFORM);
+        rush::Mat4f fetchTransform(mnemea::UID propId, const ComplexNeuron& neuron) {
+            if (auto prototype = neuron.getPrototypeNeuron(); prototype != nullptr) {
+                auto transform = prototype->getProperty<mnemea::NeuronTransform>(propId);
                 if (transform.has_value()) {
                     return transform.value().getModel();
                 }
@@ -55,7 +59,7 @@ namespace neoneuron {
           _binding(binding),
           _centerAccumulatorAmount(0) {}
 
-    const std::unordered_set<UID> ComplexNeuronSelector::getSelectedNeurons() {
+    const std::unordered_set<mnemea::UID> ComplexNeuronSelector::getSelectedNeurons() {
         return _selectedNeurons;
     }
 
@@ -64,16 +68,16 @@ namespace neoneuron {
             clearSelection();
         }
 
-        std::unordered_map<UID, rush::Mat4f> transforms;
+        std::unordered_map<mnemea::UID, rush::Mat4f> transforms;
 
         for (auto& any: selection.selections) {
-            if (any.type() != typeid(rush::Vec<2, UID>)) continue;
-            auto pair = std::any_cast<rush::Vec<2, UID>>(any);
+            if (any.type() != typeid(rush::Vec<2, mnemea::UID>)) continue;
+            auto pair = std::any_cast<rush::Vec<2, mnemea::UID>>(any);
 
             neon::debug() << "Selected: " << pair;
 
-            UID neuronId = pair[0];
-            UID sectionId = pair[1];
+            mnemea::UID neuronId = pair[0];
+            mnemea::UID sectionId = pair[1];
             selectSection(neuronId, sectionId, &transforms);
         }
 
@@ -89,7 +93,7 @@ namespace neoneuron {
         _centerAccumulatorAmount = 0;
     }
 
-    void ComplexNeuronSelector::selectNeuron(UID neuronId) {
+    void ComplexNeuronSelector::selectNeuron(mnemea::UID neuronId) {
         auto* buffer = static_cast<ComplexGPUNeuronSelectionData*>(_uniformBuffer->fetchData(_binding));
 
         auto neuron = _scene->findGPUNeuron(neuronId);
@@ -97,31 +101,34 @@ namespace neoneuron {
         auto realNeuron = _scene->findNeuron(neuronId);
         if (!realNeuron.has_value()) return;
 
-        rush::Mat4f transform = fetchTransform(*realNeuron.value());
+        auto propId = _scene->getDataset().getProperties().getPropertyUID(mnemea::PROPERTY_TRANSFORM);
 
-        for (auto& segment: realNeuron.value()->getSegments()) {
-            if (auto gpuSegment = neuron.value()->findSegment(segment.getId()); gpuSegment.has_value()) {
-                ComplexSelectionEntry entry{neuronId, segment.getId()};
-                if (_selection.contains(entry)) continue;
-                uint32_t id = *gpuSegment.value().id;
-                _selection[entry] = gpuSegment.value();
-                _activeIndices.push_back(id);
-                (buffer + id)->selected = true;
+        if (propId.has_value()) {
+            rush::Mat4f transform = fetchTransform(propId.value(), *realNeuron.value());
+            for (auto& segment: realNeuron.value()->getSegments()) {
+                if (auto gpuSegment = neuron.value()->findSegment(segment.getUID()); gpuSegment.has_value()) {
+                    ComplexSelectionEntry entry{neuronId, segment.getUID()};
+                    if (_selection.contains(entry)) continue;
+                    uint32_t id = *gpuSegment.value().id;
+                    _selection[entry] = gpuSegment.value();
+                    _activeIndices.push_back(id);
+                    (buffer + id)->selected = true;
 
-                _centerAccumulator += rush::Vec3f(transform * rush::Vec4f(segment.getEnd(), 1.0f));
-                ++_centerAccumulatorAmount;
+                    _centerAccumulator += rush::Vec3f(transform * rush::Vec4f(segment.getEnd(), 1.0f));
+                    ++_centerAccumulatorAmount;
+                }
             }
         }
 
         _selectedNeurons.insert(neuronId);
     }
 
-    void ComplexNeuronSelector::selectSection(UID neuronId, UID sectionId) {
+    void ComplexNeuronSelector::selectSection(mnemea::UID neuronId, mnemea::UID sectionId) {
         selectSection(neuronId, sectionId, nullptr);
     }
 
-    void ComplexNeuronSelector::selectSection(UID neuronId, UID sectionId,
-                                              std::unordered_map<UID, rush::Mat4f>* transforms) {
+    void ComplexNeuronSelector::selectSection(mnemea::UID neuronId, mnemea::UID sectionId,
+                                              std::unordered_map<mnemea::UID, rush::Mat4f>* transforms) {
         auto* buffer = static_cast<ComplexGPUNeuronSelectionData*>(_uniformBuffer->fetchData(_binding));
 
         ComplexSelectionEntry entry{neuronId, sectionId};
@@ -145,10 +152,12 @@ namespace neoneuron {
         auto realSegment = realNeuron.value()->findSegment(sectionId);
         if (!realSegment.has_value()) return;
 
+        auto propId = _scene->getDataset().getProperties().getPropertyUID(mnemea::PROPERTY_TRANSFORM);
+
         rush::Mat4f transform;
-        if (transforms != nullptr) {
+        if (transforms != nullptr && propId.has_value()) {
             if (auto it = transforms->find(neuronId); it == transforms->end()) {
-                transform = fetchTransform(*realNeuron.value());
+                transform = fetchTransform(propId.value(), *realNeuron.value());
                 transforms->insert({neuronId, transform});
             } else {
                 transform = it->second;
@@ -159,7 +168,7 @@ namespace neoneuron {
         ++_centerAccumulatorAmount;
     }
 
-    void ComplexNeuronSelector::deselectNeuron(UID neuronId) {
+    void ComplexNeuronSelector::deselectNeuron(mnemea::UID neuronId) {
         _selectedNeurons.erase(neuronId);
         size_t amount = std::erase_if(_selection, [neuronId](const auto& entry) {
             return entry.first.neuron == neuronId;

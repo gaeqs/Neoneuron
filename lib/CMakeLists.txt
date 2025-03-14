@@ -1,3 +1,2 @@
 add_subdirectory(neon)
 add_subdirectory(nativefiledialog)
-add_subdirectory(hey)

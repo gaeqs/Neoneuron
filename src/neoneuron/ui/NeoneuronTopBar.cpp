@@ -12,8 +12,6 @@
 #include <nfd.hpp>
 #include <nfd_glfw3.h>
 #include <neoneuron/loader/SceneLoader.h>
-#include <neoneuron/loader/SWCLoader.h>
-#include <neoneuron/loader/XMLLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
 

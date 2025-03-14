@@ -14,7 +14,7 @@ namespace neoneuron {
         getTaskRunner().launchCoroutine(saveCoroutine(std::move(selection)));
     }
 
-    neon::Coroutine<> ActionSave::saveCoroutine(std::unordered_set<UID> uids) {
+    neon::Coroutine<> ActionSave::saveCoroutine(std::unordered_set<mnemea::UID> uids) {
         constexpr size_t VALUES_PER_SEGMENT = 64;
         constexpr size_t VALUES_PER_JOINT = 68;
         constexpr size_t VALUES_PER_SOMA = 128 * 64 + 8 * 32;
@@ -23,14 +23,20 @@ namespace neoneuron {
         auto* scene = dynamic_cast<ComplexNeuronScene*>(_scene);
         if (scene == nullptr) co_return;
 
-        for (UID uid: uids) {
+        auto typeProp = _scene->getDataset().getProperties().getPropertyUID(mnemea::PROPERTY_NEURITE_TYPE);
+
+        for (mnemea::UID uid: uids) {
             auto optional = _scene->findPrototypeNeuron(uid);
             if (!optional.has_value()) continue;
             auto* neuron = optional.value();
 
-            UID maxSegment = 0;
-            for (auto& segment: neuron->getSegments()) {
-                maxSegment = std::max(maxSegment, segment.getId());
+            if (!neuron->getMorphology().has_value()) continue;
+
+            auto morph = neuron->getMorphology().value();
+
+            mnemea::UID maxSegment = 0;
+            for (auto& segment: morph->getNeurites()) {
+                maxSegment = std::max(maxSegment, segment.getUID());
             }
 
             auto& ubo = scene->getUBO();
@@ -47,16 +53,14 @@ namespace neoneuron {
             const auto* data = static_cast<const rush::Vec4f*>(ubo->fetchData(7));
             const auto* indices = static_cast<const rush::Vec4i*>(ubo->fetchData(8));
 
-            auto segmentTypeUID = neuron->getPropertyUID(PROPERTY_TYPE);
-
             std::vector<rush::Vec3f> vertices;
-            for (auto& segment: neuron->getSegments()) {
-                bool hasType = segmentTypeUID.has_value();
-                bool isSoma = hasType && segment.getProperty<SegmentType>(segmentTypeUID.value()) == SegmentType::SOMA;
+            for (auto& segment: morph->getNeurites()) {
+                bool hasType = typeProp.has_value();
+                bool isSoma = hasType && segment.getProperty<mnemea::NeuriteType>(typeProp.value()) == mnemea::NeuriteType::SOMA;
 
                 if (!isSoma) {
                     // Segment
-                    size_t offset = segment.getId() * VALUES_PER_SEGMENT;
+                    size_t offset = segment.getUID() * VALUES_PER_SEGMENT;
                     for (size_t i = 0; i < VALUES_PER_SEGMENT; ++i) {
                         rush::Vec4i triangle = indices[i + offset];
                         if (triangle.w() == 0) continue;
@@ -71,7 +75,7 @@ namespace neoneuron {
                     }
 
                     // Joint
-                    offset = VALUES_PER_SEGMENT * (maxSegment + 1) + VALUES_PER_JOINT * segment.getId();
+                    offset = VALUES_PER_SEGMENT * (maxSegment + 1) + VALUES_PER_JOINT * segment.getUID();
                     for (size_t i = 0; i < VALUES_PER_JOINT; ++i) {
                         rush::Vec4i triangle = indices[i + offset];
                         if (triangle.w() == 0) continue;

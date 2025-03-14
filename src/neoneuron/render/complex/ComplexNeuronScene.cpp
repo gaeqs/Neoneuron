@@ -68,52 +68,28 @@ namespace neoneuron {
     }
 
     void ComplexNeuronScene::loadNeuronShader() {
-        auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
-        auto fs = neon::DirectoryFileSystem(std::filesystem::current_path());
+        _neuronShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
 
-        auto task = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\neuron.task)");
-        auto mesh = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\neuron.mesh)");
-        auto frag = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\neuron.frag)");
+        auto fs = cmrc::resources::get_filesystem();
+        _neuronShader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/neuron.task"));
+        _neuronShader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/neuron.mesh"));
+        _neuronShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/neuron.frag"));
 
-        if (task.has_value()) {
-            shader->addShader(neon::ShaderType::TASK, task.value().toString());
-        }
-        if (mesh.has_value()) {
-            shader->addShader(neon::ShaderType::MESH, mesh.value().toString());
-        }
-        if (frag.has_value()) {
-            shader->addShader(neon::ShaderType::FRAGMENT, frag.value().toString());
-        }
-
-        if (auto result = shader->compile(); result.has_value()) {
+        if (auto result = _neuronShader->compile(); result.has_value()) {
             neon::error() << result.value();
-        } else {
-            _neuronShader = std::move(shader);
         }
     }
 
     void ComplexNeuronScene::loadJointShader() {
-        auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Joint");
-        auto fs = neon::DirectoryFileSystem(std::filesystem::current_path());
+        _jointShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
 
-        auto task = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\joint.task)");
-        auto mesh = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\joint.mesh)");
-        auto frag = fs.readFile(R"(C:\Users\gaeqs\CLionProjects\neoneuron\src\resources\shader\neuron\complex\joint.frag)");
+        auto fs = cmrc::resources::get_filesystem();
+        _jointShader->addShader(neon::ShaderType::TASK, fs.open("/shader/neuron/complex/joint.task"));
+        _jointShader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/joint.mesh"));
+        _jointShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/joint.frag"));
 
-        if (task.has_value()) {
-            shader->addShader(neon::ShaderType::TASK, task.value().toString());
-        }
-        if (mesh.has_value()) {
-            shader->addShader(neon::ShaderType::MESH, mesh.value().toString());
-        }
-        if (frag.has_value()) {
-            shader->addShader(neon::ShaderType::FRAGMENT, frag.value().toString());
-        }
-
-        if (auto result = shader->compile(); result.has_value()) {
+        if (auto result = _jointShader->compile(); result.has_value()) {
             neon::error() << result.value();
-        } else {
-            _jointShader = std::move(shader);
         }
     }
 
@@ -361,59 +337,50 @@ namespace neoneuron {
         return _somaModel->getInstanceData(0)->getInstanceAmount();
     }
 
-    const std::vector<std::shared_ptr<PrototypeNeuron>>& ComplexNeuronScene::getPrototypeNeurons() const {
-        return _prototypes;
+    mnemea::Dataset& ComplexNeuronScene::getDataset() {
+        return _dataset;
     }
 
-    std::optional<PrototypeNeuron*> ComplexNeuronScene::findPrototypeNeuron(UID uid) {
-        auto it = std::find_if(
-            _prototypes.begin(), _prototypes.end(),
-            [uid](const auto& neuron) {
-                return uid == neuron->getId();
-            }
-        );
-        if (it == _prototypes.end()) return {};
-        return {it->get()};
+    const mnemea::Dataset& ComplexNeuronScene::getDataset() const {
+        return _dataset;
     }
 
-    std::optional<const PrototypeNeuron*> ComplexNeuronScene::findPrototypeNeuron(UID uid) const {
-        auto it = std::find_if(
-            _prototypes.cbegin(), _prototypes.cend(),
-            [uid](const auto& neuron) {
-                return uid == neuron->getId();
-            }
-        );
-        if (it == _prototypes.cend()) return {};
-        return {it->get()};
+
+    std::optional<mnemea::Neuron*> ComplexNeuronScene::findPrototypeNeuron(mnemea::UID uid) {
+        return _dataset.getNeuron(uid);
     }
 
-    std::optional<ComplexNeuron*> ComplexNeuronScene::findNeuron(UID uid) {
+    std::optional<const mnemea::Neuron*> ComplexNeuronScene::findPrototypeNeuron(mnemea::UID uid) const {
+        return _dataset.getNeuron(uid);
+    }
+
+    std::optional<ComplexNeuron*> ComplexNeuronScene::findNeuron(mnemea::UID uid) {
         auto it = std::find_if(
             _neurons.begin(), _neurons.end(),
             [uid](const ComplexNeuron& neuron) {
-                return uid == neuron.getId();
+                return uid == neuron.getUID();
             }
         );
         if (it == _neurons.end()) return {};
         return {&*it};
     }
 
-    std::optional<const ComplexNeuron*> ComplexNeuronScene::findNeuron(UID uid) const {
+    std::optional<const ComplexNeuron*> ComplexNeuronScene::findNeuron(mnemea::UID uid) const {
         auto it = std::find_if(
             _neurons.cbegin(), _neurons.cend(),
             [uid](const ComplexNeuron& neuron) {
-                return uid == neuron.getId();
+                return uid == neuron.getUID();
             }
         );
         if (it == _neurons.cend()) return {};
         return {&*it};
     }
 
-    std::optional<ComplexGPUNeuron*> ComplexNeuronScene::findGPUNeuron(UID uid) {
+    std::optional<ComplexGPUNeuron*> ComplexNeuronScene::findGPUNeuron(mnemea::UID uid) {
         auto it = std::find_if(
             _neurons.cbegin(), _neurons.cend(),
             [uid](const ComplexNeuron& neuron) {
-                return uid == neuron.getId();
+                return uid == neuron.getUID();
             }
         );
         if (it == _neurons.cend()) return {};
@@ -422,11 +389,11 @@ namespace neoneuron {
         return &_gpuNeurons[index];
     }
 
-    std::optional<const ComplexGPUNeuron*> ComplexNeuronScene::findGPUNeuron(UID uid) const {
+    std::optional<const ComplexGPUNeuron*> ComplexNeuronScene::findGPUNeuron(mnemea::UID uid) const {
         auto it = std::find_if(
             _neurons.cbegin(), _neurons.cend(),
             [uid](const ComplexNeuron& neuron) {
-                return uid == neuron.getId();
+                return uid == neuron.getUID();
             }
         );
         if (it == _neurons.cend()) return {};
@@ -435,9 +402,10 @@ namespace neoneuron {
         return &_gpuNeurons[index];
     }
 
-    bool ComplexNeuronScene::addNeuron(const PrototypeNeuron& neuron) {
-        _prototypes.push_back(std::make_unique<PrototypeNeuron>(neuron));
-        auto result = ComplexNeuron(_prototypes.back());
+    bool ComplexNeuronScene::addNeuron(const mnemea::Neuron& neuron) {
+        auto [it, inserted] = _dataset.addNeuron(neuron);
+        if (!inserted) return false;
+        auto result = ComplexNeuron(&_dataset, it);
         auto bb = result.getBoundingBox();
         _neurons.push_back(std::move(result));
         _gpuNeurons.emplace_back(
@@ -455,10 +423,10 @@ namespace neoneuron {
         return true;
     }
 
-    bool ComplexNeuronScene::addNeuron(PrototypeNeuron&& neuron) {
-        removeNeuron(neuron.getId());
-        _prototypes.push_back(std::make_unique<PrototypeNeuron>(std::move(neuron)));
-        auto result = ComplexNeuron(_prototypes.back());
+    bool ComplexNeuronScene::addNeuron(mnemea::Neuron&& neuron) {
+        auto [it, inserted] = _dataset.addNeuron(neuron);
+        if (!inserted) return false;
+        auto result = ComplexNeuron(&_dataset, it);
         auto bb = result.getBoundingBox();
         _neurons.push_back(std::move(result));
         _gpuNeurons.emplace_back(
@@ -476,12 +444,12 @@ namespace neoneuron {
         return true;
     }
 
-    bool ComplexNeuronScene::removeNeuron(UID neuronId) {
+    bool ComplexNeuronScene::removeNeuron(mnemea::UID neuronId) {
         auto it = std::find_if(
             _neurons.begin(),
             _neurons.end(),
             [&neuronId](const ComplexNeuron& neuron) {
-                return neuron.getId() == neuronId;
+                return neuron.getUID() == neuronId;
             }
         );
 
@@ -489,11 +457,11 @@ namespace neoneuron {
         ptrdiff_t index = it - _neurons.begin();
         _neurons.erase(_neurons.begin() + index);
         _gpuNeurons.erase(_gpuNeurons.begin() + index);
-        _prototypes.erase(_prototypes.begin() + index);
+        _dataset.removeNeuron(neuronId);
 
         auto frame = _render->getApplication().getCurrentFrameInformation().currentFrame;
         for (auto& neuron: _neurons) {
-            if (auto gpuNeuron = findGPUNeuron(neuron.getId()); gpuNeuron.has_value()) {
+            if (auto gpuNeuron = findGPUNeuron(neuron.getUID()); gpuNeuron.has_value()) {
                 gpuNeuron.value()->refreshGPUData(&neuron, frame);
             }
         }
@@ -514,7 +482,7 @@ namespace neoneuron {
         return _ubo;
     }
 
-    void ComplexNeuronScene::refreshNeuronProperty(UID neuronId, const std::string& propertyName) {
+    void ComplexNeuronScene::refreshNeuronProperty(mnemea::UID neuronId, const std::string& propertyName) {
         auto frame = _render->getApplication().getCurrentFrameInformation().currentFrame;
         if (auto neuron = findNeuron(neuronId); neuron.has_value()) {
             neuron.value()->refreshProperty(propertyName);
@@ -524,15 +492,15 @@ namespace neoneuron {
         }
 
 
-        if (propertyName == PROPERTY_TRANSFORM) {
+        if (propertyName == mnemea::PROPERTY_TRANSFORM) {
             recalculateBoundingBox();
         }
     }
 
-    UID ComplexNeuronScene::findAvailableUID() const {
-        std::unordered_set<UID> uids;
+    mnemea::UID ComplexNeuronScene::findAvailableUID() const {
+        std::unordered_set<mnemea::UID> uids;
         for (auto& neuron: _neurons) {
-            uids.insert(neuron.getId());
+            uids.insert(neuron.getUID());
         }
 
         size_t smallest = 0;
@@ -574,5 +542,27 @@ namespace neoneuron {
         reassignMaterials();
 
         _render->getApplication().getTaskRunner().launchCoroutine(deleteCoroutine(std::move(materials)));
+    }
+
+    void ComplexNeuronScene::checkForNewNeurons() {
+        for (auto& neuron: _dataset.getNeurons()) {
+            if (findNeuron(neuron.getUID()).has_value()) continue;
+            std::cout << "Computing neuron " << neuron.getUID() << std::endl;
+            auto result = ComplexNeuron(&_dataset, &neuron);
+            auto bb = result.getBoundingBox();
+            _neurons.push_back(std::move(result));
+            _gpuNeurons.emplace_back(
+                _globalInstanceData,
+                _neuronModel, _jointModel, _somaModel,
+                0, 0, 0,
+                &_neurons.back(),
+                _render->getApplication().getCurrentFrameInformation().currentFrame
+            );
+            if (_neurons.size() == 1) {
+                _sceneBoundingBox = bb;
+            } else {
+                combineBoundingBoxes(bb);
+            }
+        }
     }
 }

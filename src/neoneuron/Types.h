@@ -8,7 +8,6 @@
 #include <cstdint>
 
 namespace neoneuron {
-    using UID = uint32_t;
 }
 
 #endif //TYPES_H

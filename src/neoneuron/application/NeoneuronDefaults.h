@@ -5,14 +5,15 @@
 #ifndef NEONEURONDEFAULTS_H
 #define NEONEURONDEFAULTS_H
 
-#include <neoneuron/loader/Loader.h>
 #include <neoneuron/structure/Storage.h>
 #include <neoneuron/structure/property/DefinedProperty.h>
 
 namespace neoneuron {
+
+    const std::string PROPERTY_LOD = "neoneuron:lod";
+
     void initDefaultProperties(Storage<DefinedProperty>& storage);
 
-    void initDefaultLoaders(Storage<LoaderBuilder>& storage);
 }
 
 

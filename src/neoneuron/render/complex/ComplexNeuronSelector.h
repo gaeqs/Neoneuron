@@ -9,14 +9,14 @@
 #include <neon/render/model/InstanceData.h>
 
 #include <neon/render/shader/ShaderUniformBuffer.h>
-#include <neoneuron/Types.h>
+#include <mnemea/UID.h>
 #include <neoneuron/render/AbstractSelector.h>
 
 
 namespace neoneuron {
     struct ComplexSelectionEntry {
-        UID neuron;
-        UID segment;
+        mnemea::UID neuron;
+        mnemea::UID segment;
 
         bool operator==(const ComplexSelectionEntry& other) const;
 
@@ -47,7 +47,7 @@ namespace neoneuron {
         size_t _binding;
 
         std::unordered_map<ComplexSelectionEntry, neon::InstanceData::Instance> _selection;
-        std::unordered_set<UID> _selectedNeurons;
+        std::unordered_set<mnemea::UID> _selectedNeurons;
         std::vector<uint32_t> _activeIndices;
 
         rush::Vec3f _centerAccumulator;
@@ -64,19 +64,19 @@ namespace neoneuron {
 
         ~ComplexNeuronSelector() override = default;
 
-        const std::unordered_set<UID> getSelectedNeurons() override;
+        const std::unordered_set<mnemea::UID> getSelectedNeurons() override;
 
         void setSelectionData(const Selection& selection) override;
 
         void clearSelection() override;
 
-        void selectNeuron(UID neuronId) override;
+        void selectNeuron(mnemea::UID neuronId) override;
 
-        void selectSection(UID neuronId, UID sectionId) override;
+        void selectSection(mnemea::UID neuronId, mnemea::UID sectionId) override;
 
-        void selectSection(UID neuronId, UID sectionId, std::unordered_map<UID, rush::Mat4f>* transforms);
+        void selectSection(mnemea::UID neuronId, mnemea::UID sectionId, std::unordered_map<mnemea::UID, rush::Mat4f>* transforms);
 
-        void deselectNeuron(UID neuronId) override;
+        void deselectNeuron(mnemea::UID neuronId) override;
 
         void refreshGPUData();
     };

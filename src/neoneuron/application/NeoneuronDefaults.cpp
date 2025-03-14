@@ -4,31 +4,31 @@
 
 #include "NeoneuronDefaults.h"
 
-#include <neoneuron/loader/SWCLoader.h>
-#include <neoneuron/loader/XMLLoader.h>
+#include <mnemea/util/NeuronTransform.h>
+
 #include <neoneuron/structure/property/DefaultProperties.h>
-#include <neoneuron/structure/prototype/NeuronProperties.h>
+#include <mnemea/DefaultProperties.h>
 
 namespace neoneuron {
     void initDefaultProperties(Storage<DefinedProperty>& storage) {
         storage.add(
-            PROPERTY_TRANSFORM,
-            {
-                PROPERTY_TRANSFORM,
-                typeid(NeuronTransform),
+            mnemea::PROPERTY_TRANSFORM,
+            DefinedProperty(
+                mnemea::PROPERTY_TRANSFORM,
+                typeid(mnemea::NeuronTransform),
                 PropertyTarget::NEURON,
                 "Transform",
                 property::transformEditor,
                 property::transformGenerator,
                 property::transformToJson,
                 property::transformFromJson
-            }
+            )
         );
 
         storage.add(
-            PROPERTY_NAME,
-            {
-                PROPERTY_NAME,
+            mnemea::PROPERTY_NAME,
+            DefinedProperty{
+                mnemea::PROPERTY_NAME,
                 typeid(std::string),
                 PropertyTarget::NEURON,
                 "Name",
@@ -41,7 +41,7 @@ namespace neoneuron {
 
         storage.add(
             PROPERTY_LOD,
-            {
+            DefinedProperty{
                 PROPERTY_LOD,
                 typeid(uint32_t),
                 PropertyTarget::NEURON,
@@ -54,9 +54,9 @@ namespace neoneuron {
         );
 
         storage.add(
-            PROPERTY_END,
-            {
-                PROPERTY_END,
+            mnemea::PROPERTY_POSITION,
+            DefinedProperty{
+                mnemea::PROPERTY_POSITION,
                 typeid(rush::Vec3f),
                 PropertyTarget::SEGMENT,
                 "End",
@@ -68,9 +68,9 @@ namespace neoneuron {
         );
 
         storage.add(
-            PROPERTY_RADIUS,
-            {
-                PROPERTY_RADIUS,
+            mnemea::PROPERTY_RADIUS,
+            DefinedProperty{
+                mnemea::PROPERTY_RADIUS,
                 typeid(float),
                 PropertyTarget::SEGMENT,
                 "Radius",
@@ -82,9 +82,9 @@ namespace neoneuron {
         );
 
         storage.add(
-            PROPERTY_PARENT,
-            {
-                PROPERTY_PARENT,
+            mnemea::PROPERTY_PARENT,
+            DefinedProperty{
+                mnemea::PROPERTY_PARENT,
                 typeid(int64_t),
                 PropertyTarget::SEGMENT,
                 "Parent",
@@ -96,9 +96,9 @@ namespace neoneuron {
         );
 
         storage.add(
-            PROPERTY_TYPE,
-            {
-                PROPERTY_TYPE,
+            mnemea::PROPERTY_NEURITE_TYPE,
+            DefinedProperty{
+                mnemea::PROPERTY_NEURITE_TYPE,
                 typeid(int64_t),
                 PropertyTarget::SEGMENT,
                 "Type",
@@ -107,32 +107,6 @@ namespace neoneuron {
                 property::uint32ToJson,
                 property::uint32FromJson
             }
-        );
-    }
-
-    void initDefaultLoaders(Storage<LoaderBuilder>& storage) {
-        storage.add(
-            XML_LOADER_NAME,
-            LoaderBuilder(
-                XML_LOADER_NAME,
-                XML_LOADER_DISPLAY_NAME,
-                [](auto* fileSystem, auto& file) {
-                    return std::make_unique<XMLLoader>(fileSystem, file);
-                },
-                true
-            )
-        );
-
-        storage.add(
-            SWC_LOADER_NAME,
-            LoaderBuilder(
-                SWC_LOADER_NAME,
-                SWC_LOADER_DISPLAY_NAME,
-                [](auto*, auto& file) {
-                    return std::make_unique<SWCLoader>(file);
-                },
-                false
-            )
         );
     }
 }
