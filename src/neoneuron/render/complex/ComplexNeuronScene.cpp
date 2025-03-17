@@ -4,6 +4,7 @@
 
 #include "ComplexNeuronScene.h"
 
+#include <neon/util/Chronometer.h>
 #include <neon/util/task/Coroutine.h>
 #include <neoneuron/render/NeoneuronRender.h>
 
@@ -547,23 +548,39 @@ namespace neoneuron {
     }
 
     void ComplexNeuronScene::checkForNewNeurons() {
+        auto& runner = _render->getApplication().getTaskRunner();
+
+        // Find the neurons
+        std::vector<mnemea::UID> uids;
+
         for (auto& neuron: _dataset.getNeurons()) {
             if (findNeuron(neuron.getUID()).has_value()) continue;
-            auto result = ComplexNeuron(&_dataset, &neuron);
-            auto bb = result.getBoundingBox();
-            _neurons.push_back(std::move(result));
-            _gpuNeurons.emplace_back(
-                _globalInstanceData,
-                _neuronModel, _jointModel, _somaModel,
-                0, 0, 0,
-                &_neurons.back(),
-                _render->getApplication().getCurrentFrameInformation().currentFrame
-            );
-            if (_neurons.size() == 1) {
-                _sceneBoundingBox = bb;
-            } else {
-                combineBoundingBoxes(bb);
-            }
+            uids.push_back(neuron.getUID());
         }
+
+        auto result = runner.executeAsync([](ComplexNeuronScene* scene, std::vector<mnemea::UID> ids) {
+            for (mnemea::UID id: ids) {
+                auto neuron = scene->_dataset.getNeuron(id);
+                if (!neuron.has_value()) continue;
+                auto complex = ComplexNeuron(&scene->_dataset, neuron.value());
+                scene->_render->getApplication().getTaskRunner().executeOnMainThread(
+                    [](ComplexNeuronScene* scene, ComplexNeuron c) {
+                        auto bb = c.getBoundingBox();
+                        scene->_neurons.push_back(std::move(c));
+                        scene->_gpuNeurons.emplace_back(
+                            scene->_globalInstanceData,
+                            scene->_neuronModel, scene->_jointModel, scene->_somaModel,
+                            0, 0, 0,
+                            &scene->_neurons.back(),
+                            scene->_render->getApplication().getCurrentFrameInformation().currentFrame
+                        );
+                        if (scene->_neurons.size() == 1) {
+                            scene->_sceneBoundingBox = bb;
+                        } else {
+                            scene->combineBoundingBoxes(bb);
+                        }
+                    }, scene, std::move(complex));
+            }
+        }, this, std::move(uids));
     }
 }

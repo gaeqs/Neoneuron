@@ -105,9 +105,9 @@ namespace neoneuron {
             });
 
             loader->load(_scene->getDataset());
+            neon::debug() << chrono.elapsedSeconds() << " - Scene loaded. Refreshing scene.";
             _scene->checkForNewNeurons();
-            _scene->getRender()->focusScene();
-
+            neon::debug() << chrono.elapsedSeconds() << " - Scene refreshed successfully.";
 
             ImGui::CloseCurrentPopup();
             getLogger().debug(neon::MessageBuilder()
