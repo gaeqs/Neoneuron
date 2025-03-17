@@ -4,6 +4,9 @@
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/mnemea" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MVDTool" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MVDTool/deps/libsonata" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MVDTool/python/pybind11" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO/3rdparty/Catch2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO/3rdparty/GSL_LITE" vcs="Git" />

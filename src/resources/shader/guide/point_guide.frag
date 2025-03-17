@@ -25,6 +25,7 @@ layout (set = 0, binding = 2) uniform Scene {
     vec3 sceneCenter;
     vec3 sceneRadius;
     uint sectionsAmount;
+    uint jointsAmount;
 };
 
 float timeAlpha () {

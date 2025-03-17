@@ -1,7 +1,8 @@
 #version 460
 #extension GL_EXT_mesh_shader: enable
+#extension GL_KHR_shader_subgroup_ballot: enable
 
-layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
 layout (set = 0, binding = 0) uniform Matrices {
     mat4 view;
@@ -40,6 +41,7 @@ layout (set = 0, binding = 2) uniform Scene {
     vec3 sceneCenter;
     vec3 sceneRadius;
     uint sectionsAmount;
+    uint jointsAmount;
 };
 
 struct Section {
@@ -80,37 +82,75 @@ layout(std430, set = 2, binding = 2) buffer Joints {
 };
 
 struct TaskData {
-    uint instance;
+    uint joint[32];
 };
 
 taskPayloadSharedEXT TaskData td;
 
-uint computeLOD(Neuron neuron, Section segment) {
-    if (neuron.lodMode == 8) {
-        float sceneRadius = neuron.radius;
-        vec3 viewPosition = vec3(view * neuron.model * vec4(segment.endAndRadius.xyz, 1.0f));
-        float distance = length(viewPosition);
-        return 7 - min(uint(distance * 7.0f / sceneRadius), 7);
-    } else {
-        return neuron.lodMode < 8 ? neuron.lodMode : lod;
+bool sphereInFrustum(Neuron neuron, vec3 center, float radius2) {
+    vec3 globalCenter = (neuron.model * vec4(center, 1.0f)).xyz;
+    for (uint i = 0; i < 6; ++i) {
+        vec3 normal = planes[i].xyz;
+        float distance = planes[i].w;
+        float side = dot(globalCenter, normal) + distance;
+        if (side < 0.0f && side * side > radius2) return false;
     }
+
+    return true;
 }
 
-uint calculateEmit() {
-    Joint joint = joints[gl_WorkGroupID.x];
+void generateSphere(Joint joint, out vec3 center, out float radius2) {
     Section parent = sections[joint.parent];
-    Neuron neuron = neurons[parent.neuronIndex];
+    center = parent.endAndRadius.xyz;
 
-    uint localLOD = computeLOD(neuron, parent);
+    vec3 positions[8];
 
-    uint parentLOD = (parent.metadata >> 11u) & 7u;
-    if (parentLOD > localLOD) return 0;
-    if (joint.amount >= minChildrenForJoint) return 1;
-    return 0;
+    for (int i = 0; i < joint.amount; ++i) {
+        Section section = sections[joint.connection[i]];
+        vec3 endDirectionUnorm = section.endAndRadius.xyz - parent.endAndRadius.xyz;
+        vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * startClip;
+        positions[i] = endCenter;
+        center += endCenter;
+    }
+    center /= joint.amount + 1;
+
+    float parentRadius2 = parent.endAndRadius.w * parent.endAndRadius.w;
+    float maxRadius2 = dot(parent.endAndRadius.xyz - center, parent.endAndRadius.xyz - center);
+
+    for (int i = 0; i < joint.amount; ++i) {
+        vec3 position = positions[i];
+        float local = dot(position - center, position - center);
+        if (maxRadius2 < local) {
+            maxRadius2 = local;
+        }
+    }
+
+    float maxRadius = sqrt(maxRadius2) + parent.endAndRadius.w;
+    radius2 = maxRadius2 * maxRadius2;
 }
 
 void main() {
-    td.instance = gl_WorkGroupID.x;
-    EmitMeshTasksEXT(calculateEmit(), 1, 1);
+    Joint joint = joints[gl_GlobalInvocationID.x];
+    Section parent = sections[joint.parent];
+    Neuron neuron = neurons[parent.neuronIndex];
+    bool valid = gl_GlobalInvocationID.x < jointsAmount;
+
+    if (valid) {
+        vec3 center;
+        float radius2;
+        generateSphere(joint, center, radius2);
+        valid = sphereInFrustum(neuron, center, radius2);
+    }
+
+    uvec4 vote = subgroupBallot(valid);
+    uint amount = subgroupBallotBitCount(vote);
+
+
+    if (valid) {
+        uint index = subgroupBallotExclusiveBitCount(vote);
+        td.joint[index] = gl_GlobalInvocationID.x;
+    }
+
+    EmitMeshTasksEXT(amount, 1, 1);
 }
     

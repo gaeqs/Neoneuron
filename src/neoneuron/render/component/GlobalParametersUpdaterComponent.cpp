@@ -46,7 +46,8 @@ namespace neoneuron {
                 bb.center,
                 0,
                 bb.radius,
-                static_cast<uint32_t>(_render.getNeuronScene()->getSectionsAmount())
+                static_cast<uint32_t>(_render.getNeuronScene()->getSectionsAmount()),
+                static_cast<uint32_t>(_render.getNeuronScene()->getJointsAmount()),
             }
         );
     }

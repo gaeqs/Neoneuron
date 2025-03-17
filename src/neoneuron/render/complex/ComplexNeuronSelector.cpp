@@ -14,7 +14,6 @@
 #include "ComplexNeuronScene.h"
 
 namespace neoneuron {
-
     namespace {
         rush::Mat4f fetchTransform(mnemea::UID propId, const ComplexNeuron& neuron) {
             if (auto prototype = neuron.getPrototypeNeuron(); prototype != nullptr) {
@@ -154,7 +153,7 @@ namespace neoneuron {
 
         auto propId = _scene->getDataset().getProperties().getPropertyUID(mnemea::PROPERTY_TRANSFORM);
 
-        rush::Mat4f transform;
+        rush::Mat4f transform(1.0f);
         if (transforms != nullptr && propId.has_value()) {
             if (auto it = transforms->find(neuronId); it == transforms->end()) {
                 transform = fetchTransform(propId.value(), *realNeuron.value());
@@ -165,6 +164,7 @@ namespace neoneuron {
         }
 
         _centerAccumulator += rush::Vec3f(transform * rush::Vec4f(realSegment.value()->getEnd(), 1.0f));
+        neon::debug() << _centerAccumulator;
         ++_centerAccumulatorAmount;
     }
 

@@ -8,7 +8,6 @@
 #include <mnemea/util/NeuronTransform.h>
 
 namespace neoneuron {
-
     void ComplexNeuron::calculateBoundingBox() {
         if (_segments.empty()) {
             _boundingBox = {};
@@ -42,6 +41,7 @@ namespace neoneuron {
         _joints.clear();
         _jointsByUID.clear();
 
+        std::map<mnemea::UID, ComplexJoint> prototypes;
         for (auto& segment: _segments) {
             if (segment.getParentId().has_value()) {
                 auto parent = _segmentsByUID.find(segment.getParentId().value());
@@ -49,22 +49,31 @@ namespace neoneuron {
                 // Avoid adding somas!
                 if (_segments[parent->second].getType() == mnemea::NeuriteType::SOMA) continue;
 
-                auto it = _jointsByUID.find(segment.getParentId().value());
-                if (it == _jointsByUID.end()) {
+                auto it = prototypes.find(segment.getParentId().value());
+                if (it == prototypes.end()) {
                     ComplexJoint joint(
                         segment.getParentId().value(),
                         {segment.getUID()}
                     );
-                    _jointsByUID.insert({segment.getParentId().value(), _joints.size()});
-                    _joints.push_back(std::move(joint));
+                    prototypes.insert({segment.getParentId().value(), joint});
                 } else {
-                    _joints[it->second].getChildren().push_back(segment.getUID());
+                    it->second.getChildren().push_back(segment.getUID());
                 }
             }
         }
 
-        for (auto& joint: _joints) {
+        // Add children attribute and filter 1-1 joints
+        _jointsByUID.reserve(prototypes.size());
+        _joints.reserve(prototypes.size());
+        for (auto& [id, joint]: prototypes) {
+            if (auto segment = _segmentsByUID.find(id); segment != _segmentsByUID.end()) {
+                _segments[segment->second].setChildrenAmount(joint.getChildren().size());
+            }
+
+            if (joint.getChildren().size() < 2) continue;
             joint.computeRotationIndex(*this);
+            _jointsByUID.insert({id, _joints.size()});
+            _joints.push_back(std::move(joint));
         }
     }
 
@@ -238,6 +247,23 @@ namespace neoneuron {
             );
 
             _segmentsByUID.emplace(segment.getUID(), _segmentsByUID.size());
+        }
+
+        // Add soma!
+        auto soma = morphology.value()->getSoma();
+        if (soma.has_value()) {
+            auto s = soma.value();
+            _segments.emplace_back(
+                s->getUID(),
+                mnemea::NeuriteType::SOMA,
+                s->getCenter(),
+                s->getCenter(),
+                s->getBestMeanRadius(),
+                s->getBestMeanRadius(),
+                std::optional<mnemea::UID>()
+            );
+
+            _segmentsByUID.emplace(s->getUID(), _segmentsByUID.size());
         }
 
         // Load parent data

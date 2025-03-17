@@ -38,7 +38,7 @@ namespace neoneuron {
                 d.childrenRotationIndexOffset = static_cast<uint32_t>(aux);
 
                 aux = static_cast<int>(d.minChildrenForJoint);
-                ImGui::SliderInt("Min children required to generate a joint", &aux, 1, 8);
+                ImGui::SliderInt("Min children required to generate a joint", &aux, 2, 8);
                 d.minChildrenForJoint = static_cast<uint32_t>(aux);
 
                 aux = static_cast<int>(d.verticesPerCircle);

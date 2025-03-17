@@ -108,9 +108,7 @@ namespace neoneuron {
             auto joint = neuron->findJoint(segment.getUID());
 
             uint32_t metadata = static_cast<uint32_t>(segment.getType()) & 0b11111111;;
-            if (joint.has_value()) {
-                metadata += (static_cast<uint32_t>(joint.value()->getChildren().size()) & 0b111) << 8;
-            }
+            metadata += (segment.getChildrenAmount() & 0b111) << 8;
             metadata += (segment.getLod() & 0b111) << 11;
             metadata += 7 << 14;
 

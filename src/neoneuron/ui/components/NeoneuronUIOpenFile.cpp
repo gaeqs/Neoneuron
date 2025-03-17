@@ -96,7 +96,7 @@ namespace neoneuron {
             });
 
             if (auto* l = dynamic_cast<mnemea::BlueConfigLoader*>(loader.get())) {
-                l->addTarget("sergio");
+                l->addTarget("MiniColumn_501");
             }
 
             auto listener = loader->createListener([](mnemea::LoaderStatus status) {

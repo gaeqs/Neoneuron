@@ -13,6 +13,7 @@ namespace neoneuron {
         float startRadius,
         float endRadius,
         const std::optional<mnemea::UID>& parentId,
+        uint32_t childrenAmount,
         uint32_t lod
     ): Identifiable(id),
        _type(type),
@@ -21,6 +22,7 @@ namespace neoneuron {
        _startRadius(startRadius),
        _endRadius(endRadius),
        _parentID(parentId),
+       _childrenAmount(childrenAmount),
        _lod(lod) {}
 
     mnemea::NeuriteType ComplexNeuronSegment::getType() const {
@@ -69,6 +71,18 @@ namespace neoneuron {
 
     void ComplexNeuronSegment::setParentId(const mnemea::UID& parentId) {
         _parentID = parentId;
+    }
+
+    uint32_t ComplexNeuronSegment::getChildrenAmount() const {
+        return _childrenAmount;
+    }
+
+    void ComplexNeuronSegment::setChildrenAmount(uint32_t childrenAmount) {
+        _childrenAmount = childrenAmount;
+    }
+
+    void ComplexNeuronSegment::addChildrenToCount() {
+        ++_childrenAmount;
     }
 
     uint32_t ComplexNeuronSegment::getLod() const {

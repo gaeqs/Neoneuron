@@ -97,7 +97,7 @@ layout(std430, set = 2, binding = 8) buffer SavingIndices {
 };
 
 struct TaskData {
-    uint joint;
+    uint joint[32];
 };
 
 taskPayloadSharedEXT TaskData td;
@@ -427,7 +427,7 @@ void joint2(Joint joint) {
         uint parent2 = toParentIndex2((localIndex + 1) % parentVPC, childIndex, parentVPC);
 
 
-        pushTriangle(gl_LocalInvocationID.x, uvec3(child1, child2, parent1), neuron, parent.sectionId);
+        pushTriangle(gl_LocalInvocationID.x, uvec3(child1, parent1, child2), neuron, parent.sectionId);
         pushTriangle(gl_LocalInvocationID.x + parentVPC * 2, uvec3(parent1, parent2, child2), neuron, parent.sectionId);
 
         // Now we have to fill the gaps at the edge.
@@ -435,15 +435,15 @@ void joint2(Joint joint) {
             uint gapStart = parentVPC * 3;
             uint start = parentVPC * 4;
 
-            pushTriangle(start, uvec3(parentVPC / 2, parentVPC / 2 - 1, gapStart), neuron, parent.sectionId);
-            pushTriangle(start + 1, uvec3(0, parentVPC - 1, gapStart + parentVPC / 2 - 1), neuron, parent.sectionId);
+            pushTriangle(start, uvec3(parentVPC / 2 - 1, parentVPC / 2, gapStart), neuron, parent.sectionId);
+            pushTriangle(start + 1, uvec3(0, gapStart + parentVPC / 2 - 1, parentVPC - 1), neuron, parent.sectionId);
         }
     }
 }
 
 void main() {
     SetMeshOutputsEXT(0, 0);
-    Joint joint = joints[td.joint];
+    Joint joint = joints[td.joint[gl_WorkGroupID.x]];
     if (joint.amount == 1) {
         joint1(joint);
     } else if (joint.amount >= 2) {

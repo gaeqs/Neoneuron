@@ -19,6 +19,7 @@ namespace neoneuron {
         float _startRadius;
         float _endRadius;
         std::optional<mnemea::UID> _parentID;
+        uint32_t _childrenAmount;
         uint32_t _lod;
 
     public:
@@ -30,6 +31,7 @@ namespace neoneuron {
             float startRadius,
             float endRadius,
             const std::optional<mnemea::UID>& parentId = {},
+            uint32_t childrenAmount = 0,
             uint32_t lod = 0
         );
 
@@ -56,6 +58,12 @@ namespace neoneuron {
         [[nodiscard]] std::optional<mnemea::UID> getParentId() const;
 
         void setParentId(const mnemea::UID& parentId);
+
+        [[nodiscard]] uint32_t getChildrenAmount() const;
+
+        void setChildrenAmount(uint32_t childrenAmount);
+
+        void addChildrenToCount();
 
         [[nodiscard]] uint32_t getLod() const;
 

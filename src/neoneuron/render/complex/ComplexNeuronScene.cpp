@@ -111,7 +111,7 @@ namespace neoneuron {
     void ComplexNeuronScene::loadNeuronMaterial() {
         auto* app = &_render->getApplication();
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _neuronShader);
-        materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
+        materialCreateInfo.rasterizer.cullMode = neon::CullMode::BACK;
         materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
         materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
         _neuronMaterial = std::make_shared<neon::Material>(app, "Neuron", materialCreateInfo);
@@ -120,7 +120,7 @@ namespace neoneuron {
     void ComplexNeuronScene::loadJointMaterial() {
         auto* app = &_render->getApplication();
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _jointShader);
-        materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
+        materialCreateInfo.rasterizer.cullMode = neon::CullMode::BACK;
         materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
         materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
         _jointMaterial = std::make_shared<neon::Material>(app, "Joint", materialCreateInfo);
@@ -129,7 +129,7 @@ namespace neoneuron {
     void ComplexNeuronScene::loadSomaMaterial() {
         auto* app = &_render->getApplication();
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _somaShader);
-        materialCreateInfo.rasterizer.cullMode = neon::CullMode::NONE;
+        materialCreateInfo.rasterizer.cullMode = neon::CullMode::BACK;
         materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
         materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
         _somaMaterial = std::make_shared<neon::Material>(app, "Soma", materialCreateInfo);
@@ -176,7 +176,9 @@ namespace neoneuron {
 
         auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Joint", _jointMaterial);
         drawable->setGroupsSupplier([](const neon::Model& model) {
-            return rush::Vec<3, uint32_t>{model.getInstanceData(0)->getInstanceAmount(), 1, 1};
+            uint32_t amount = model.getInstanceData(0)->getInstanceAmount();
+            uint32_t tasks = amount / 32 + (amount % 32 != 0);
+            return rush::Vec<3, uint32_t>{tasks, 1, 1};
         });
 
         neon::ModelCreateInfo modelCreateInfo;
@@ -547,7 +549,6 @@ namespace neoneuron {
     void ComplexNeuronScene::checkForNewNeurons() {
         for (auto& neuron: _dataset.getNeurons()) {
             if (findNeuron(neuron.getUID()).has_value()) continue;
-            std::cout << "Computing neuron " << neuron.getUID() << std::endl;
             auto result = ComplexNeuron(&_dataset, &neuron);
             auto bb = result.getBoundingBox();
             _neurons.push_back(std::move(result));
