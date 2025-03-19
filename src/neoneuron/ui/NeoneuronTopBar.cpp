@@ -14,6 +14,7 @@
 #include <neoneuron/loader/SceneLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/render/complex/ComplexNeuronScene.h>
 
 #include "components/NeoneuronUIOpenFile.h"
 #include "components/actions/ActionSave.h"
@@ -122,7 +123,28 @@ namespace neoneuron {
         }
     }
 
+    void NeoneuronTopBar::viewMenu() const {
+        auto* scene = _render->getNeuronScene().get();
+        if (auto* complexScene = dynamic_cast<ComplexNeuronScene*>(scene)) {
+            bool drawSegments = complexScene->shouldDrawSegments();
+            bool drawJoints = complexScene->shouldDrawJoints();
+            bool drawSomas = complexScene->shouldDrawSomas();
+            if (ImGui::MenuItem("Draw segments", nullptr, &drawSegments)) {
+                complexScene->setDrawSegments(drawSegments);
+            }
+            if (ImGui::MenuItem("Draw joints", nullptr, &drawJoints)) {
+                complexScene->setDrawJoints(drawJoints);
+            }
+            if (ImGui::MenuItem("Draw somas", nullptr, &drawSomas)) {
+                complexScene->setDrawSomas(drawSomas);
+            }
+        }
+    }
+
     void NeoneuronTopBar::actionsMenu() const {
+        if (ImGui::MenuItem("Focus scene")) {
+            _render->focusScene();
+        }
         if (ImGui::MenuItem("Shuffle")) {
             _render->getRoom()->newGameObject()->newComponent<ActionShuffle>(_render->getNeuronScene().get());
         }
@@ -165,6 +187,12 @@ namespace neoneuron {
                 if (ImGui::MenuItem("Settings", "Ctrl+S")) {
                     openSettings = true;
                 }
+                ImGui::PopFont();
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("View")) {
+                fonts::imGuiPushFont(fonts::SS3_18);
+                viewMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }

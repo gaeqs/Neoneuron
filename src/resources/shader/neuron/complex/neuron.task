@@ -84,11 +84,11 @@ layout(std430, set = 2, binding = 6) buffer SectionGPUData {
 
 taskPayloadSharedEXT TaskData td;
 
-bool sphereInFrustum(vec3 center, float radius) {
+bool capsuleInFrustum(vec3 from, vec3 to, float radius) {
     for (uint i = 0; i < 6; ++i) {
         vec3 normal = planes[i].xyz;
         float distance = planes[i].w;
-        float side = dot(center, normal) + distance;
+        float side = max(dot(from, normal), dot(to, normal)) + distance;
         if (side < -radius) return false;
     }
 
@@ -100,7 +100,7 @@ bool shouldUpdate(Neuron neuron, uint currentLocalLod) {
         // Dynamic mode
         return (neuron.neuronId & 63u) == (frame & 63u) || neuron.updateFrame == frame;
     } else {
-        if(neuron.lodMode < 8) {
+        if (neuron.lodMode < 8) {
             return currentLocalLod != neuron.lodMode || neuron.updateFrame == frame;
         } else {
             return currentLocalLod != lod || neuron.updateFrame == frame;
@@ -140,26 +140,8 @@ uint findNextToParent(Neuron neuron, uint firstParent) {
 bool cullSection(Neuron neuron, Section section, Section parent) {
     vec3 end = (neuron.model * vec4(section.endAndRadius.xyz, 1.0f)).xyz;
     vec3 start = (neuron.model * vec4(parent.endAndRadius.xyz, 1.0f)).xyz;
-
-    float length = length(end - start);
-    float radius = section.endAndRadius.w * radiusStrength;
-    vec3 center = (end + start) * 0.5f;
-
-    if (!sphereInFrustum(center, length + radius)) {
-        return false;
-    }
-
-    // Split into four
-    float subLength = length * 0.25f;
-
-    for (uint i = 0; i < 4; ++i) {
-        vec3 subCenter = start + (end - start) * (float(i) * 0.25f + 0.125f);
-        if (sphereInFrustum(subCenter, subLength + radius)) {
-            return true;
-        }
-    }
-
-    return false;
+    float radius = max(section.endAndRadius.w, parent.endAndRadius.w) * radiusStrength;
+    return capsuleInFrustum(end, start, radius);
 }
 
 void main() {
@@ -177,7 +159,7 @@ void main() {
     uint localLod;
     uint nextToParentIndex;
 
-    if(update) {
+    if (update) {
         nextToParentIndex = findNextToParent(neuron, gl_GlobalInvocationID.x);
         lodParent[gl_GlobalInvocationID.x] = nextToParentIndex;
         localLod = computeLOD(neuron, segment);
@@ -186,7 +168,7 @@ void main() {
         metadata = metadata & ~(7u << 14u);
         metadata = metadata + ((localLod & 7u) << 14u);
         sections[gl_GlobalInvocationID.x].metadata = metadata;
-    } else if(valid) {
+    } else if (valid) {
         nextToParentIndex = lodParent[gl_GlobalInvocationID.x];
         localLod = (metadata >> 14u) & 7u;
     }

@@ -57,6 +57,9 @@ namespace neoneuron {
         rush::AABB<3, float> _sceneBoundingBox;
 
         bool _wireframe;
+        bool _drawSegments;
+        bool _drawJoints;
+        bool _drawSomas;
 
         void loadUniformBuffers();
 
@@ -132,6 +135,18 @@ namespace neoneuron {
         bool removeNeuron(mnemea::UID neuronId) override;
 
         [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
+
+        [[nodiscard]] bool shouldDrawSegments() const;
+
+        void setDrawSegments(bool draw);
+
+        [[nodiscard]] bool shouldDrawJoints() const;
+
+        void setDrawJoints(bool draw);
+
+        [[nodiscard]] bool shouldDrawSomas() const;
+
+        void setDrawSomas(bool draw);
 
         const std::shared_ptr<neon::ShaderUniformBuffer>& getUBO() const;
 

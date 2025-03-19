@@ -168,7 +168,9 @@ namespace neoneuron {
         };
 
         _neuronModel = std::make_shared<neon::Model>(app, "Neuron", modelCreateInfo);
-        _render->getRoom()->markUsingModel(_neuronModel.get());
+        if (_drawSegments) {
+            _render->getRoom()->markUsingModel(_neuronModel.get());
+        }
     }
 
     void ComplexNeuronScene::loadJointModel() {
@@ -203,7 +205,9 @@ namespace neoneuron {
         };
 
         _jointModel = std::make_shared<neon::Model>(app, "Joint", modelCreateInfo);
-        _render->getRoom()->markUsingModel(_jointModel.get());
+        if (_drawJoints) {
+            _render->getRoom()->markUsingModel(_jointModel.get());
+        }
     }
 
     void ComplexNeuronScene::loadSomaModel() {
@@ -236,7 +240,9 @@ namespace neoneuron {
         };
 
         _somaModel = std::make_shared<neon::Model>(app, "Soma", modelCreateInfo);
-        _render->getRoom()->markUsingModel(_somaModel.get());
+        if (_drawSomas) {
+            _render->getRoom()->markUsingModel(_somaModel.get());
+        }
     }
 
     void ComplexNeuronScene::combineBoundingBoxes(const rush::AABB<3, float>& aabb) {
@@ -278,7 +284,12 @@ namespace neoneuron {
         }
     }
 
-    ComplexNeuronScene::ComplexNeuronScene(NeoneuronRender* render) : _render(render), _wireframe(false) {
+    ComplexNeuronScene::ComplexNeuronScene(NeoneuronRender* render)
+        : _render(render),
+          _wireframe(false),
+          _drawSegments(true),
+          _drawJoints(true),
+          _drawSomas(true) {
         loadUniformBuffers();
         loadNeuronShader();
         loadJointShader();
@@ -479,6 +490,48 @@ namespace neoneuron {
 
     rush::AABB<3, float> ComplexNeuronScene::getSceneBoundingBox() const {
         return _sceneBoundingBox;
+    }
+
+    bool ComplexNeuronScene::shouldDrawSegments() const {
+        return _drawSegments;
+    }
+
+    void ComplexNeuronScene::setDrawSegments(bool draw) {
+        if (_drawSegments == draw) return;
+        _drawSegments = draw;
+        if (draw) {
+            _render->getRoom()->markUsingModel(_neuronModel.get());
+        } else {
+            _render->getRoom()->unmarkUsingModel(_neuronModel.get());
+        }
+    }
+
+    bool ComplexNeuronScene::shouldDrawJoints() const {
+        return _drawJoints;
+    }
+
+    void ComplexNeuronScene::setDrawJoints(bool draw) {
+        if (_drawJoints == draw) return;
+        _drawJoints = draw;
+        if (draw) {
+            _render->getRoom()->markUsingModel(_jointModel.get());
+        } else {
+            _render->getRoom()->unmarkUsingModel(_jointModel.get());
+        }
+    }
+
+    bool ComplexNeuronScene::shouldDrawSomas() const {
+        return _drawSomas;
+    }
+
+    void ComplexNeuronScene::setDrawSomas(bool draw) {
+        if (_drawSomas == draw) return;
+        _drawSomas = draw;
+        if (draw) {
+            _render->getRoom()->markUsingModel(_somaModel.get());
+        } else {
+            _render->getRoom()->unmarkUsingModel(_somaModel.get());
+        }
     }
 
     const std::shared_ptr<neon::ShaderUniformBuffer>& ComplexNeuronScene::getUBO() const {

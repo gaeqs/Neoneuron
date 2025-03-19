@@ -19,6 +19,8 @@ namespace neoneuron {
 
         void toolsMenu() const;
 
+        void viewMenu() const;
+
         void actionsMenu() const;
 
         void demo() const;

@@ -69,7 +69,7 @@
           ]
         },
         "rasterizer": {
-          "cull_mode": "none"
+          "cull_mode": "front"
         },
         "depth_stencil": {
           "depth_test": true,
