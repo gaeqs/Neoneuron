@@ -159,7 +159,7 @@ namespace neoneuron {
 
             ComplexGPUNeuronSoma gpu{
                 segment,
-                std::min(static_cast<uint32_t>(soma.getChildren().size()), 8u),
+                std::min(static_cast<uint32_t>(soma.getChildren().size()), 15u),
             };
 
             for (size_t c = 0; c < gpu.amount; ++c) {

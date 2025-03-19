@@ -3,7 +3,7 @@
 
 const float M_PI = 3.1415926535897932384626433832795f;
 
-const uint MAX_SOMA_CONNECTIONS = 8;
+const uint MAX_SOMA_CONNECTIONS = 15;
 
 const uint MAX_LAT_VERTICES = 64;
 const uint MAX_LONG_VERTICES = 64;
@@ -24,6 +24,7 @@ layout (set = 0, binding = 0) uniform Matrices {
 layout (set = 0, binding = 1) uniform GlobalData {
     float currentTime;
     float radiusStrength;
+    float somaRadiusStrength;
     float startClip;
     float endClip;
     float splitHeight;
@@ -38,11 +39,11 @@ layout (set = 0, binding = 1) uniform GlobalData {
     float somaWeightPower;
     float somaSphereWeight;
     float somaConnectionMaxWeight;
-    vec4 defaultColor;
-    vec4 selectedColor;
     uint lod;
     uint frame;
     uint savingNeuron;
+    vec4 defaultColor;
+    vec4 selectedColor;
 };
 
 struct TaskData {
@@ -229,6 +230,7 @@ bool checkSegmentCollisions(vec3 a, vec3 b, vec3 c, out uint intersectedSegment,
         if (capsuleTriangleIntersection(from, to, radius, a, b, c)) {
             intersectedSegment = i;
             isFirstVertexInside = capsulePointIntersection(from, to, radius, a);
+            isFirstVertexInside = capsulePointIntersection(from, to, radius, a);
             return true;
         }
     }
@@ -263,7 +265,7 @@ void generateSomaGPUData() {
     uint startIndex = gl_WorkGroupID.x * STORAGE_PER_SOMA;
 
     vec3 center = section.endAndRadius.xyz;
-    float radius = section.endAndRadius.w * radiusStrength;
+    float radius = section.endAndRadius.w * somaRadiusStrength;
 
     // Fill connection buffer with MAX_SOMA_CONNECTIONS
     for (uint vertexIndex = gl_LocalInvocationID.x; vertexIndex < somaLatitudes * somaLongitudes; vertexIndex += gl_WorkGroupSize.x) {

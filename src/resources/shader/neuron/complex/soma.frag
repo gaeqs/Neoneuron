@@ -20,6 +20,7 @@ layout (set = 0, binding = 0) uniform Matrices {
 layout (set = 0, binding = 1) uniform GlobalData {
     float currentTime;
     float radiusStrength;
+    float somaRadiusStrength;
     float startClip;
     float endClip;
     float splitHeight;
@@ -34,11 +35,11 @@ layout (set = 0, binding = 1) uniform GlobalData {
     float somaWeightPower;
     float somaSphereWeight;
     float somaConnectionMaxWeight;
-    vec4 defaultColor;
-    vec4 selectedColor;
     uint lod;
     uint frame;
     uint savingNeuron;
+    vec4 defaultColor;
+    vec4 selectedColor;
 };
 
 void main() {

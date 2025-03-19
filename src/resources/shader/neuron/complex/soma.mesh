@@ -8,7 +8,7 @@ const int SAVING_SPACE_PER_SECTION = 64;
 const int SAVING_SPACE_PER_JOINT = 68;
 const int SAVING_SPACE_PER_SOMA_PART = 128;
 
-const uint MAX_SOMA_CONNECTIONS = 8;
+const uint MAX_SOMA_CONNECTIONS = 15;
 
 const uint MAX_LAT_VERTICES = 64;
 const uint MAX_LONG_VERTICES = 64;
@@ -38,6 +38,7 @@ layout (set = 0, binding = 0) uniform Matrices {
 layout (set = 0, binding = 1) uniform GlobalData {
     float currentTime;
     float radiusStrength;
+    float somaRadiusStrength;
     float startClip;
     float endClip;
     float splitHeight;
@@ -52,11 +53,11 @@ layout (set = 0, binding = 1) uniform GlobalData {
     float somaWeightPower;
     float somaSphereWeight;
     float somaConnectionMaxWeight;
-    vec4 defaultColor;
-    vec4 selectedColor;
     uint lod;
     uint frame;
     uint savingNeuron;
+    vec4 defaultColor;
+    vec4 selectedColor;
 };
 
 layout (set = 0, binding = 2) uniform Scene {
@@ -346,7 +347,7 @@ void generateSomaPart () {
 
     SetMeshOutputsEXT(somaLongitudes * 2, somaLongitudes * 2);
 
-    float radius = section.endAndRadius.w * radiusStrength;
+    float radius = section.endAndRadius.w * somaRadiusStrength;
     vec3 center = section.endAndRadius.xyz;
 
     uint latitude = gl_WorkGroupID.x;
@@ -446,9 +447,11 @@ void generateConnection () {
         return;
     }
 
+    verticesAmount = min(verticesAmount, 32);
+
     barrier();
 
-    float radius = somaSection.endAndRadius.w * radiusStrength;
+    float radius = somaSection.endAndRadius.w * somaRadiusStrength;
     vec3 somaCenter = somaSection.endAndRadius.xyz;
     vec3 direction = normalize(connectionSection.endAndRadius.xyz - somaCenter);
     vec3 center = somaCenter + direction * radius;

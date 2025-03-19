@@ -24,6 +24,7 @@ namespace neoneuron {
                 ImGui::PushItemWidth(ImGui::GetFontSize() * -16);
 
                 ImGui::SliderFloat("Radius strength", &d.radiusStrength, 0.01f, 3.0f);
+                ImGui::SliderFloat("Soma radius strength", &d.somaRadiusStrength, 0.01f, 3.0f);
                 ImGui::SliderFloat("Start clip", &d.startClip, 0.01f, 0.5f);
                 ImGui::SliderFloat("End clip", &d.endClip, 0.01f, 0.5f);
                 ImGui::SliderFloat("Split height", &d.splitHeight, 0.01f, 0.5f);

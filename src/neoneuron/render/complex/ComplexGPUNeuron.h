@@ -89,7 +89,7 @@ namespace neoneuron {
         /**
          * The connections' positions in the storage buffer.
          */
-        uint32_t connections[8];
+        uint32_t connections[15];
     };
 
     class ComplexGPUNeuron {
