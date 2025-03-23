@@ -27,6 +27,15 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(mnemea)
 
+FetchContent_Declare(
+        neon
+        GIT_REPOSITORY https://github.com/gaeqs/Neon.git
+        GIT_TAG master
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/neon
+)
+
+FetchContent_MakeAvailable(neon)
+
 find_package(Vulkan REQUIRED)
 find_package(pugixml REQUIRED)
 
