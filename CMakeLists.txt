@@ -16,8 +16,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/neon/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/hey/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/nativefiledialog/src/include)
 
-add_subdirectory(lib)
-
 FetchContent_Declare(
         mnemea
         GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mnemea.git
@@ -35,6 +33,15 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(neon)
+
+FetchContent_Declare(
+        nativefiledialog
+        GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
+        GIT_TAG a1a401062819beb8c3da84518ab1fe7de88632db
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/nativefiledialog
+)
+
+FetchContent_MakeAvailable(nativefiledialog)
 
 find_package(Vulkan REQUIRED)
 find_package(pugixml REQUIRED)
