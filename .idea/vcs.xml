@@ -24,5 +24,12 @@
     <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/hey" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/nativefiledialog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/neon" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/neon/lib/glslang" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/neon/lib/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/neon/lib/implot" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/neon/lib/libzippp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/neon/lib/rush" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/neon/lib/spirv_headers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/neon/lib/spirv_tools" vcs="Git" />
   </component>
 </project>

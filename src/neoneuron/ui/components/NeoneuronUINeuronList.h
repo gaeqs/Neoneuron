@@ -8,8 +8,10 @@
 #include <neon/Neon.h>
 #include <neoneuron/render/NeoneuronRender.h>
 
-namespace neoneuron {
-    class NeoneuronUINeuronList : public neon::Component {
+namespace neoneuron
+{
+    class NeoneuronUINeuronList : public neon::Component
+    {
         NeoneuronRender* _render;
 
         bool neuronSection(const mnemea::Neuron* neuron, size_t id, bool selected) const;
@@ -20,12 +22,11 @@ namespace neoneuron {
 
         void neuronNewProperty(mnemea::Neuron* neuron) const;
 
-    public:
+      public:
         explicit NeoneuronUINeuronList(NeoneuronRender* render);
 
         void onPreDraw() override;
     };
-}
-
+} // namespace neoneuron
 
 #endif //NEONEURONUINEURONLIST_H

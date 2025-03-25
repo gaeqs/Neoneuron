@@ -6,11 +6,17 @@
 
 #include <imgui.h>
 
-namespace neoneuron {
-    ModalComponent::ModalComponent(std::string name, bool hasActionButton)
-        : _name(std::move(name)), _hasActionButton(hasActionButton), _open(false) {}
+namespace neoneuron
+{
+    ModalComponent::ModalComponent(std::string name, bool hasActionButton) :
+        _name(std::move(name)),
+        _hasActionButton(hasActionButton),
+        _open(false)
+    {
+    }
 
-    void ModalComponent::onPreDraw() {
+    void ModalComponent::onPreDraw()
+    {
         if (!_open) {
             ImGui::OpenPopup(_name.c_str());
             _open = true;
@@ -32,4 +38,4 @@ namespace neoneuron {
             getGameObject()->destroy();
         }
     }
-}
+} // namespace neoneuron

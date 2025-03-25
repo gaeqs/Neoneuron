@@ -7,10 +7,12 @@
 
 #include <neon/Neon.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     class NeoneuronRender;
 
-    class NeoneuronTopBar : public neon::Component {
+    class NeoneuronTopBar : public neon::Component
+    {
         NeoneuronRender* _render;
 
         void openFile() const;
@@ -25,14 +27,13 @@ namespace neoneuron {
 
         void demo() const;
 
-    public:
+      public:
         explicit NeoneuronTopBar(NeoneuronRender* render);
 
         void onStart() override;
 
         void onPreDraw() override;
     };
-}
-
+} // namespace neoneuron
 
 #endif //NEONEURONTOPBAR_H

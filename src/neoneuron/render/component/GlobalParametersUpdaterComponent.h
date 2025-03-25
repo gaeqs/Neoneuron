@@ -8,10 +8,12 @@
 #include <array>
 #include <neon/Neon.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     class NeoneuronRender;
 
-    struct Matrices {
+    struct Matrices
+    {
         rush::Mat4f view;
         rush::Mat4f projectionView;
         rush::Mat4f inverseProjection;
@@ -20,7 +22,8 @@ namespace neoneuron {
         float far;
     };
 
-    struct Scene {
+    struct Scene
+    {
         rush::Vec3f sceneCenter;
         float dummy;
         rush::Vec3f sceneRadius;
@@ -28,10 +31,11 @@ namespace neoneuron {
         uint32_t jointsAmount;
     };
 
-    class GlobalParametersUpdaterComponent : public neon::Component {
+    class GlobalParametersUpdaterComponent : public neon::Component
+    {
         NeoneuronRender& _render;
 
-    public:
+      public:
         explicit GlobalParametersUpdaterComponent(NeoneuronRender& render);
 
         ~GlobalParametersUpdaterComponent() override;
@@ -42,6 +46,6 @@ namespace neoneuron {
     };
 
     REGISTER_COMPONENT(GlobalParametersUpdaterComponent, "Global Parameters Updater")
-}
+} // namespace neoneuron
 
 #endif //NEON_GLOBALPARAMETERSUPDATERCOMPONENT_H

@@ -11,10 +11,12 @@
 #include <neon/util/component/ViewportComponent.h>
 #include <neoneuron/Types.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     class NeoneuronRender;
 
-    class NeuronTexturePicker : public neon::Component {
+    class NeuronTexturePicker : public neon::Component
+    {
         NeoneuronRender* _render;
         std::shared_ptr<neon::Texture> _texture;
         neon::IdentifiableWrapper<neon::ViewportComponent> _viewport;
@@ -27,7 +29,7 @@ namespace neoneuron {
 
         std::unordered_set<rush::Vec<2, uint32_t>> pickNeurons(const rush::Vec4i* data, size_t size);
 
-    public:
+      public:
         explicit NeuronTexturePicker(NeoneuronRender* render,
                                      neon::IdentifiableWrapper<neon::ViewportComponent> viewport);
 
@@ -39,7 +41,6 @@ namespace neoneuron {
 
         void onPreDraw() override;
     };
-}
-
+} // namespace neoneuron
 
 #endif //NEURONTEXTUREPICKER_H

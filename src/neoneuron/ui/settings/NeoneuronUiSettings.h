@@ -8,7 +8,8 @@
 #include <string>
 #include <neoneuron/application/NeoneuronApplication.h>
 
-namespace neoneuron::settings {
+namespace neoneuron::settings
+{
     void settingsSection(const std::string& name);
 
     void settingsTheme(NeoneuronApplication* app);
@@ -16,6 +17,6 @@ namespace neoneuron::settings {
     void settingsFontSize(NeoneuronApplication* app);
 
     void settingsDialog(NeoneuronApplication* app);
-}
+} // namespace neoneuron::settings
 
 #endif //NEONEURONUISETTINGS_H

@@ -6,10 +6,12 @@
 
 #include <neoneuron/application/NeoneuronApplication.h>
 
-namespace neoneuron {
-    nlohmann::json saveScene(NeoneuronRender* render) {
+namespace neoneuron
+{
+    nlohmann::json saveScene(NeoneuronRender* render)
+    {
         nlohmann::json json;
-       /* nlohmann::json jsonNeurons = nlohmann::json::array();
+        /* nlohmann::json jsonNeurons = nlohmann::json::array();
 
         auto& props = render->getNeoneuronApplication()->getPropertyStorage();
 
@@ -56,4 +58,4 @@ namespace neoneuron {
 */
         return json;
     }
-}
+} // namespace neoneuron

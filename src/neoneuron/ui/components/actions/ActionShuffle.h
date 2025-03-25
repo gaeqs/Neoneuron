@@ -9,8 +9,10 @@
 #include <neoneuron/render/AbstractNeuronScene.h>
 #include <neoneuron/ui/components/ModalComponent.h>
 
-namespace neoneuron {
-    class ActionShuffle : public ModalComponent {
+namespace neoneuron
+{
+    class ActionShuffle : public ModalComponent
+    {
         AbstractNeuronScene* _scene;
         rush::Vec3f _center;
         float _radius;
@@ -23,14 +25,13 @@ namespace neoneuron {
 
         void run();
 
-    public:
+      public:
         ActionShuffle(AbstractNeuronScene* scene);
 
         void onModalDraw() override;
 
         void actionButton(ImVec2 recommendedSize) override;
     };
-}
-
+} // namespace neoneuron
 
 #endif //ACTIONSHUFFLE_H

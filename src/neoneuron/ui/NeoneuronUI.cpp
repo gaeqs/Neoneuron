@@ -18,8 +18,10 @@
 #include <neoneuron/ui/components/NeuronTexturePicker.h>
 #include <vulkan/util/component/VulkanInfoCompontent.h>
 
-namespace neoneuron {
-    void NeoneuronUI::initStyle(NeoneuronRender* render) {
+namespace neoneuron
+{
+    void NeoneuronUI::initStyle(NeoneuronRender* render)
+    {
         auto& s = render->getNeoneuronApplication()->getSettings();
         switch (s.value(NeoneuronApplication::SETTINGS_THEME, 0)) {
             case 0:
@@ -31,7 +33,6 @@ namespace neoneuron {
             default:
                 break;
         }
-
 
         const char* font = fonts::SS3_18;
         switch (s.value(NeoneuronApplication::SETTINGS_FONT_SIZE, 1)) {
@@ -59,14 +60,21 @@ namespace neoneuron {
         }
     }
 
-    void NeoneuronUI::initDebugToggle() {
+    void NeoneuronUI::initDebugToggle()
+    {
         _debugKeyListener = [this](std::string data) {
-            if (data != NeoneuronApplication::SETTINGS_TOOL_DEBUG) return;
-            if (!_gameObject.isValid()) return;
-            bool value = _render->getNeoneuronApplication()->getSettings()
-                    .value(NeoneuronApplication::SETTINGS_TOOL_DEBUG, false);
+            if (data != NeoneuronApplication::SETTINGS_TOOL_DEBUG) {
+                return;
+            }
+            if (!_gameObject.isValid()) {
+                return;
+            }
+            bool value = _render->getNeoneuronApplication()->getSettings().value(
+                NeoneuronApplication::SETTINGS_TOOL_DEBUG, false);
             auto component = _gameObject->findComponent<neon::DebugOverlayComponent>();
-            if (component.isValid() == value) return;
+            if (component.isValid() == value) {
+                return;
+            }
             if (value) {
                 _gameObject->newComponent<neon::DebugOverlayComponent>(false, 100);
             } else {
@@ -76,14 +84,16 @@ namespace neoneuron {
 
         _render->getNeoneuronApplication()->registerSettingsListener(_debugKeyListener);
 
-        bool value = _render->getNeoneuronApplication()->getSettings()
-                .value(NeoneuronApplication::SETTINGS_TOOL_DEBUG, false);
+        bool value =
+            _render->getNeoneuronApplication()->getSettings().value(NeoneuronApplication::SETTINGS_TOOL_DEBUG, false);
         if (value) {
             _gameObject->newComponent<neon::DebugOverlayComponent>(false, 100);
         }
     }
 
-    NeoneuronUI::NeoneuronUI(NeoneuronRender* render) : _render(render) {
+    NeoneuronUI::NeoneuronUI(NeoneuronRender* render) :
+        _render(render)
+    {
         ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
         _gameObject = render->getRoom()->newGameObject();
         _gameObject->setName("UI");
@@ -113,14 +123,16 @@ namespace neoneuron {
         initStyle(render);
     }
 
-    NeoneuronUI::~NeoneuronUI() {
+    NeoneuronUI::~NeoneuronUI()
+    {
         if (_gameObject.isValid()) {
             _gameObject->destroy();
             _render->getNeoneuronApplication()->unregisterSettingsListener(_debugKeyListener);
         }
     }
 
-    NeoneuronUI& NeoneuronUI::operator=(NeoneuronUI&& other) noexcept {
+    NeoneuronUI& NeoneuronUI::operator=(NeoneuronUI&& other) noexcept
+    {
         _render = other._render;
         _gameObject = other._gameObject;
         _viewport = other._viewport;
@@ -129,7 +141,8 @@ namespace neoneuron {
         return *this;
     }
 
-    neon::IdentifiableWrapper<neon::ViewportComponent> NeoneuronUI::getViewport() const {
+    neon::IdentifiableWrapper<neon::ViewportComponent> NeoneuronUI::getViewport() const
+    {
         return _viewport;
     }
-}
+} // namespace neoneuron

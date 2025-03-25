@@ -8,14 +8,16 @@
 #include <imgui.h>
 #include <neon/structure/Component.h>
 
-namespace neoneuron {
-    class ModalComponent : public neon::Component {
+namespace neoneuron
+{
+    class ModalComponent : public neon::Component
+    {
         std::string _name;
         bool _hasActionButton;
 
         bool _open;
 
-    public:
+      public:
         ModalComponent(std::string name, bool hasActionButton);
 
         void onPreDraw() override;
@@ -24,7 +26,6 @@ namespace neoneuron {
 
         virtual void actionButton(ImVec2 recommendedSize) = 0;
     };
-}
-
+} // namespace neoneuron
 
 #endif //MODALCOMPONENT_H

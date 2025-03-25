@@ -9,54 +9,69 @@
 #include <unordered_map>
 #include <optional>
 
-namespace neoneuron {
+namespace neoneuron
+{
     template<typename Type, typename Key = std::string>
-    class Storage {
+    class Storage
+    {
         std::unordered_map<Key, Type> _data;
 
-    public:
+      public:
         Storage() = default;
 
-        bool contains(const Key& key) {
+        bool contains(const Key& key)
+        {
             return _data.contains(key);
         }
 
-        std::optional<const Type*> get(const Key& key) const {
+        std::optional<const Type*> get(const Key& key) const
+        {
             auto it = _data.find(key);
-            if (it == _data.end()) return {};
+            if (it == _data.end()) {
+                return {};
+            }
             return {&it->second};
         }
 
-        std::optional<Type*> get(const Key& key) {
+        std::optional<Type*> get(const Key& key)
+        {
             auto it = _data.find(key);
-            if (it == _data.end()) return {};
+            if (it == _data.end()) {
+                return {};
+            }
             return {&it->second};
         }
 
-        bool add(const Key& key, Type type) {
+        bool add(const Key& key, Type type)
+        {
             return _data.insert({key, std::move(type)}).second;
         }
 
-        bool remove(const Key& key) {
+        bool remove(const Key& key)
+        {
             return _data.erase(key) > 0;
         }
 
-        auto begin() {
+        auto begin()
+        {
             return _data.begin();
         }
 
-        auto begin() const {
+        auto begin() const
+        {
             return _data.begin();
         }
 
-        auto end() {
+        auto end()
+        {
             return _data.end();
         }
 
-        auto end() const {
+        auto end() const
+        {
             return _data.end();
         }
     };
-}
+} // namespace neoneuron
 
 #endif //STORAGE_H

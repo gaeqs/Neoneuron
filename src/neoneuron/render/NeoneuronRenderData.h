@@ -6,8 +6,10 @@
 #define NEONEURONRENDERDATA_H
 #undef max
 
-namespace neoneuron {
-    struct NeoneuronRenderData {
+namespace neoneuron
+{
+    struct NeoneuronRenderData
+    {
         float currentTime = 0.0f; // Value only valid on GPU. use Render::getCurrentTime() instead.
         float radiusStrength = 1.0f;
         float somaRadiusStrength = 1.0f;
@@ -31,5 +33,5 @@ namespace neoneuron {
         rush::Vec4f defaultColor = rush::Vec4f(1.0f, 0.0f, 0.0f, 1.0f);
         rush::Vec4f selectedColor = rush::Vec4f(0.0f, 0.0f, 1.0f, 1.0f);
     };
-}
+} // namespace neoneuron
 #endif //NEONEURONRENDERDATA_H

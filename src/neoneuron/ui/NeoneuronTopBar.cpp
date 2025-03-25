@@ -5,7 +5,7 @@
 #include "NeoneuronTopBar.h"
 
 #ifdef WIN32
-#define GLFW_EXPOSE_NATIVE_WIN32
+    #define GLFW_EXPOSE_NATIVE_WIN32
 #endif
 
 #include <imgui_internal.h>
@@ -22,46 +22,39 @@
 #include "settings/NeoneuronUiSettings.h"
 #include "style/Fonts.h"
 
-namespace neoneuron {
-    void NeoneuronTopBar::openFile() const {
+namespace neoneuron
+{
+    void NeoneuronTopBar::openFile() const
+    {
         auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
 
         nfdwindowhandle_t handle;
         NFD_GetNativeWindowFromGLFWWindow(app->getWindow(), &handle);
 
         NFD::UniquePath outPath = NULL;
-        nfdresult_t result = NFD::OpenDialog(
-            outPath,
-            nullptr,
-            0,
-            nullptr,
-            handle
-        );
+        nfdresult_t result = NFD::OpenDialog(outPath, nullptr, 0, nullptr, handle);
         std::string file;
         if (result == NFD_OKAY) {
             file = std::string(outPath.get());
         } else if (result == NFD_CANCEL) {
             return;
         } else {
-            getLogger().error(neon::MessageBuilder()
-                .print("Error while choosing file: ")
-                .print(NFD_GetError()));
+            getLogger().error(neon::MessageBuilder().print("Error while choosing file: ").print(NFD_GetError()));
             return;
         }
 
         std::filesystem::path path(file);
         auto fileSystem = std::make_unique<neon::DirectoryFileSystem>(path.parent_path());
         auto optional = fileSystem->readFile(path.filename());
-        if (!optional.has_value()) return;
+        if (!optional.has_value()) {
+            return;
+        }
         _render->getRoom()->newGameObject()->newComponent<NeoneuronUiOpenFile>(
-            _render->getNeuronScene().get(),
-            std::move(fileSystem),
-            path,
-            std::move(optional.value())
-        );
+            _render->getNeuronScene().get(), std::move(fileSystem), path, std::move(optional.value()));
     }
 
-    void NeoneuronTopBar::saveFile(const std::string& data) const {
+    void NeoneuronTopBar::saveFile(const std::string& data) const
+    {
         auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
 
         nfdwindowhandle_t handle;
@@ -69,35 +62,29 @@ namespace neoneuron {
 
         nfdu8filteritem_t filters = {"JSON", "json"};
         NFD::UniquePath outPath = NULL;
-        nfdresult_t result = NFD::SaveDialog(
-            outPath,
-            &filters,
-            0,
-            nullptr,
-            "scene.json",
-            handle
-        );
+        nfdresult_t result = NFD::SaveDialog(outPath, &filters, 0, nullptr, "scene.json", handle);
         std::string file;
         if (result == NFD_OKAY) {
             file = std::string(outPath.get());
         } else if (result == NFD_CANCEL) {
             return;
         } else {
-            getLogger().error(neon::MessageBuilder()
-                .print("Error while choosing file: ")
-                .print(NFD_GetError()));
+            getLogger().error(neon::MessageBuilder().print("Error while choosing file: ").print(NFD_GetError()));
             return;
         }
 
         std::filesystem::path path(file);
 
         std::ofstream out(path);
-        if (!out) return;
+        if (!out) {
+            return;
+        }
         out << data;
         out.close();
     }
 
-    void NeoneuronTopBar::toolsMenu() const {
+    void NeoneuronTopBar::toolsMenu() const
+    {
         static const auto GLOBAL_PARAMS = NeoneuronApplication::SETTINGS_TOOL_GLOBAL_PARAMETERS;
         static const auto DEBUG = NeoneuronApplication::SETTINGS_TOOL_DEBUG;
         static const auto DEMO = NeoneuronApplication::SETTINGS_TOOL_DEMO;
@@ -123,7 +110,8 @@ namespace neoneuron {
         }
     }
 
-    void NeoneuronTopBar::viewMenu() const {
+    void NeoneuronTopBar::viewMenu() const
+    {
         auto* scene = _render->getNeuronScene().get();
         if (auto* complexScene = dynamic_cast<ComplexNeuronScene*>(scene)) {
             bool drawSegments = complexScene->shouldDrawSegments();
@@ -141,7 +129,8 @@ namespace neoneuron {
         }
     }
 
-    void NeoneuronTopBar::actionsMenu() const {
+    void NeoneuronTopBar::actionsMenu() const
+    {
         if (ImGui::MenuItem("Focus scene")) {
             _render->focusScene();
         }
@@ -153,7 +142,8 @@ namespace neoneuron {
         }
     }
 
-    void NeoneuronTopBar::demo() const {
+    void NeoneuronTopBar::demo() const
+    {
         auto& s = _render->getNeoneuronApplication()->getSettings();
         bool opened = s.value(NeoneuronApplication::SETTINGS_TOOL_DEMO, false);
         bool keepOpen = true;
@@ -166,12 +156,17 @@ namespace neoneuron {
         }
     }
 
-    NeoneuronTopBar::NeoneuronTopBar(NeoneuronRender* render)
-        : _render(render) {}
+    NeoneuronTopBar::NeoneuronTopBar(NeoneuronRender* render) :
+        _render(render)
+    {
+    }
 
-    void NeoneuronTopBar::onStart() {}
+    void NeoneuronTopBar::onStart()
+    {
+    }
 
-    void NeoneuronTopBar::onPreDraw() {
+    void NeoneuronTopBar::onPreDraw()
+    {
         bool openSettings = false;
 
         fonts::imGuiPushFont(fonts::SS3_20);
@@ -224,8 +219,8 @@ namespace neoneuron {
         demo();
 
         ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings |
-                                        ImGuiWindowFlags_MenuBar;
+        ImGuiWindowFlags window_flags =
+            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
         float height = ImGui::GetFrameHeight();
 
         if (ImGui::BeginViewportSideBar("##Status", viewport, ImGuiDir_Down, height, window_flags)) {
@@ -237,4 +232,4 @@ namespace neoneuron {
             ImGui::End();
         }
     }
-}
+} // namespace neoneuron

@@ -2,26 +2,26 @@
 // Created by gaeqs on 8/10/24.
 //
 
-
-#include <imgui_impl_vulkan.h>
-#include <nfd.hpp>
 #include <cmrc/cmrc.hpp>
+#include <imgui_impl_vulkan.h>
 #include <neon/logging/Logger.h>
+#include <nfd.hpp>
 
 #include <neoneuron/render/NeoneuronRender.h>
 
 #include "application/NeoneuronApplication.h"
 
-
 CMRC_DECLARE(resources);
 
-std::shared_ptr<neon::Texture> loadSkybox(neon::Room* room) {
+std::shared_ptr<neon::Texture> loadSkybox(neon::Room* room)
+{
     neon::CMRCFileSystem fileSystem(cmrc::resources::get_filesystem());
     neon::AssetLoaderContext context(room->getApplication(), nullptr, &fileSystem);
     return loadAssetFromFile<neon::Texture>("texture/skybox/skybox.json", context);
 }
 
-int main() {
+int main()
+{
     NFD::Init();
 
     using MeshFeature = VkPhysicalDeviceMeshShaderFeaturesEXT;
@@ -33,12 +33,18 @@ int main() {
     info.extraFeatures.emplace_back(MeshFeature{MESH_FEATURE});
 
     info.deviceFilter = [](const neon::vulkan::VKPhysicalDevice& device) {
-        if (!neon::vulkan::VKApplicationCreateInfo::defaultDeviceFilter(device)) return false;
+        if (!neon::vulkan::VKApplicationCreateInfo::defaultDeviceFilter(device)) {
+            return false;
+        }
 
-        if (!device.getFeatures().basicFeatures.independentBlend) return false;
+        if (!device.getFeatures().basicFeatures.independentBlend) {
+            return false;
+        }
 
         auto feature = device.getFeatures().findFeature<MeshFeature>(MESH_FEATURE);
-        if (!feature.has_value()) return false;
+        if (!feature.has_value()) {
+            return false;
+        }
         return feature.value()->meshShader > 0;
     };
 
@@ -56,7 +62,7 @@ int main() {
 
     neoneuron::NeoneuronApplication app(info);
 
-    //app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
+    // app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
 
     bool result = app.getRender().renderLoop();
     app.saveSettings();

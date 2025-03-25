@@ -9,12 +9,13 @@
 
 #include <neoneuron/render/component/camera/CameraInterpolator.h>
 
-
-namespace neoneuron {
-    class InstantCameraInterpolator : public CameraInterpolator {
+namespace neoneuron
+{
+    class InstantCameraInterpolator : public CameraInterpolator
+    {
         neon::Camera* _camera;
 
-    public:
+      public:
         explicit InstantCameraInterpolator(neon::Camera* camera);
 
         void setPosition(rush::Vec3f position) override;
@@ -27,7 +28,6 @@ namespace neoneuron {
 
         void onUpdate(float deltaTime) override;
     };
-}
-
+} // namespace neoneuron
 
 #endif //INSTANTCAMERAINTERPOLATOR_H

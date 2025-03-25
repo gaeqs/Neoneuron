@@ -7,7 +7,8 @@
 
 #include <cstdint>
 
-namespace neoneuron {
+namespace neoneuron
+{
 }
 
 #endif //TYPES_H

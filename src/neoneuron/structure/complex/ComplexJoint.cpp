@@ -8,9 +8,10 @@
 
 #include "ComplexNeuron.h"
 
-
-namespace neoneuron {
-    void ComplexJoint::computeRotationIndex(ComplexNeuron& neuron) {
+namespace neoneuron
+{
+    void ComplexJoint::computeRotationIndex(ComplexNeuron& neuron)
+    {
         constexpr uint32_t INDICES = 16;
         constexpr float INDICES_F = static_cast<float>(INDICES);
 
@@ -20,11 +21,17 @@ namespace neoneuron {
         }
         // Fetch the parent and all children.
         auto optParent = neuron.findSegment(getUID());
-        if (!optParent.has_value()) return;
+        if (!optParent.has_value()) {
+            return;
+        }
         auto parent = optParent.value();
-        if (!parent->getParentId().has_value()) return;
+        if (!parent->getParentId().has_value()) {
+            return;
+        }
         auto optGrandparent = neuron.findSegment(parent->getParentId().value());
-        if (!optGrandparent.has_value()) return;
+        if (!optGrandparent.has_value()) {
+            return;
+        }
         auto grandparent = optGrandparent.value();
         auto parentDirection = (parent->getEnd() - grandparent->getEnd()).normalized();
         auto tangent = parentDirection.cross(rush::Vec3f(0.0f, 0.0f, -1.0f));
@@ -32,14 +39,16 @@ namespace neoneuron {
         auto desiredBaseDirection = tangent;
         std::vector<rush::Vec3f> children;
         children.reserve(_children.size());
-        for (mnemea::UID& childUID: _children) {
+        for (mnemea::UID& childUID : _children) {
             auto optChildren = neuron.findSegment(childUID);
             if (optChildren.has_value()) {
                 auto direction = (optChildren.value()->getEnd() - parent->getEnd()).normalized();
                 children.push_back(direction);
             }
         }
-        if (children.empty()) return;
+        if (children.empty()) {
+            return;
+        }
 
         auto anglePerChild = 2.0f * std::numbers::pi_v<float> / static_cast<float>(_children.size());
         auto halfAnglePerChild = anglePerChild / 2.0f;
@@ -70,21 +79,25 @@ namespace neoneuron {
         }
     }
 
-    ComplexJoint::ComplexJoint(mnemea::UID id, std::vector<mnemea::UID> children)
-        : Identifiable(id),
-          _children(std::move(children)),
-          _rotationIndex(0) {}
+    ComplexJoint::ComplexJoint(mnemea::UID id, std::vector<mnemea::UID> children) :
+        Identifiable(id),
+        _children(std::move(children)),
+        _rotationIndex(0)
+    {
+    }
 
-
-    std::vector<mnemea::UID>& ComplexJoint::getChildren() {
+    std::vector<mnemea::UID>& ComplexJoint::getChildren()
+    {
         return _children;
     }
 
-    const std::vector<mnemea::UID>& ComplexJoint::getChildren() const {
+    const std::vector<mnemea::UID>& ComplexJoint::getChildren() const
+    {
         return _children;
     }
 
-    uint32_t ComplexJoint::getRotationIndex() const {
+    uint32_t ComplexJoint::getRotationIndex() const
+    {
         return _rotationIndex;
     }
-}
+} // namespace neoneuron

@@ -12,17 +12,21 @@
 
 CMRC_DECLARE(resources);
 
-namespace {
-    neon::Coroutine<> deleteCoroutine(std::vector<std::shared_ptr<neon::Material>> materials) {
+namespace
+{
+    neon::Coroutine<> deleteCoroutine(std::vector<std::shared_ptr<neon::Material>> materials)
+    {
         for (size_t i = 0; i < 10; ++i) {
             co_yield neon::WaitForNextFrame();
         }
         materials.clear();
     }
-}
+} // namespace
 
-namespace neoneuron {
-    void ComplexNeuronScene::loadUniformBuffers() {
+namespace neoneuron
+{
+    void ComplexNeuronScene::loadUniformBuffers()
+    {
         auto* app = &_render->getApplication();
 
         std::vector bindings = {
@@ -48,19 +52,14 @@ namespace neoneuron {
                                                       neon::UniformBindingBufferType::SIMPLE),
         };
 
-        _uboDescriptor = std::make_shared<neon::ShaderUniformDescriptor>(
-            app, "neoneuron:complex_neuron_descriptor", bindings);
-
+        _uboDescriptor =
+            std::make_shared<neon::ShaderUniformDescriptor>(app, "neoneuron:complex_neuron_descriptor", bindings);
 
         _ubo = std::make_shared<neon::ShaderUniformBuffer>("neoneuron:complex_neuron_ubo", _uboDescriptor);
 
         std::vector slots = {
-            neon::StorageBufferInstanceData::Slot(
-                sizeof(ComplexGPUNeuronGlobalData),
-                sizeof(ComplexGPUNeuronGlobalData),
-                GLOBAL_DATA_BINDING,
-                _ubo.get()
-            ),
+            neon::StorageBufferInstanceData::Slot(sizeof(ComplexGPUNeuronGlobalData),
+                                                  sizeof(ComplexGPUNeuronGlobalData), GLOBAL_DATA_BINDING, _ubo.get()),
         };
 
         std::vector<std::type_index> types = {typeid(ComplexGPUNeuronGlobalData)};
@@ -68,7 +67,8 @@ namespace neoneuron {
         _globalInstanceData = std::make_shared<neon::StorageBufferInstanceData>(app, SOMA_INSTANCES, types, slots);
     }
 
-    void ComplexNeuronScene::loadNeuronShader() {
+    void ComplexNeuronScene::loadNeuronShader()
+    {
         _neuronShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
 
         auto fs = cmrc::resources::get_filesystem();
@@ -81,7 +81,8 @@ namespace neoneuron {
         }
     }
 
-    void ComplexNeuronScene::loadJointShader() {
+    void ComplexNeuronScene::loadJointShader()
+    {
         _jointShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
 
         auto fs = cmrc::resources::get_filesystem();
@@ -94,7 +95,8 @@ namespace neoneuron {
         }
     }
 
-    void ComplexNeuronScene::loadSomaShader() {
+    void ComplexNeuronScene::loadSomaShader()
+    {
         auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
 
         auto fs = cmrc::resources::get_filesystem();
@@ -109,7 +111,8 @@ namespace neoneuron {
         }
     }
 
-    void ComplexNeuronScene::loadNeuronMaterial() {
+    void ComplexNeuronScene::loadNeuronMaterial()
+    {
         auto* app = &_render->getApplication();
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _neuronShader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::BACK;
@@ -118,7 +121,8 @@ namespace neoneuron {
         _neuronMaterial = std::make_shared<neon::Material>(app, "Neuron", materialCreateInfo);
     }
 
-    void ComplexNeuronScene::loadJointMaterial() {
+    void ComplexNeuronScene::loadJointMaterial()
+    {
         auto* app = &_render->getApplication();
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _jointShader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::BACK;
@@ -127,7 +131,8 @@ namespace neoneuron {
         _jointMaterial = std::make_shared<neon::Material>(app, "Joint", materialCreateInfo);
     }
 
-    void ComplexNeuronScene::loadSomaMaterial() {
+    void ComplexNeuronScene::loadSomaMaterial()
+    {
         auto* app = &_render->getApplication();
         neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _somaShader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::BACK;
@@ -136,7 +141,8 @@ namespace neoneuron {
         _somaMaterial = std::make_shared<neon::Material>(app, "Soma", materialCreateInfo);
     }
 
-    void ComplexNeuronScene::loadNeuronModel() {
+    void ComplexNeuronScene::loadNeuronModel()
+    {
         constexpr size_t INSTANCES = 10000000;
         auto* app = &_render->getApplication();
 
@@ -153,17 +159,10 @@ namespace neoneuron {
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
-        modelCreateInfo.instanceDataProvider = [this](neon::Application* app,
-                                                      const neon::ModelCreateInfo& info,
+        modelCreateInfo.instanceDataProvider = [this](neon::Application* app, const neon::ModelCreateInfo& info,
                                                       const neon::Model* model) {
-            std::vector indices = {
-                neon::StorageBufferInstanceData::Slot(
-                    sizeof(ComplexGPUNeuronSegment),
-                    sizeof(ComplexGPUNeuronSegment),
-                    SEGMENT_BINDING,
-                    _ubo.get()
-                )
-            };
+            std::vector indices = {neon::StorageBufferInstanceData::Slot(
+                sizeof(ComplexGPUNeuronSegment), sizeof(ComplexGPUNeuronSegment), SEGMENT_BINDING, _ubo.get())};
             return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
         };
 
@@ -173,7 +172,8 @@ namespace neoneuron {
         }
     }
 
-    void ComplexNeuronScene::loadJointModel() {
+    void ComplexNeuronScene::loadJointModel()
+    {
         constexpr size_t INSTANCES = 10000000;
         auto* app = &_render->getApplication();
 
@@ -190,16 +190,11 @@ namespace neoneuron {
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
-        modelCreateInfo.instanceDataProvider = [this](neon::Application* app,
-                                                      const neon::ModelCreateInfo& info,
+        modelCreateInfo.instanceDataProvider = [this](neon::Application* app, const neon::ModelCreateInfo& info,
                                                       const neon::Model* model) {
             std::vector indices = {
-                neon::StorageBufferInstanceData::Slot(
-                    sizeof(ComplexGPUNeuronJoint),
-                    sizeof(ComplexGPUNeuronJoint),
-                    JOINT_BINDING,
-                    _ubo.get()
-                ),
+                neon::StorageBufferInstanceData::Slot(sizeof(ComplexGPUNeuronJoint), sizeof(ComplexGPUNeuronJoint),
+                                                      JOINT_BINDING, _ubo.get()),
             };
             return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
         };
@@ -210,7 +205,8 @@ namespace neoneuron {
         }
     }
 
-    void ComplexNeuronScene::loadSomaModel() {
+    void ComplexNeuronScene::loadSomaModel()
+    {
         constexpr size_t INSTANCES = 100000;
         auto* app = &_render->getApplication();
 
@@ -225,16 +221,11 @@ namespace neoneuron {
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
-        modelCreateInfo.instanceDataProvider = [this](neon::Application* app,
-                                                      const neon::ModelCreateInfo& info,
+        modelCreateInfo.instanceDataProvider = [this](neon::Application* app, const neon::ModelCreateInfo& info,
                                                       const neon::Model* model) {
             std::vector indices = {
-                neon::StorageBufferInstanceData::Slot(
-                    sizeof(ComplexGPUNeuronSoma),
-                    sizeof(ComplexGPUNeuronSoma),
-                    SOMA_BINDING,
-                    _ubo.get()
-                ),
+                neon::StorageBufferInstanceData::Slot(sizeof(ComplexGPUNeuronSoma), sizeof(ComplexGPUNeuronSoma),
+                                                      SOMA_BINDING, _ubo.get()),
             };
             return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
         };
@@ -245,13 +236,15 @@ namespace neoneuron {
         }
     }
 
-    void ComplexNeuronScene::combineBoundingBoxes(const rush::AABB<3, float>& aabb) {
+    void ComplexNeuronScene::combineBoundingBoxes(const rush::AABB<3, float>& aabb)
+    {
         auto min = rush::min(aabb.center - aabb.radius, _sceneBoundingBox.center - _sceneBoundingBox.radius);
         auto max = rush::max(aabb.center + aabb.radius, _sceneBoundingBox.center + _sceneBoundingBox.radius);
         _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
-    void ComplexNeuronScene::recalculateBoundingBox() {
+    void ComplexNeuronScene::recalculateBoundingBox()
+    {
         if (_neurons.empty()) {
             _sceneBoundingBox = {};
             return;
@@ -270,26 +263,28 @@ namespace neoneuron {
         _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
-    void ComplexNeuronScene::reassignMaterials() const {
-        for (auto& mesh: _neuronModel->getMeshes()) {
+    void ComplexNeuronScene::reassignMaterials() const
+    {
+        for (auto& mesh : _neuronModel->getMeshes()) {
             mesh->setMaterial(_neuronMaterial);
         }
 
-        for (auto& mesh: _jointModel->getMeshes()) {
+        for (auto& mesh : _jointModel->getMeshes()) {
             mesh->setMaterial(_jointMaterial);
         }
 
-        for (auto& mesh: _somaModel->getMeshes()) {
+        for (auto& mesh : _somaModel->getMeshes()) {
             mesh->setMaterial(_somaMaterial);
         }
     }
 
-    ComplexNeuronScene::ComplexNeuronScene(NeoneuronRender* render)
-        : _render(render),
-          _wireframe(false),
-          _drawSegments(true),
-          _drawJoints(true),
-          _drawSomas(true) {
+    ComplexNeuronScene::ComplexNeuronScene(NeoneuronRender* render) :
+        _render(render),
+        _wireframe(false),
+        _drawSegments(true),
+        _drawJoints(true),
+        _drawSomas(true)
+    {
         loadUniformBuffers();
         loadNeuronShader();
         loadJointShader();
@@ -303,7 +298,8 @@ namespace neoneuron {
         _selector = ComplexNeuronSelector(this, _ubo.get(), SELECTION_BINDING);
     }
 
-    ComplexNeuronScene::~ComplexNeuronScene() {
+    ComplexNeuronScene::~ComplexNeuronScene()
+    {
         if (_neuronModel != nullptr) {
             _render->getRoom()->unmarkUsingModel(_neuronModel.get());
         }
@@ -315,120 +311,126 @@ namespace neoneuron {
         }
     }
 
-    NeoneuronRender* ComplexNeuronScene::getRender() {
+    NeoneuronRender* ComplexNeuronScene::getRender()
+    {
         return _render;
     }
 
-    const NeoneuronRender* ComplexNeuronScene::getRender() const {
+    const NeoneuronRender* ComplexNeuronScene::getRender() const
+    {
         return _render;
     }
 
-    const std::vector<ComplexNeuron>& ComplexNeuronScene::getNeurons() const {
+    const std::vector<ComplexNeuron>& ComplexNeuronScene::getNeurons() const
+    {
         return _neurons;
     }
 
-    AbstractSelector& ComplexNeuronScene::getSelector() {
+    AbstractSelector& ComplexNeuronScene::getSelector()
+    {
         return _selector;
     }
 
-    const AbstractSelector& ComplexNeuronScene::getSelector() const {
+    const AbstractSelector& ComplexNeuronScene::getSelector() const
+    {
         return _selector;
     }
 
-    size_t ComplexNeuronScene::getNeuronsAmount() {
+    size_t ComplexNeuronScene::getNeuronsAmount()
+    {
         return _neurons.size();
     }
 
-    size_t ComplexNeuronScene::getSectionsAmount() {
+    size_t ComplexNeuronScene::getSectionsAmount()
+    {
         return _neuronModel->getInstanceData(0)->getInstanceAmount();
     }
 
-    size_t ComplexNeuronScene::getJointsAmount() {
+    size_t ComplexNeuronScene::getJointsAmount()
+    {
         return _jointModel->getInstanceData(0)->getInstanceAmount();
     }
 
-    size_t ComplexNeuronScene::getSomasAmount() {
+    size_t ComplexNeuronScene::getSomasAmount()
+    {
         return _somaModel->getInstanceData(0)->getInstanceAmount();
     }
 
-    mnemea::Dataset& ComplexNeuronScene::getDataset() {
+    mnemea::Dataset& ComplexNeuronScene::getDataset()
+    {
         return _dataset;
     }
 
-    const mnemea::Dataset& ComplexNeuronScene::getDataset() const {
+    const mnemea::Dataset& ComplexNeuronScene::getDataset() const
+    {
         return _dataset;
     }
 
-
-    std::optional<mnemea::Neuron*> ComplexNeuronScene::findPrototypeNeuron(mnemea::UID uid) {
+    std::optional<mnemea::Neuron*> ComplexNeuronScene::findPrototypeNeuron(mnemea::UID uid)
+    {
         return _dataset.getNeuron(uid);
     }
 
-    std::optional<const mnemea::Neuron*> ComplexNeuronScene::findPrototypeNeuron(mnemea::UID uid) const {
+    std::optional<const mnemea::Neuron*> ComplexNeuronScene::findPrototypeNeuron(mnemea::UID uid) const
+    {
         return _dataset.getNeuron(uid);
     }
 
-    std::optional<ComplexNeuron*> ComplexNeuronScene::findNeuron(mnemea::UID uid) {
-        auto it = std::find_if(
-            _neurons.begin(), _neurons.end(),
-            [uid](const ComplexNeuron& neuron) {
-                return uid == neuron.getUID();
-            }
-        );
-        if (it == _neurons.end()) return {};
+    std::optional<ComplexNeuron*> ComplexNeuronScene::findNeuron(mnemea::UID uid)
+    {
+        auto it = std::find_if(_neurons.begin(), _neurons.end(),
+                               [uid](const ComplexNeuron& neuron) { return uid == neuron.getUID(); });
+        if (it == _neurons.end()) {
+            return {};
+        }
         return {&*it};
     }
 
-    std::optional<const ComplexNeuron*> ComplexNeuronScene::findNeuron(mnemea::UID uid) const {
-        auto it = std::find_if(
-            _neurons.cbegin(), _neurons.cend(),
-            [uid](const ComplexNeuron& neuron) {
-                return uid == neuron.getUID();
-            }
-        );
-        if (it == _neurons.cend()) return {};
+    std::optional<const ComplexNeuron*> ComplexNeuronScene::findNeuron(mnemea::UID uid) const
+    {
+        auto it = std::find_if(_neurons.cbegin(), _neurons.cend(),
+                               [uid](const ComplexNeuron& neuron) { return uid == neuron.getUID(); });
+        if (it == _neurons.cend()) {
+            return {};
+        }
         return {&*it};
     }
 
-    std::optional<ComplexGPUNeuron*> ComplexNeuronScene::findGPUNeuron(mnemea::UID uid) {
-        auto it = std::find_if(
-            _neurons.cbegin(), _neurons.cend(),
-            [uid](const ComplexNeuron& neuron) {
-                return uid == neuron.getUID();
-            }
-        );
-        if (it == _neurons.cend()) return {};
+    std::optional<ComplexGPUNeuron*> ComplexNeuronScene::findGPUNeuron(mnemea::UID uid)
+    {
+        auto it = std::find_if(_neurons.cbegin(), _neurons.cend(),
+                               [uid](const ComplexNeuron& neuron) { return uid == neuron.getUID(); });
+        if (it == _neurons.cend()) {
+            return {};
+        }
         ptrdiff_t index = it - _neurons.begin();
 
         return &_gpuNeurons[index];
     }
 
-    std::optional<const ComplexGPUNeuron*> ComplexNeuronScene::findGPUNeuron(mnemea::UID uid) const {
-        auto it = std::find_if(
-            _neurons.cbegin(), _neurons.cend(),
-            [uid](const ComplexNeuron& neuron) {
-                return uid == neuron.getUID();
-            }
-        );
-        if (it == _neurons.cend()) return {};
+    std::optional<const ComplexGPUNeuron*> ComplexNeuronScene::findGPUNeuron(mnemea::UID uid) const
+    {
+        auto it = std::find_if(_neurons.cbegin(), _neurons.cend(),
+                               [uid](const ComplexNeuron& neuron) { return uid == neuron.getUID(); });
+        if (it == _neurons.cend()) {
+            return {};
+        }
         ptrdiff_t index = it - _neurons.begin();
 
         return &_gpuNeurons[index];
     }
 
-    bool ComplexNeuronScene::addNeuron(const mnemea::Neuron& neuron) {
+    bool ComplexNeuronScene::addNeuron(const mnemea::Neuron& neuron)
+    {
         auto [it, inserted] = _dataset.addNeuron(neuron);
-        if (!inserted) return false;
+        if (!inserted) {
+            return false;
+        }
         auto result = ComplexNeuron(&_dataset, it);
         auto bb = result.getBoundingBox();
         _neurons.push_back(std::move(result));
-        _gpuNeurons.emplace_back(
-            _globalInstanceData,
-            _neuronModel, _jointModel, _somaModel,
-            0, 0, 0,
-            &_neurons.back(),
-            _render->getApplication().getCurrentFrameInformation().currentFrame
-        );
+        _gpuNeurons.emplace_back(_globalInstanceData, _neuronModel, _jointModel, _somaModel, 0, 0, 0, &_neurons.back(),
+                                 _render->getApplication().getCurrentFrameInformation().currentFrame);
         if (_neurons.size() == 1) {
             _sceneBoundingBox = bb;
         } else {
@@ -437,19 +439,17 @@ namespace neoneuron {
         return true;
     }
 
-    bool ComplexNeuronScene::addNeuron(mnemea::Neuron&& neuron) {
+    bool ComplexNeuronScene::addNeuron(mnemea::Neuron&& neuron)
+    {
         auto [it, inserted] = _dataset.addNeuron(neuron);
-        if (!inserted) return false;
+        if (!inserted) {
+            return false;
+        }
         auto result = ComplexNeuron(&_dataset, it);
         auto bb = result.getBoundingBox();
         _neurons.push_back(std::move(result));
-        _gpuNeurons.emplace_back(
-            _globalInstanceData,
-            _neuronModel, _jointModel, _somaModel,
-            0, 0, 0,
-            &_neurons.back(),
-            _render->getApplication().getCurrentFrameInformation().currentFrame
-        );
+        _gpuNeurons.emplace_back(_globalInstanceData, _neuronModel, _jointModel, _somaModel, 0, 0, 0, &_neurons.back(),
+                                 _render->getApplication().getCurrentFrameInformation().currentFrame);
         if (_neurons.size() == 1) {
             _sceneBoundingBox = bb;
         } else {
@@ -458,23 +458,21 @@ namespace neoneuron {
         return true;
     }
 
-    bool ComplexNeuronScene::removeNeuron(mnemea::UID neuronId) {
-        auto it = std::find_if(
-            _neurons.begin(),
-            _neurons.end(),
-            [&neuronId](const ComplexNeuron& neuron) {
-                return neuron.getUID() == neuronId;
-            }
-        );
+    bool ComplexNeuronScene::removeNeuron(mnemea::UID neuronId)
+    {
+        auto it = std::find_if(_neurons.begin(), _neurons.end(),
+                               [&neuronId](const ComplexNeuron& neuron) { return neuron.getUID() == neuronId; });
 
-        if (it == _neurons.end()) return false;
+        if (it == _neurons.end()) {
+            return false;
+        }
         ptrdiff_t index = it - _neurons.begin();
         _neurons.erase(_neurons.begin() + index);
         _gpuNeurons.erase(_gpuNeurons.begin() + index);
         _dataset.removeNeuron(neuronId);
 
         auto frame = _render->getApplication().getCurrentFrameInformation().currentFrame;
-        for (auto& neuron: _neurons) {
+        for (auto& neuron : _neurons) {
             if (auto gpuNeuron = findGPUNeuron(neuron.getUID()); gpuNeuron.has_value()) {
                 gpuNeuron.value()->refreshGPUData(&neuron, frame);
             }
@@ -488,16 +486,21 @@ namespace neoneuron {
         return true;
     }
 
-    rush::AABB<3, float> ComplexNeuronScene::getSceneBoundingBox() const {
+    rush::AABB<3, float> ComplexNeuronScene::getSceneBoundingBox() const
+    {
         return _sceneBoundingBox;
     }
 
-    bool ComplexNeuronScene::shouldDrawSegments() const {
+    bool ComplexNeuronScene::shouldDrawSegments() const
+    {
         return _drawSegments;
     }
 
-    void ComplexNeuronScene::setDrawSegments(bool draw) {
-        if (_drawSegments == draw) return;
+    void ComplexNeuronScene::setDrawSegments(bool draw)
+    {
+        if (_drawSegments == draw) {
+            return;
+        }
         _drawSegments = draw;
         if (draw) {
             _render->getRoom()->markUsingModel(_neuronModel.get());
@@ -506,12 +509,16 @@ namespace neoneuron {
         }
     }
 
-    bool ComplexNeuronScene::shouldDrawJoints() const {
+    bool ComplexNeuronScene::shouldDrawJoints() const
+    {
         return _drawJoints;
     }
 
-    void ComplexNeuronScene::setDrawJoints(bool draw) {
-        if (_drawJoints == draw) return;
+    void ComplexNeuronScene::setDrawJoints(bool draw)
+    {
+        if (_drawJoints == draw) {
+            return;
+        }
         _drawJoints = draw;
         if (draw) {
             _render->getRoom()->markUsingModel(_jointModel.get());
@@ -520,12 +527,16 @@ namespace neoneuron {
         }
     }
 
-    bool ComplexNeuronScene::shouldDrawSomas() const {
+    bool ComplexNeuronScene::shouldDrawSomas() const
+    {
         return _drawSomas;
     }
 
-    void ComplexNeuronScene::setDrawSomas(bool draw) {
-        if (_drawSomas == draw) return;
+    void ComplexNeuronScene::setDrawSomas(bool draw)
+    {
+        if (_drawSomas == draw) {
+            return;
+        }
         _drawSomas = draw;
         if (draw) {
             _render->getRoom()->markUsingModel(_somaModel.get());
@@ -534,11 +545,13 @@ namespace neoneuron {
         }
     }
 
-    const std::shared_ptr<neon::ShaderUniformBuffer>& ComplexNeuronScene::getUBO() const {
+    const std::shared_ptr<neon::ShaderUniformBuffer>& ComplexNeuronScene::getUBO() const
+    {
         return _ubo;
     }
 
-    void ComplexNeuronScene::refreshNeuronProperty(mnemea::UID neuronId, const std::string& propertyName) {
+    void ComplexNeuronScene::refreshNeuronProperty(mnemea::UID neuronId, const std::string& propertyName)
+    {
         auto frame = _render->getApplication().getCurrentFrameInformation().currentFrame;
         if (auto neuron = findNeuron(neuronId); neuron.has_value()) {
             neuron.value()->refreshProperty(propertyName);
@@ -547,15 +560,15 @@ namespace neoneuron {
             }
         }
 
-
         if (propertyName == mnemea::PROPERTY_TRANSFORM) {
             recalculateBoundingBox();
         }
     }
 
-    mnemea::UID ComplexNeuronScene::findAvailableUID() const {
+    mnemea::UID ComplexNeuronScene::findAvailableUID() const
+    {
         std::unordered_set<mnemea::UID> uids;
-        for (auto& neuron: _neurons) {
+        for (auto& neuron : _neurons) {
             uids.insert(neuron.getUID());
         }
 
@@ -568,12 +581,16 @@ namespace neoneuron {
         return smallest;
     }
 
-    bool ComplexNeuronScene::isWireframeMode() const {
+    bool ComplexNeuronScene::isWireframeMode() const
+    {
         return _wireframe;
     }
 
-    void ComplexNeuronScene::setWireframeMode(bool wireframe) {
-        if (wireframe == _wireframe) return;
+    void ComplexNeuronScene::setWireframeMode(bool wireframe)
+    {
+        if (wireframe == _wireframe) {
+            return;
+        }
         _wireframe = wireframe;
 
         std::vector materials = {_neuronMaterial, _jointMaterial, _somaMaterial};
@@ -586,7 +603,8 @@ namespace neoneuron {
         _render->getApplication().getTaskRunner().launchCoroutine(deleteCoroutine(std::move(materials)));
     }
 
-    void ComplexNeuronScene::reloadShader() {
+    void ComplexNeuronScene::reloadShader()
+    {
         std::vector materials = {_neuronMaterial, _jointMaterial, _somaMaterial};
 
         loadNeuronShader();
@@ -600,40 +618,45 @@ namespace neoneuron {
         _render->getApplication().getTaskRunner().launchCoroutine(deleteCoroutine(std::move(materials)));
     }
 
-    void ComplexNeuronScene::checkForNewNeurons() {
+    void ComplexNeuronScene::checkForNewNeurons()
+    {
         auto& runner = _render->getApplication().getTaskRunner();
 
         // Find the neurons
         std::vector<mnemea::UID> uids;
 
-        for (auto& neuron: _dataset.getNeurons()) {
-            if (findNeuron(neuron.getUID()).has_value()) continue;
+        for (auto& neuron : _dataset.getNeurons()) {
+            if (findNeuron(neuron.getUID()).has_value()) {
+                continue;
+            }
             uids.push_back(neuron.getUID());
         }
 
-        auto result = runner.executeAsync([](ComplexNeuronScene* scene, std::vector<mnemea::UID> ids) {
-            for (mnemea::UID id: ids) {
-                auto neuron = scene->_dataset.getNeuron(id);
-                if (!neuron.has_value()) continue;
-                auto complex = ComplexNeuron(&scene->_dataset, neuron.value());
-                scene->_render->getApplication().getTaskRunner().executeOnMainThread(
-                    [](ComplexNeuronScene* scene, ComplexNeuron c) {
-                        auto bb = c.getBoundingBox();
-                        scene->_neurons.push_back(std::move(c));
-                        scene->_gpuNeurons.emplace_back(
-                            scene->_globalInstanceData,
-                            scene->_neuronModel, scene->_jointModel, scene->_somaModel,
-                            0, 0, 0,
-                            &scene->_neurons.back(),
-                            scene->_render->getApplication().getCurrentFrameInformation().currentFrame
-                        );
-                        if (scene->_neurons.size() == 1) {
-                            scene->_sceneBoundingBox = bb;
-                        } else {
-                            scene->combineBoundingBoxes(bb);
-                        }
-                    }, scene, std::move(complex));
-            }
-        }, this, std::move(uids));
+        auto result = runner.executeAsync(
+            [](ComplexNeuronScene* scene, std::vector<mnemea::UID> ids) {
+                for (mnemea::UID id : ids) {
+                    auto neuron = scene->_dataset.getNeuron(id);
+                    if (!neuron.has_value()) {
+                        continue;
+                    }
+                    auto complex = ComplexNeuron(&scene->_dataset, neuron.value());
+                    scene->_render->getApplication().getTaskRunner().executeOnMainThread(
+                        [](ComplexNeuronScene* scene, ComplexNeuron c) {
+                            auto bb = c.getBoundingBox();
+                            scene->_neurons.push_back(std::move(c));
+                            scene->_gpuNeurons.emplace_back(
+                                scene->_globalInstanceData, scene->_neuronModel, scene->_jointModel, scene->_somaModel,
+                                0, 0, 0, &scene->_neurons.back(),
+                                scene->_render->getApplication().getCurrentFrameInformation().currentFrame);
+                            if (scene->_neurons.size() == 1) {
+                                scene->_sceneBoundingBox = bb;
+                            } else {
+                                scene->combineBoundingBoxes(bb);
+                            }
+                        },
+                        scene, std::move(complex));
+                }
+            },
+            this, std::move(uids));
     }
-}
+} // namespace neoneuron

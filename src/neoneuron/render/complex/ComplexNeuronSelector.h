@@ -12,9 +12,10 @@
 #include <mnemea/UID.h>
 #include <neoneuron/render/AbstractSelector.h>
 
-
-namespace neoneuron {
-    struct ComplexSelectionEntry {
+namespace neoneuron
+{
+    struct ComplexSelectionEntry
+    {
         mnemea::UID neuron;
         mnemea::UID segment;
 
@@ -22,11 +23,13 @@ namespace neoneuron {
 
         bool operator!=(const ComplexSelectionEntry& other) const;
     };
-}
+} // namespace neoneuron
 
 template<>
-struct std::hash<neoneuron::ComplexSelectionEntry> {
-    size_t operator()(const neoneuron::ComplexSelectionEntry& entry) const noexcept {
+struct std::hash<neoneuron::ComplexSelectionEntry>
+{
+    size_t operator()(const neoneuron::ComplexSelectionEntry& entry) const noexcept
+    {
         std::hash<uint32_t> hasher;
         size_t hash1 = hasher(entry.neuron);
         size_t hash2 = hasher(entry.segment);
@@ -34,14 +37,17 @@ struct std::hash<neoneuron::ComplexSelectionEntry> {
     }
 };
 
-namespace neoneuron {
+namespace neoneuron
+{
     class ComplexNeuronScene;
 
-    struct ComplexGPUNeuronSelectionData {
+    struct ComplexGPUNeuronSelectionData
+    {
         uint32_t selected;
     };
 
-    class ComplexNeuronSelector : public AbstractSelector {
+    class ComplexNeuronSelector : public AbstractSelector
+    {
         ComplexNeuronScene* _scene;
         neon::ShaderUniformBuffer* _uniformBuffer;
         size_t _binding;
@@ -55,12 +61,10 @@ namespace neoneuron {
 
         void sendCenterToCamera() const;
 
-    public:
+      public:
         ComplexNeuronSelector();
 
-        ComplexNeuronSelector(ComplexNeuronScene* scene,
-                       neon::ShaderUniformBuffer* uniformBuffer,
-                       size_t binding);
+        ComplexNeuronSelector(ComplexNeuronScene* scene, neon::ShaderUniformBuffer* uniformBuffer, size_t binding);
 
         ~ComplexNeuronSelector() override = default;
 
@@ -74,12 +78,13 @@ namespace neoneuron {
 
         void selectSection(mnemea::UID neuronId, mnemea::UID sectionId) override;
 
-        void selectSection(mnemea::UID neuronId, mnemea::UID sectionId, std::unordered_map<mnemea::UID, rush::Mat4f>* transforms);
+        void selectSection(mnemea::UID neuronId, mnemea::UID sectionId,
+                           std::unordered_map<mnemea::UID, rush::Mat4f>* transforms);
 
         void deselectNeuron(mnemea::UID neuronId) override;
 
         void refreshGPUData();
     };
-}
+} // namespace neoneuron
 
 #endif //COMPLEXNEURONSELECTOR_H

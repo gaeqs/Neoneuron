@@ -8,23 +8,23 @@
 #include <neoneuron/render/AbstractNeuronScene.h>
 #include <neoneuron/ui/components/ModalComponent.h>
 
-namespace neoneuron {
-    class ActionSave : public ModalComponent {
-
+namespace neoneuron
+{
+    class ActionSave : public ModalComponent
+    {
         AbstractNeuronScene* _scene;
 
         void run();
 
         neon::Coroutine<> saveCoroutine(std::unordered_set<mnemea::UID> uids);
 
-    public:
+      public:
         ActionSave(AbstractNeuronScene* scene);
 
         void onModalDraw() override;
 
         void actionButton(ImVec2 recommendedSize) override;
     };
-}
-
+} // namespace neoneuron
 
 #endif //ACTIONSAVE_H

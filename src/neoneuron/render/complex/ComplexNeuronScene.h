@@ -12,12 +12,13 @@
 #include <neoneuron/render/AbstractNeuronScene.h>
 #include <neoneuron/render/complex/ComplexNeuronSelector.h>
 
-
-namespace neoneuron {
+namespace neoneuron
+{
     class NeoneuronRender;
 
-    class ComplexNeuronScene : public AbstractNeuronScene {
-    public:
+    class ComplexNeuronScene : public AbstractNeuronScene
+    {
+      public:
         static constexpr size_t UNIFORM_SET = 2;
         static constexpr size_t GLOBAL_DATA_BINDING = 0;
         static constexpr size_t SEGMENT_BINDING = 1;
@@ -33,7 +34,7 @@ namespace neoneuron {
         static constexpr size_t STORAGE_PER_SECTION = sizeof(uint32_t);
         static constexpr size_t MAX_SAVE_VERTICES = 1000000;
 
-    private:
+      private:
         NeoneuronRender* _render;
         ComplexNeuronSelector _selector;
 
@@ -87,7 +88,7 @@ namespace neoneuron {
 
         void reassignMaterials() const;
 
-    public:
+      public:
         ComplexNeuronScene(const ComplexNeuronScene&) = delete;
 
         explicit ComplexNeuronScene(NeoneuronRender* render);
@@ -162,6 +163,6 @@ namespace neoneuron {
 
         void checkForNewNeurons() override;
     };
-}
+} // namespace neoneuron
 
 #endif //COMPLEXNEURONSCENE_H

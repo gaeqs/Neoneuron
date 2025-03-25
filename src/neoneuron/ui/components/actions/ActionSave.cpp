@@ -8,34 +8,42 @@
 #include <neoneuron/render/complex/ComplexNeuronScene.h>
 #undef max
 
-namespace neoneuron {
-    void ActionSave::run() {
+namespace neoneuron
+{
+    void ActionSave::run()
+    {
         auto selection = _scene->getSelector().getSelectedNeurons();
         getTaskRunner().launchCoroutine(saveCoroutine(std::move(selection)));
     }
 
-    neon::Coroutine<> ActionSave::saveCoroutine(std::unordered_set<mnemea::UID> uids) {
+    neon::Coroutine<> ActionSave::saveCoroutine(std::unordered_set<mnemea::UID> uids)
+    {
         constexpr size_t VALUES_PER_SEGMENT = 64;
         constexpr size_t VALUES_PER_JOINT = 68;
         constexpr size_t VALUES_PER_SOMA = 128 * 64 + 8 * 32;
 
-
         auto* scene = dynamic_cast<ComplexNeuronScene*>(_scene);
-        if (scene == nullptr) co_return;
+        if (scene == nullptr) {
+            co_return;
+        }
 
         auto typeProp = _scene->getDataset().getProperties().getPropertyUID(mnemea::PROPERTY_NEURITE_TYPE);
 
-        for (mnemea::UID uid: uids) {
+        for (mnemea::UID uid : uids) {
             auto optional = _scene->findPrototypeNeuron(uid);
-            if (!optional.has_value()) continue;
+            if (!optional.has_value()) {
+                continue;
+            }
             auto* neuron = optional.value();
 
-            if (!neuron->getMorphology().has_value()) continue;
+            if (!neuron->getMorphology().has_value()) {
+                continue;
+            }
 
             auto morph = neuron->getMorphology().value();
 
             mnemea::UID maxSegment = 0;
-            for (auto& segment: morph->getNeurites()) {
+            for (auto& segment : morph->getNeurites()) {
                 maxSegment = std::max(maxSegment, segment.getUID());
             }
 
@@ -54,16 +62,19 @@ namespace neoneuron {
             const auto* indices = static_cast<const rush::Vec4i*>(ubo->fetchData(8));
 
             std::vector<rush::Vec3f> vertices;
-            for (auto& segment: morph->getNeurites()) {
+            for (auto& segment : morph->getNeurites()) {
                 bool hasType = typeProp.has_value();
-                bool isSoma = hasType && segment.getProperty<mnemea::NeuriteType>(typeProp.value()) == mnemea::NeuriteType::SOMA;
+                bool isSoma =
+                    hasType && segment.getProperty<mnemea::NeuriteType>(typeProp.value()) == mnemea::NeuriteType::SOMA;
 
                 if (!isSoma) {
                     // Segment
                     size_t offset = segment.getUID() * VALUES_PER_SEGMENT;
                     for (size_t i = 0; i < VALUES_PER_SEGMENT; ++i) {
                         rush::Vec4i triangle = indices[i + offset];
-                        if (triangle.w() == 0) continue;
+                        if (triangle.w() == 0) {
+                            continue;
+                        }
 
                         auto x = rush::Vec3f(data[triangle.x()]);
                         auto y = rush::Vec3f(data[triangle.y()]);
@@ -78,7 +89,9 @@ namespace neoneuron {
                     offset = VALUES_PER_SEGMENT * (maxSegment + 1) + VALUES_PER_JOINT * segment.getUID();
                     for (size_t i = 0; i < VALUES_PER_JOINT; ++i) {
                         rush::Vec4i triangle = indices[i + offset];
-                        if (triangle.w() == 0) continue;
+                        if (triangle.w() == 0) {
+                            continue;
+                        }
 
                         auto x = rush::Vec3f(data[triangle.x()]);
                         auto y = rush::Vec3f(data[triangle.y()]);
@@ -93,7 +106,9 @@ namespace neoneuron {
                     size_t offset = VALUES_PER_SEGMENT * (maxSegment + 1) + VALUES_PER_JOINT * (maxSegment + 1);
                     for (size_t i = 0; i < VALUES_PER_SOMA; ++i) {
                         rush::Vec4i triangle = indices[i + offset];
-                        if (triangle.w() == 0) continue;
+                        if (triangle.w() == 0) {
+                            continue;
+                        }
 
                         auto x = rush::Vec3f(data[triangle.x()]);
                         auto y = rush::Vec3f(data[triangle.y()]);
@@ -109,7 +124,7 @@ namespace neoneuron {
             std::cout << vertices.size() << std::endl;
 
             std::ofstream out("test.obj");
-            for (auto& value: vertices) {
+            for (auto& value : vertices) {
                 out << "v " << value.x() << " " << value.y() << " " << value.z() << std::endl;
             }
 
@@ -122,15 +137,21 @@ namespace neoneuron {
         }
     }
 
-    ActionSave::ActionSave(AbstractNeuronScene* scene)
-        : ModalComponent("Save neuron model", true), _scene(scene) {}
+    ActionSave::ActionSave(AbstractNeuronScene* scene) :
+        ModalComponent("Save neuron model", true),
+        _scene(scene)
+    {
+    }
 
-    void ActionSave::onModalDraw() {}
+    void ActionSave::onModalDraw()
+    {
+    }
 
-    void ActionSave::actionButton(ImVec2 recommendedSize) {
+    void ActionSave::actionButton(ImVec2 recommendedSize)
+    {
         if (ImGui::Button("Run", recommendedSize)) {
             run();
             ImGui::CloseCurrentPopup();
         }
     }
-}
+} // namespace neoneuron

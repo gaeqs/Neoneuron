@@ -9,9 +9,11 @@
 #include <neoneuron/structure/Storage.h>
 #include <neoneuron/structure/property/DefinedProperty.h>
 
-namespace neoneuron {
-    class NeoneuronApplication {
-    public:
+namespace neoneuron
+{
+    class NeoneuronApplication
+    {
+      public:
         inline static const std::string CONFIG_FILE = "neoneuron.json";
         static inline const std::string SETTINGS_THEME = "theme";
         static inline const std::string SETTINGS_FONT_SIZE = "font_size";
@@ -20,7 +22,7 @@ namespace neoneuron {
         static inline const std::string SETTINGS_TOOL_DEBUG = "tool_debug";
         static inline const std::string SETTINGS_TOOL_DEMO = "tool_demo";
 
-    private:
+      private:
         nlohmann::json _settings;
         hey::Observable<std::string> _settingsNodeChange;
         NeoneuronRender _render;
@@ -29,7 +31,7 @@ namespace neoneuron {
 
         static nlohmann::json loadSettings();
 
-    public:
+      public:
         explicit NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo);
 
         [[nodiscard]] NeoneuronRender& getRender();
@@ -56,7 +58,6 @@ namespace neoneuron {
 
         void saveSettings() const;
     };
-}
-
+} // namespace neoneuron
 
 #endif //NEONEURONAPPLICATION_H

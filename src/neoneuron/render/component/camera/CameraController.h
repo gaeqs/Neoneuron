@@ -9,15 +9,16 @@
 
 #include <neoneuron/render/component/camera/CameraInterpolator.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     class CameraData;
 
-    class CameraController : public neon::Component {
-    protected:
+    class CameraController : public neon::Component
+    {
+      protected:
         CameraData* _cameraData;
 
-    public:
-
+      public:
         explicit CameraController(CameraData* cameraData);
 
         virtual void focusOn(const rush::AABB<3, float>& aabb) = 0;
@@ -26,7 +27,6 @@ namespace neoneuron {
 
         virtual void setInterpolator(std::unique_ptr<CameraInterpolator> interpolator) = 0;
     };
-}
-
+} // namespace neoneuron
 
 #endif //CAMERACONTROLLER_H

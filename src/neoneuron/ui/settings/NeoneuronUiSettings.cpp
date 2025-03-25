@@ -9,16 +9,23 @@
 #include <neoneuron/ui/style/Fonts.h>
 #include <neoneuron/ui/style/Themes.h>
 
-namespace neoneuron::settings {
-    void settingsSection(const std::string& name) {
+namespace neoneuron::settings
+{
+    void settingsSection(const std::string& name)
+    {
         auto font = fonts::getFont(fonts::SS3_32);
 
-        if (font.has_value()) ImGui::PushFont(font.value());
+        if (font.has_value()) {
+            ImGui::PushFont(font.value());
+        }
         ImGui::Text(name.c_str());
-        if (font.has_value()) ImGui::PopFont();
+        if (font.has_value()) {
+            ImGui::PopFont();
+        }
     }
 
-    void settingsTheme(NeoneuronApplication* app) {
+    void settingsTheme(NeoneuronApplication* app)
+    {
         static int styleIdx = app->getSettings().value(NeoneuronApplication::SETTINGS_THEME, 0);
         static int current = styleIdx;
         ImGui::Combo("Theme", &styleIdx, "Dark Theme\0Light Theme\0");
@@ -41,7 +48,8 @@ namespace neoneuron::settings {
         }
     }
 
-    void settingsFontSize(NeoneuronApplication* app) {
+    void settingsFontSize(NeoneuronApplication* app)
+    {
         static int fontIdx = app->getSettings().value(NeoneuronApplication::SETTINGS_FONT_SIZE, 1);
         static int current = fontIdx;
         ImGui::Combo("Font size", &fontIdx, "Small\0Normal\0Large\0Extra large\0Giant\0");
@@ -77,7 +85,8 @@ namespace neoneuron::settings {
         }
     }
 
-    void settingsDialog(NeoneuronApplication* app) {
+    void settingsDialog(NeoneuronApplication* app)
+    {
         ImGui::BeginChild("settings_content", ImVec2(0, ImGui::GetContentRegionMax().y - 100.0f));
 
         ImGui::Indent();
@@ -89,7 +98,6 @@ namespace neoneuron::settings {
         ImGui::Unindent();
         ImGui::Unindent();
 
-
         ImGui::EndChild();
 
         ImGui::Separator();
@@ -99,4 +107,4 @@ namespace neoneuron::settings {
             ImGui::CloseCurrentPopup();
         }
     }
-}
+} // namespace neoneuron::settings

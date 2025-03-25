@@ -8,9 +8,10 @@
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/ui/imgui/ImGuiCustomComponents.h>
 
-
-namespace neoneuron {
-    bool NeoneuronUINeuronList::neuronSection(const mnemea::Neuron* neuron, size_t id, bool selected) const {
+namespace neoneuron
+{
+    bool NeoneuronUINeuronList::neuronSection(const mnemea::Neuron* neuron, size_t id, bool selected) const
+    {
         std::string name;
 
         auto prop = _render->getNeuronScene()->getDataset().getProperties().getPropertyUID(mnemea::PROPERTY_NAME);
@@ -62,8 +63,8 @@ namespace neoneuron {
             if (ImGui::MenuItem("Duplicate")) {
                 mnemea::Neuron copy(*neuron);
                 copy.setUID(_render->getNeuronScene()->findAvailableUID());
-                auto prop = _render->getNeuronScene()->getDataset().getProperties().defineProperty(
-                    mnemea::PROPERTY_NAME);
+                auto prop =
+                    _render->getNeuronScene()->getDataset().getProperties().defineProperty(mnemea::PROPERTY_NAME);
                 copy.setPropertyAsAny(prop, name + " (copy)");
                 _render->getNeuronScene()->addNeuron(std::move(copy));
             }
@@ -73,20 +74,16 @@ namespace neoneuron {
         return deleted;
     }
 
-    void NeoneuronUINeuronList::neuronList() {
+    void NeoneuronUINeuronList::neuronList()
+    {
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg));
-        ImGui::BeginChild(
-            "List",
-            ImVec2(0, ImGui::GetContentRegionAvail().y / 3.0f),
-            ImGuiChildFlags_Borders
-        );
-
+        ImGui::BeginChild("List", ImVec2(0, ImGui::GetContentRegionAvail().y / 3.0f), ImGuiChildFlags_Borders);
 
         auto* scene = _render->getNeuronScene().get();
         auto& selectedNeurons = scene->getSelector().getSelectedNeurons();
 
         std::vector<mnemea::Neuron*> neurons;
-        for (auto& neuron: scene->getDataset().getNeurons()) {
+        for (auto& neuron : scene->getDataset().getNeurons()) {
             neurons.push_back(&neuron);
         }
 
@@ -108,11 +105,9 @@ namespace neoneuron {
         ImGui::PopStyleColor();
     }
 
-    void NeoneuronUINeuronList::neuronInformation() const {
-        ImGui::BeginChild(
-            "Information",
-            ImVec2(0, ImGui::GetContentRegionAvail().y)
-        );
+    void NeoneuronUINeuronList::neuronInformation() const
+    {
+        ImGui::BeginChild("Information", ImVec2(0, ImGui::GetContentRegionAvail().y));
 
         auto& selectedNeurons = _render->getNeuronScene()->getSelector().getSelectedNeurons();
 
@@ -131,7 +126,6 @@ namespace neoneuron {
             return;
         }
 
-
         auto morph = prototype->getMorphology();
 
         ImGui::Text("Id: %d", prototype->getUID());
@@ -143,10 +137,12 @@ namespace neoneuron {
         std::vector<std::string> segmentProperties;
         std::vector<std::string> undefinedProperties;
 
-        auto& props= _render->getNeuronScene()->getDataset().getProperties();
-        for (const auto& [name, uid]: props.getPropertiesUIDs()) {
+        auto& props = _render->getNeuronScene()->getDataset().getProperties();
+        for (const auto& [name, uid] : props.getPropertiesUIDs()) {
             auto optionalValue = prototype->getPropertyAsAny(uid);
-            if (!optionalValue.has_value()) continue;
+            if (!optionalValue.has_value()) {
+                continue;
+            }
             auto prop = storage.get(name);
             if (!prop.has_value()) {
                 undefinedProperties.push_back(name);
@@ -178,14 +174,14 @@ namespace neoneuron {
 
         if (!segmentProperties.empty() && ImGui::CollapsingHeader("Segment properties")) {
             ImGui::Indent();
-            for (const auto& prop: segmentProperties) {
+            for (const auto& prop : segmentProperties) {
                 ImGui::Text(prop.c_str());
             }
             ImGui::Unindent();
         }
         if (!undefinedProperties.empty() && ImGui::CollapsingHeader("Undefined properties")) {
             ImGui::Indent();
-            for (const auto& prop: undefinedProperties) {
+            for (const auto& prop : undefinedProperties) {
                 ImGui::Text(prop.c_str());
             }
             ImGui::Unindent();
@@ -196,7 +192,8 @@ namespace neoneuron {
         ImGui::EndChild();
     }
 
-    void NeoneuronUINeuronList::neuronNewProperty(mnemea::Neuron* prototype) const {
+    void NeoneuronUINeuronList::neuronNewProperty(mnemea::Neuron* prototype) const
+    {
         static int selectedProperty = -1;
 
         int amount = 0;
@@ -204,15 +201,16 @@ namespace neoneuron {
         const DefinedProperty* properties[100];
 
         auto& storage = _render->getNeoneuronApplication()->getPropertyStorage();
-        for (auto& [name, prop]: storage) {
+        for (auto& [name, prop] : storage) {
             auto uid = _render->getNeuronScene()->getDataset().getProperties().getPropertyUID(name);
 
-            if (prop.getGenerator() != nullptr
-                && prop.getTarget() != PropertyTarget::SEGMENT
-                && (!uid.has_value() || !prototype->getPropertyAsAny(uid.value()).has_value())) {
+            if (prop.getGenerator() != nullptr && prop.getTarget() != PropertyTarget::SEGMENT &&
+                (!uid.has_value() || !prototype->getPropertyAsAny(uid.value()).has_value())) {
                 properties[amount] = &prop;
                 names[amount++] = prop.getDisplayName().c_str();
-                if (amount >= 100) break;
+                if (amount >= 100) {
+                    break;
+                }
             }
         }
 
@@ -237,13 +235,17 @@ namespace neoneuron {
         }
     }
 
-    NeoneuronUINeuronList::NeoneuronUINeuronList(NeoneuronRender* render) : _render(render) {}
+    NeoneuronUINeuronList::NeoneuronUINeuronList(NeoneuronRender* render) :
+        _render(render)
+    {
+    }
 
-    void NeoneuronUINeuronList::onPreDraw() {
+    void NeoneuronUINeuronList::onPreDraw()
+    {
         if (ImGui::Begin("Neurons")) {
             neuronList();
             neuronInformation();
         }
         ImGui::End();
     }
-}
+} // namespace neoneuron

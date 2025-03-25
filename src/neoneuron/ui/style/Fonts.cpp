@@ -7,13 +7,18 @@
 #include <imgui_impl_vulkan.h>
 #include <unordered_map>
 
-namespace {
+namespace
+{
     std::unordered_map<std::string, ImFont*> _fonts;
 }
 
-namespace neoneuron::fonts {
-    bool loadFont(const std::string& name, const neon::File& file, float sizeInPixels) {
-        if (!file.isValid()) return false;
+namespace neoneuron::fonts
+{
+    bool loadFont(const std::string& name, const neon::File& file, float sizeInPixels)
+    {
+        if (!file.isValid()) {
+            return false;
+        }
         auto& io = ImGui::GetIO();
         ImFontConfig font_cfg;
         font_cfg.FontDataOwnedByAtlas = false;
@@ -26,21 +31,26 @@ namespace neoneuron::fonts {
         return true;
     }
 
-    std::optional<ImFont*> getFont(const std::string& name) {
+    std::optional<ImFont*> getFont(const std::string& name)
+    {
         auto it = _fonts.find(name);
-        if (it == _fonts.end()) return {};
+        if (it == _fonts.end()) {
+            return {};
+        }
         return it->second;
     }
 
-    void recreateFonts() {
+    void recreateFonts()
+    {
         ImGui_ImplVulkan_CreateFontsTexture();
     }
 
-    void imGuiPushFont(const std::string& name) {
+    void imGuiPushFont(const std::string& name)
+    {
         if (auto it = _fonts.find(name); it == _fonts.end()) {
             ImGui::PushFont(nullptr);
         } else {
             ImGui::PushFont(it->second);
         }
     }
-}
+} // namespace neoneuron::fonts

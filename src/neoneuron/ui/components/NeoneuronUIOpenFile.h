@@ -9,9 +9,12 @@
 #include <mnemea/loader/Loader.h>
 #include <neoneuron/render/AbstractNeuronScene.h>
 
-namespace neoneuron {
-    class NeoneuronUiOpenFile : public neon::Component {
-        enum class UIDProvider {
+namespace neoneuron
+{
+    class NeoneuronUiOpenFile : public neon::Component
+    {
+        enum class UIDProvider
+        {
             FILE,
             AVAILABLE
         };
@@ -41,14 +44,12 @@ namespace neoneuron {
 
         void loadButton() const;
 
-    public:
-        explicit NeoneuronUiOpenFile(AbstractNeuronScene* scene,
-                                     std::unique_ptr<neon::FileSystem> fileSystem,
-                                     std::filesystem::path path,
-                                     neon::File file);
+      public:
+        explicit NeoneuronUiOpenFile(AbstractNeuronScene* scene, std::unique_ptr<neon::FileSystem> fileSystem,
+                                     std::filesystem::path path, neon::File file);
 
         void onPreDraw() override;
     };
-}
+} // namespace neoneuron
 
 #endif //NEONEURONUIOPENFILE_H

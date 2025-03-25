@@ -7,9 +7,11 @@
 #include <rush/quaternion/quat.h>
 #include <rush/vector/vec.h>
 
-namespace neoneuron {
-    class CameraInterpolator {
-    public:
+namespace neoneuron
+{
+    class CameraInterpolator
+    {
+      public:
         virtual ~CameraInterpolator() = default;
 
         virtual void setPosition(rush::Vec3f position) = 0;
@@ -22,7 +24,6 @@ namespace neoneuron {
 
         virtual void onUpdate(float deltaTime) = 0;
     };
-}
-
+} // namespace neoneuron
 
 #endif //CAMERAINTERPOLATOR_H

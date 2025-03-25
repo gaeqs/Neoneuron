@@ -8,8 +8,10 @@
 #include <mnemea/DefaultProperties.h>
 #include <mnemea/util/NeuronTransform.h>
 
-namespace neoneuron {
-    void ActionShuffle::shuffle(mnemea::UID prop, mnemea::Neuron* neuron) {
+namespace neoneuron
+{
+    void ActionShuffle::shuffle(mnemea::UID prop, mnemea::Neuron* neuron)
+    {
         std::uniform_real_distribution dis(-1.0f, 1.0f);
         std::uniform_real_distribution rDis(0.0f, 1.0f);
 
@@ -29,16 +31,17 @@ namespace neoneuron {
         _scene->refreshNeuronProperty(neuron->getUID(), mnemea::PROPERTY_TRANSFORM);
     }
 
-    void ActionShuffle::run() {
+    void ActionShuffle::run()
+    {
         auto propId = _scene->getDataset().getProperties().defineProperty(mnemea::PROPERTY_TRANSFORM);
         auto& neurons = _scene->getSelector().getSelectedNeurons();
         if (neurons.empty()) {
             // Shuffle all neurons
-            for (auto& neuron: _scene->getDataset().getNeurons()) {
+            for (auto& neuron : _scene->getDataset().getNeurons()) {
                 shuffle(propId, &neuron);
             }
         } else {
-            for (auto& uid: neurons) {
+            for (auto& uid : neurons) {
                 if (auto neuron = _scene->findPrototypeNeuron(uid); neuron.has_value()) {
                     shuffle(propId, neuron.value());
                 }
@@ -46,26 +49,30 @@ namespace neoneuron {
         }
     }
 
-    ActionShuffle::ActionShuffle(AbstractNeuronScene* scene)
-        : ModalComponent("Shuffle", true),
-          _scene(scene),
-          _radius(1000.0f),
-          _shuffleRotation(true),
-          _randomGenerator(_randomDevice()) {}
+    ActionShuffle::ActionShuffle(AbstractNeuronScene* scene) :
+        ModalComponent("Shuffle", true),
+        _scene(scene),
+        _radius(1000.0f),
+        _shuffleRotation(true),
+        _randomGenerator(_randomDevice())
+    {
+    }
 
-    void ActionShuffle::onModalDraw() {
+    void ActionShuffle::onModalDraw()
+    {
         ImGui::TextWrapped("This tool shuffles the position of all selected neurons. "
-            "If no neurons are selected, this tool will shuffle all neurons in the scene.");
+                           "If no neurons are selected, this tool will shuffle all neurons in the scene.");
         ImGui::Separator();
         ImGui::InputFloat3("Center", _center.toPointer());
         ImGui::InputFloat("Radius", &_radius);
         ImGui::Checkbox("Shuffle rotation", &_shuffleRotation);
     }
 
-    void ActionShuffle::actionButton(ImVec2 recommendedSize) {
+    void ActionShuffle::actionButton(ImVec2 recommendedSize)
+    {
         if (ImGui::Button("Run", recommendedSize)) {
             run();
             ImGui::CloseCurrentPopup();
         }
     }
-}
+} // namespace neoneuron

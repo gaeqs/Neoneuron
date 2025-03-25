@@ -5,69 +5,88 @@
 #include "NeoneuronApplication.h"
 #include "NeoneuronDefaults.h"
 
-namespace neoneuron {
+namespace neoneuron
+{
 
-    nlohmann::json NeoneuronApplication::loadSettings() {
+    nlohmann::json NeoneuronApplication::loadSettings()
+    {
         neon::DirectoryFileSystem dfs(std::filesystem::current_path());
         auto optional = dfs.readFile(CONFIG_FILE);
-        if (!optional.has_value()) return "{}"_json;
+        if (!optional.has_value()) {
+            return "{}"_json;
+        }
         return optional->toJson().value_or(nlohmann::json());
     }
 
-    NeoneuronApplication::NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo)
-        : _settings(loadSettings()),
-          _render(this, std::move(renderCreateInfo)) {
+    NeoneuronApplication::NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo) :
+        _settings(loadSettings()),
+        _render(this, std::move(renderCreateInfo))
+    {
         initDefaultProperties(_propertyStorage);
     }
 
-    NeoneuronRender& NeoneuronApplication::getRender() {
+    NeoneuronRender& NeoneuronApplication::getRender()
+    {
         return _render;
     }
 
-    const NeoneuronRender& NeoneuronApplication::getRender() const {
+    const NeoneuronRender& NeoneuronApplication::getRender() const
+    {
         return _render;
     }
 
-    nlohmann::json& NeoneuronApplication::getSettings() {
+    nlohmann::json& NeoneuronApplication::getSettings()
+    {
         return _settings;
     }
 
-    const nlohmann::json& NeoneuronApplication::getSettings() const {
+    const nlohmann::json& NeoneuronApplication::getSettings() const
+    {
         return _settings;
     }
 
-    Storage<DefinedProperty>& NeoneuronApplication::getPropertyStorage() {
+    Storage<DefinedProperty>& NeoneuronApplication::getPropertyStorage()
+    {
         return _propertyStorage;
     }
 
-    const Storage<DefinedProperty>& NeoneuronApplication::getPropertyStorage() const {
+    const Storage<DefinedProperty>& NeoneuronApplication::getPropertyStorage() const
+    {
         return _propertyStorage;
     }
 
-    mnemea::LoaderRegistry& NeoneuronApplication::getLoaderRegistry() {
+    mnemea::LoaderRegistry& NeoneuronApplication::getLoaderRegistry()
+    {
         return _loaderStorage;
     }
 
-    const mnemea::LoaderRegistry& NeoneuronApplication::getLoaderRegistry() const {
+    const mnemea::LoaderRegistry& NeoneuronApplication::getLoaderRegistry() const
+    {
         return _loaderStorage;
     }
 
-    void NeoneuronApplication::registerSettingsListener(const hey::Listener<std::string>& listener) const {
+    void NeoneuronApplication::registerSettingsListener(const hey::Listener<std::string>& listener) const
+    {
         _settingsNodeChange.addListener(listener);
     }
 
-    void NeoneuronApplication::unregisterSettingsListener(const hey::Listener<std::string>& listener) const {
+    void NeoneuronApplication::unregisterSettingsListener(const hey::Listener<std::string>& listener) const
+    {
         _settingsNodeChange.removeListener(listener);
     }
 
-    void NeoneuronApplication::signalSettingsChange(std::string node) const {
+    void NeoneuronApplication::signalSettingsChange(std::string node) const
+    {
         _settingsNodeChange.invoke(std::move(node));
     }
 
-    void NeoneuronApplication::saveSettings() const {
+    void NeoneuronApplication::saveSettings() const
+    {
         std::ofstream out(std::filesystem::current_path() / CONFIG_FILE);
-        if (!out.good()) return;
+        if (!out.good()) {
+            return;
+        }
         std::string data = _settings.dump(4);
         out.write(data.c_str(), data.size());
     }
-}
+} // namespace neoneuron

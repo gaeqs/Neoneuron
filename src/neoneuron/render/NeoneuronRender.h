@@ -12,12 +12,14 @@
 #include <neoneuron/render/AbstractNeuronScene.h>
 #include <neoneuron/render/NeoneuronRenderData.h>
 
-
-namespace neoneuron {
+namespace neoneuron
+{
     class NeoneuronApplication;
 
-    class NeoneuronRender {
-        struct Components {
+    class NeoneuronRender
+    {
+        struct Components
+        {
             std::unique_ptr<AbstractNeuronScene> neuronScene;
             NeoneuronUI ui;
             CameraData cameraData;
@@ -41,7 +43,7 @@ namespace neoneuron {
 
         void initSelectionResolver();
 
-    public:
+      public:
         NeoneuronRender(const NeoneuronRender& other) = delete;
 
         explicit NeoneuronRender(NeoneuronApplication* neoneuron,
@@ -87,6 +89,6 @@ namespace neoneuron {
 
         void focusScene() const;
     };
-}
+} // namespace neoneuron
 
 #endif //NEONEURONRENDER_H

@@ -12,11 +12,13 @@
 
 #include <neoneuron/render/AbstractSelector.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     class NeoneuronRender;
 
-    class AbstractNeuronScene {
-    public:
+    class AbstractNeuronScene
+    {
+      public:
         virtual ~AbstractNeuronScene() = default;
 
         [[nodiscard]] virtual NeoneuronRender* getRender() = 0;
@@ -57,7 +59,6 @@ namespace neoneuron {
 
         virtual void checkForNewNeurons() = 0;
     };
-}
-
+} // namespace neoneuron
 
 #endif //ABSTRACTNEURONSCENE_H

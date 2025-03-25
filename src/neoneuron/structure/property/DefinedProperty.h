@@ -11,26 +11,28 @@
 #include <neoneuron/render/AbstractNeuronScene.h>
 #include <nlohmann/json.hpp>
 
-namespace neoneuron {
-    enum class PropertyTarget {
+namespace neoneuron
+{
+    enum class PropertyTarget
+    {
         NEURON,
         SEGMENT,
         BOTH
     };
 
-    class DefinedProperty {
-    public:
-        using EditorFunction = std::function<bool(std::any* property,
-                                                  const mnemea::Neuron* neuron,
-                                                  const AbstractNeuronScene* scene)>;
+    class DefinedProperty
+    {
+      public:
+        using EditorFunction =
+            std::function<bool(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene)>;
 
-        using GeneratorFunction = std::function<std::any(const mnemea::Neuron* neuron,
-                                                         const AbstractNeuronScene* scene)>;
+        using GeneratorFunction =
+            std::function<std::any(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene)>;
 
         using ToJsonFunction = std::function<nlohmann::json(const std::any& any)>;
         using FromJsonFunction = std::function<std::any(const nlohmann::json& json)>;
 
-    private:
+      private:
         std::string _name;
         std::type_index _type;
         PropertyTarget _target;
@@ -40,7 +42,7 @@ namespace neoneuron {
         ToJsonFunction _toJson;
         FromJsonFunction _fromJson;
 
-    public:
+      public:
         DefinedProperty(std::string name, std::type_index type, PropertyTarget target);
 
         DefinedProperty(std::string name, std::type_index type, PropertyTarget target, std::string displayName);
@@ -82,12 +84,12 @@ namespace neoneuron {
 
         bool operator!=(const DefinedProperty& other) const;
     };
-}
+} // namespace neoneuron
 
 template<>
-struct std::hash<neoneuron::DefinedProperty> {
+struct std::hash<neoneuron::DefinedProperty>
+{
     std::size_t operator()(const neoneuron::DefinedProperty& property) const noexcept;
 };
-
 
 #endif //DEFINEDPROPERTY_H

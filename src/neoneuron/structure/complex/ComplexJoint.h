@@ -7,18 +7,20 @@
 #include <vector>
 #include <mnemea/Identifiable.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     class ComplexNeuron;
     /**
     * Represents a joint of several segments.
     * The UID of this joint must represent the UID
     * of the parent segment.
     */
-    class ComplexJoint : public mnemea::Identifiable {
+    class ComplexJoint : public mnemea::Identifiable
+    {
         std::vector<mnemea::UID> _children;
         uint32_t _rotationIndex;
 
-    public:
+      public:
         ComplexJoint(mnemea::UID id, std::vector<mnemea::UID> children);
 
         [[nodiscard]] std::vector<mnemea::UID>& getChildren();
@@ -29,7 +31,6 @@ namespace neoneuron {
 
         void computeRotationIndex(ComplexNeuron& neuron);
     };
-}
-
+} // namespace neoneuron
 
 #endif //COMPLEXJOINT_H

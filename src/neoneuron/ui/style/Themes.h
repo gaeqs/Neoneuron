@@ -7,8 +7,10 @@
 
 #include <imgui.h>
 
-namespace neoneuron {
-    inline void StyleColorsDark() {
+namespace neoneuron
+{
+    inline void StyleColorsDark()
+    {
         ImGuiStyle* style = &ImGui::GetStyle();
         style->WindowPadding = {8, 8};
         style->FramePadding = {4, 3};
@@ -96,7 +98,8 @@ namespace neoneuron {
         colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
     }
 
-    inline void StyleColorsLight() {
+    inline void StyleColorsLight()
+    {
         ImGuiStyle* style = &ImGui::GetStyle();
         style->WindowPadding = {8, 8};
         style->FramePadding = {4, 3};
@@ -127,7 +130,6 @@ namespace neoneuron {
         style->WindowMenuButtonPosition = ImGuiDir_Right;
         ImGui::StyleColorsLight(style);
     }
-}
-
+} // namespace neoneuron
 
 #endif //LIGHTTHEME_H

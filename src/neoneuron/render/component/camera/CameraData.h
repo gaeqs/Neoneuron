@@ -11,17 +11,19 @@
 #include <neoneuron/render/component/camera/CameraController.h>
 #include <neoneuron/render/component/camera/Guide.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     class NeoneuronRender;
 
-    class CameraData {
+    class CameraData
+    {
         neon::IdentifiableWrapper<neon::GameObject> _cameraGameObject;
         neon::IdentifiableWrapper<CameraController> _cameraController;
 
         hey::ObservableValue<bool> _activeRotation = false;
         hey::ObservableValue<bool> _activePosition = false;
 
-    public:
+      public:
         CameraData(const CameraData& other) = delete;
 
         CameraData() = default;
@@ -40,7 +42,6 @@ namespace neoneuron {
 
         const hey::ObservableValue<bool>& onActivePosition() const;
     };
-}
-
+} // namespace neoneuron
 
 #endif //CAMERADATA_H

@@ -15,8 +15,10 @@
 #include "ComplexJoint.h"
 #include "ComplexSoma.h"
 
-namespace neoneuron {
-    class ComplexNeuron : public mnemea::Identifiable {
+namespace neoneuron
+{
+    class ComplexNeuron : public mnemea::Identifiable
+    {
         mnemea::Dataset* _dataset;
         std::vector<ComplexNeuronSegment> _segments;
         std::unordered_map<mnemea::UID, size_t> _segmentsByUID;
@@ -36,7 +38,7 @@ namespace neoneuron {
 
         void calculateLODFrom(ComplexNeuronSegment* segment);
 
-    public:
+      public:
         ComplexNeuron(const ComplexNeuron& other) = delete;
 
         ComplexNeuron(ComplexNeuron&& other) noexcept;
@@ -77,6 +79,6 @@ namespace neoneuron {
 
         void refreshProperty(const std::string& propertyName);
     };
-}
+} // namespace neoneuron
 
 #endif //COMPLEXNEURON_H

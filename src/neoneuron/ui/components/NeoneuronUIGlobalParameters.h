@@ -8,17 +8,17 @@
 #include <neon/Neon.h>
 #include <neoneuron/render/NeoneuronRender.h>
 
-
-namespace neoneuron {
-    class NeoneuronUIGlobalParameters : public neon::Component {
+namespace neoneuron
+{
+    class NeoneuronUIGlobalParameters : public neon::Component
+    {
         NeoneuronRender* _render;
 
-    public:
+      public:
         NeoneuronUIGlobalParameters(NeoneuronRender* render);
 
         void onPreDraw() override;
     };
-}
-
+} // namespace neoneuron
 
 #endif //NEONEURONUIGLOBALPARAMETERS_H

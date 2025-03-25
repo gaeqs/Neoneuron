@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23)
 set(CMAKE_CXX_STANDARD 20)
-
+set(FETCHCONTENT_UPDATES_SUBMODULES OFF)
 include(FetchContent)
 
 project(Neoneuron)
@@ -12,9 +12,14 @@ if (UNIX)
     list(APPEND LIBRARIES ${GTK_LIBRARIES})
 endif ()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/neon/src)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/hey/src)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/nativefiledialog/src/include)
+FetchContent_Declare(
+        neon
+        GIT_REPOSITORY https://github.com/gaeqs/Neon.git
+        GIT_TAG master
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/neon
+)
+
+FetchContent_MakeAvailable(neon)
 
 FetchContent_Declare(
         mnemea
@@ -24,15 +29,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(mnemea)
-
-FetchContent_Declare(
-        neon
-        GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG master
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/neon
-)
-
-FetchContent_MakeAvailable(neon)
 
 FetchContent_Declare(
         nativefiledialog

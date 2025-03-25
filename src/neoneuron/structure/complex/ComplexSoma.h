@@ -8,11 +8,13 @@
 #include <vector>
 #include <mnemea/Identifiable.h>
 
-namespace neoneuron {
-    class ComplexSoma : public mnemea::Identifiable {
+namespace neoneuron
+{
+    class ComplexSoma : public mnemea::Identifiable
+    {
         std::vector<mnemea::UID> _children;
 
-    public:
+      public:
         ComplexSoma(mnemea::UID id, std::vector<mnemea::UID> children);
 
         explicit ComplexSoma(mnemea::UID id);
@@ -21,7 +23,6 @@ namespace neoneuron {
 
         [[nodiscard]] const std::vector<mnemea::UID>& getChildren() const;
     };
-}
-
+} // namespace neoneuron
 
 #endif //COMPLEXSOMA_H

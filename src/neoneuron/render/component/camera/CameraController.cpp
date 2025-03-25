@@ -4,6 +4,10 @@
 
 #include "CameraController.h"
 
-namespace neoneuron {
-    CameraController::CameraController(CameraData* cameraData) : _cameraData(cameraData) {}
-}
+namespace neoneuron
+{
+    CameraController::CameraController(CameraData* cameraData) :
+        _cameraData(cameraData)
+    {
+    }
+} // namespace neoneuron

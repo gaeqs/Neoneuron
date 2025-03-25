@@ -9,10 +9,12 @@
 #include <neon/Neon.h>
 #include <neon/util/component/ViewportComponent.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     class NeoneuronRender;
 
-    class NeoneuronUI {
+    class NeoneuronUI
+    {
         NeoneuronRender* _render;
         neon::IdentifiableWrapper<neon::GameObject> _gameObject;
         neon::IdentifiableWrapper<neon::ViewportComponent> _viewport;
@@ -22,7 +24,7 @@ namespace neoneuron {
 
         void initDebugToggle();
 
-    public:
+      public:
         NeoneuronUI() = default;
 
         explicit NeoneuronUI(NeoneuronRender* render);
@@ -33,6 +35,6 @@ namespace neoneuron {
 
         [[nodiscard]] neon::IdentifiableWrapper<neon::ViewportComponent> getViewport() const;
     };
-}
+} // namespace neoneuron
 
 #endif //NEONEURONUI_H

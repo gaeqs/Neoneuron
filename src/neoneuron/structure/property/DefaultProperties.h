@@ -9,8 +9,8 @@
 #include <nlohmann/json_fwd.hpp>
 #include <neoneuron/render/AbstractNeuronScene.h>
 
-
-namespace neoneuron::property {
+namespace neoneuron::property
+{
     bool transformEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
 
     std::any transformGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
@@ -51,7 +51,6 @@ namespace neoneuron::property {
 
     nlohmann::json vec3fToJson(const std::any& any);
 
-}
-
+} // namespace neoneuron::property
 
 #endif //NEONEURON_DEFAULTPROPERTIES_H

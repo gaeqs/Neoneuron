@@ -5,12 +5,13 @@
 #ifndef COMPLEXGPUNEURON_H
 #define COMPLEXGPUNEURON_H
 
-
 #include <neon/Neon.h>
 #include <neoneuron/structure/complex/ComplexNeuron.h>
 
-namespace neoneuron {
-    struct ComplexGPUNeuronGlobalData {
+namespace neoneuron
+{
+    struct ComplexGPUNeuronGlobalData
+    {
         uint32_t neuronId;
         uint32_t lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
         uint32_t updateFrame;
@@ -21,7 +22,8 @@ namespace neoneuron {
         rush::Mat4f normal;
     };
 
-    struct ComplexGPUNeuronSegment {
+    struct ComplexGPUNeuronSegment
+    {
         /**
         * The neuron's global data's position in the storage buffer.
         */
@@ -53,7 +55,8 @@ namespace neoneuron {
         rush::Vec4f endAndRadius;
     };
 
-    struct ComplexGPUNeuronJoint {
+    struct ComplexGPUNeuronJoint
+    {
         /**
         * The parent's position in the storage buffer.
         */
@@ -75,7 +78,8 @@ namespace neoneuron {
         uint32_t connections[8];
     };
 
-    struct ComplexGPUNeuronSoma {
+    struct ComplexGPUNeuronSoma
+    {
         /*
         * The index of the representing section in the storage buffer.
         */
@@ -92,7 +96,8 @@ namespace neoneuron {
         uint32_t connections[15];
     };
 
-    class ComplexGPUNeuron {
+    class ComplexGPUNeuron
+    {
         std::weak_ptr<neon::InstanceData> _globalInstanceData;
         std::weak_ptr<neon::Model> _segmentModel;
         std::weak_ptr<neon::Model> _jointModel;
@@ -108,7 +113,6 @@ namespace neoneuron {
         std::vector<neon::InstanceData::Instance> _somaInstances;
         std::unordered_map<mnemea::UID, neon::InstanceData::Instance> _somaInstancesByUID;
         bool _valid;
-
 
         void generateSegmentInstances(const ComplexNeuron* neuron);
 
@@ -126,20 +130,15 @@ namespace neoneuron {
 
         void invalidate();
 
-    public:
+      public:
         ComplexGPUNeuron(ComplexGPUNeuron&& other) noexcept;
 
         ComplexGPUNeuron(const ComplexGPUNeuron& other) = delete;
 
-        ComplexGPUNeuron(std::weak_ptr<neon::InstanceData> globalInstanceData,
-                         std::weak_ptr<neon::Model> neuronModel,
-                         std::weak_ptr<neon::Model> jointModel,
-                         std::weak_ptr<neon::Model> somaModel,
-                         size_t segmentInstanceDataIndex,
-                         size_t jointInstanceDataIndex,
-                         size_t somaInstanceDataIndex,
-                         const ComplexNeuron* neuron,
-                         uint32_t frame);
+        ComplexGPUNeuron(std::weak_ptr<neon::InstanceData> globalInstanceData, std::weak_ptr<neon::Model> neuronModel,
+                         std::weak_ptr<neon::Model> jointModel, std::weak_ptr<neon::Model> somaModel,
+                         size_t segmentInstanceDataIndex, size_t jointInstanceDataIndex, size_t somaInstanceDataIndex,
+                         const ComplexNeuron* neuron, uint32_t frame);
 
         ~ComplexGPUNeuron();
 
@@ -153,6 +152,6 @@ namespace neoneuron {
 
         ComplexGPUNeuron& operator=(ComplexGPUNeuron&& other) noexcept;
     };
-}
+} // namespace neoneuron
 
 #endif //COMPLEXGPUNEURON_H

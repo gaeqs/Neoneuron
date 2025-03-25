@@ -6,9 +6,9 @@
 #define SCENELOADER_H
 #include <neoneuron/render/NeoneuronRender.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     nlohmann::json saveScene(NeoneuronRender* render);
 }
-
 
 #endif //SCENELOADER_H

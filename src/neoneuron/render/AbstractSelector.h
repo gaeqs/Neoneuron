@@ -8,14 +8,17 @@
 #include <vector>
 #include <any>
 
-namespace neoneuron {
-    struct Selection {
+namespace neoneuron
+{
+    struct Selection
+    {
         bool clear = false;
         std::vector<std::any> selections = {};
     };
 
-    class AbstractSelector {
-    public:
+    class AbstractSelector
+    {
+      public:
         virtual ~AbstractSelector() = default;
 
         virtual const std::unordered_set<mnemea::UID> getSelectedNeurons() = 0;
@@ -30,6 +33,6 @@ namespace neoneuron {
 
         virtual void selectSection(mnemea::UID neuronId, mnemea::UID sectionId) = 0;
     };
-}
+} // namespace neoneuron
 
 #endif //ABSTRACTNEURONSELECTOR_H

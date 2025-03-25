@@ -7,11 +7,15 @@
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/complex/ComplexNeuronScene.h>
 
-namespace neoneuron {
-    NeoneuronUIGlobalParameters::NeoneuronUIGlobalParameters(NeoneuronRender* render)
-        : _render(render) {}
+namespace neoneuron
+{
+    NeoneuronUIGlobalParameters::NeoneuronUIGlobalParameters(NeoneuronRender* render) :
+        _render(render)
+    {
+    }
 
-    void NeoneuronUIGlobalParameters::onPreDraw() {
+    void NeoneuronUIGlobalParameters::onPreDraw()
+    {
         static const auto KEY = NeoneuronApplication::SETTINGS_TOOL_GLOBAL_PARAMETERS;
         auto& s = _render->getNeoneuronApplication()->getSettings();
         bool opened = s.value(KEY, false);
@@ -86,4 +90,4 @@ namespace neoneuron {
             _render->getNeoneuronApplication()->signalSettingsChange(KEY);
         }
     }
-}
+} // namespace neoneuron

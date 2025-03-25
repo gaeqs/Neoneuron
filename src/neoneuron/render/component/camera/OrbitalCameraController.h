@@ -5,14 +5,16 @@
 #ifndef ORBITALCAMERACONTROLLER_H
 #define ORBITALCAMERACONTROLLER_H
 
-
 #include <neoneuron/render/component/camera/CameraController.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     class NeoneuronRender;
 
-    class OrbitalCameraController : public CameraController {
-        struct Position {
+    class OrbitalCameraController : public CameraController
+    {
+        struct Position
+        {
             rush::Vec3f position;
             rush::Vec2f rotation;
             float radius;
@@ -47,9 +49,8 @@ namespace neoneuron {
 
         bool updateRadius(float deltaTime);
 
-    public:
-        OrbitalCameraController(NeoneuronRender* render,
-                                CameraData* cameraData,
+      public:
+        OrbitalCameraController(NeoneuronRender* render, CameraData* cameraData,
                                 std::unique_ptr<CameraInterpolator> interpolator);
 
         ~OrbitalCameraController();
@@ -78,7 +79,6 @@ namespace neoneuron {
 
         void setCenterKeepPosition(rush::Vec3f center);
     };
-}
-
+} // namespace neoneuron
 
 #endif //ORBITALCAMERACONTROLLER_H

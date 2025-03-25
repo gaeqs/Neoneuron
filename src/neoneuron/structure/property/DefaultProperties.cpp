@@ -8,10 +8,14 @@
 #include <mnemea/util/NeuronTransform.h>
 #include <nlohmann/json.hpp>
 
-namespace neoneuron::property {
-    bool transformEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
+namespace neoneuron::property
+{
+    bool transformEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene)
+    {
         auto* t = std::any_cast<mnemea::NeuronTransform>(property);
-        if (t == nullptr) return false;
+        if (t == nullptr) {
+            return false;
+        }
 
         auto p = t->getPosition();
         auto r = rush::degrees(t->getRotation());
@@ -49,11 +53,13 @@ namespace neoneuron::property {
         return updated;
     }
 
-    std::any transformGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
+    std::any transformGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene)
+    {
         return mnemea::NeuronTransform();
     }
 
-    std::any transformFromJson(const nlohmann::json& json) {
+    std::any transformFromJson(const nlohmann::json& json)
+    {
         mnemea::NeuronTransform t;
         if (json.contains("rotation")) {
             if (auto& rot = json["rotation"]; rot.is_object()) {
@@ -126,9 +132,12 @@ namespace neoneuron::property {
         return t;
     }
 
-    nlohmann::json transformToJson(const std::any& any) {
+    nlohmann::json transformToJson(const std::any& any)
+    {
         const auto* t = std::any_cast<mnemea::NeuronTransform>(&any);
-        if (t == nullptr) return nlohmann::json::object();
+        if (t == nullptr) {
+            return nlohmann::json::object();
+        }
         nlohmann::json json = nlohmann::json::object();
         json["rotation"]["pitch"] = t->getRotation().x();
         json["rotation"]["yaw"] = t->getRotation().y();
@@ -142,10 +151,13 @@ namespace neoneuron::property {
         return json;
     }
 
-    bool nameEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
+    bool nameEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene)
+    {
         constexpr size_t BUF_SIZE = 64;
         auto* s = std::any_cast<std::string>(property);
-        if (s == nullptr) return false;
+        if (s == nullptr) {
+            return false;
+        }
 
         char buf[BUF_SIZE];
         size_t size = std::min(s->size(), BUF_SIZE - 1);
@@ -167,35 +179,51 @@ namespace neoneuron::property {
         return false;
     }
 
-    std::any nameGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
+    std::any nameGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene)
+    {
         return std::string();
     }
 
-    std::any nameFromJson(const nlohmann::json& json) {
+    std::any nameFromJson(const nlohmann::json& json)
+    {
         return json.get<std::string>();
     }
 
-    nlohmann::json nameToJson(const std::any& any) {
+    nlohmann::json nameToJson(const std::any& any)
+    {
         auto* s = std::any_cast<std::string>(&any);
-        if (s == nullptr) return "";
+        if (s == nullptr) {
+            return "";
+        }
         return *s;
     }
 
-    bool lodEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
+    bool lodEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene)
+    {
         auto* i = std::any_cast<uint32_t>(property);
-        if (i == nullptr) return false;
+        if (i == nullptr) {
+            return false;
+        }
 
         ImGui::PushItemWidth(-1.0f);
 
         int item;
-        if (*i < 8) item = 0;
-        else if (*i == 8) item = 1;
-        else item = 2;
+        if (*i < 8) {
+            item = 0;
+        } else if (*i == 8) {
+            item = 1;
+        } else {
+            item = 2;
+        }
 
         if (ImGui::Combo("Type", &item, "Static\0Dynamic\0Global\0")) {
-            if (item == 0) *i = 0;
-            else if (item == 1) *i = 8;
-            else *i = 9;
+            if (item == 0) {
+                *i = 0;
+            } else if (item == 1) {
+                *i = 8;
+            } else {
+                *i = 9;
+            }
             return true;
         }
 
@@ -210,51 +238,69 @@ namespace neoneuron::property {
         return false;
     }
 
-    std::any lodGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene) {
+    std::any lodGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene)
+    {
         return 0u;
     }
 
-    std::any int32FromJson(const nlohmann::json& json) {
+    std::any int32FromJson(const nlohmann::json& json)
+    {
         return json.get<int32_t>();
     }
 
-    nlohmann::json int32ToJson(const std::any& any) {
+    nlohmann::json int32ToJson(const std::any& any)
+    {
         auto* i = std::any_cast<int32_t>(&any);
-        if (i == nullptr) return 0;
+        if (i == nullptr) {
+            return 0;
+        }
         return *i;
     }
 
-    std::any int64FromJson(const nlohmann::json& json) {
+    std::any int64FromJson(const nlohmann::json& json)
+    {
         return json.get<int64_t>();
     }
 
-    nlohmann::json int64ToJson(const std::any& any) {
+    nlohmann::json int64ToJson(const std::any& any)
+    {
         auto* i = std::any_cast<int64_t>(&any);
-        if (i == nullptr) return 0;
+        if (i == nullptr) {
+            return 0;
+        }
         return *i;
     }
 
-    std::any uint32FromJson(const nlohmann::json& json) {
+    std::any uint32FromJson(const nlohmann::json& json)
+    {
         return json.get<uint32_t>();
     }
 
-    nlohmann::json uint32ToJson(const std::any& any) {
+    nlohmann::json uint32ToJson(const std::any& any)
+    {
         auto* i = std::any_cast<uint32_t>(&any);
-        if (i == nullptr) return 0;
+        if (i == nullptr) {
+            return 0;
+        }
         return *i;
     }
 
-    std::any floatFromJson(const nlohmann::json& json) {
+    std::any floatFromJson(const nlohmann::json& json)
+    {
         return json.get<float>();
     }
 
-    nlohmann::json floatToJson(const std::any& any) {
+    nlohmann::json floatToJson(const std::any& any)
+    {
         auto* i = std::any_cast<float>(&any);
-        if (i == nullptr) return 0.0f;
+        if (i == nullptr) {
+            return 0.0f;
+        }
         return *i;
     }
 
-    std::any vec3fFromJson(const nlohmann::json& json) {
+    std::any vec3fFromJson(const nlohmann::json& json)
+    {
         rush::Vec3f result;
         if (json.contains("x")) {
             if (auto& x = json["x"]; x.is_number()) {
@@ -274,13 +320,16 @@ namespace neoneuron::property {
         return result;
     }
 
-    nlohmann::json vec3fToJson(const std::any& any) {
+    nlohmann::json vec3fToJson(const std::any& any)
+    {
         const auto* v = std::any_cast<rush::Vec3f>(&any);
-        if (v == nullptr) return nlohmann::json::object();
+        if (v == nullptr) {
+            return nlohmann::json::object();
+        }
         nlohmann::json json = nlohmann::json::object();
         json["x"] = v->x();
         json["y"] = v->y();
         json["z"] = v->z();
         return json;
     }
-}
+} // namespace neoneuron::property

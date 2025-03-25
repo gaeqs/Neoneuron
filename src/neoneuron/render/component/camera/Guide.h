@@ -8,12 +8,15 @@
 #include <hey/Listener.h>
 #include <neon/Neon.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     class NeoneuronRender;
     class OrbitalCameraController;
 
-    class PlaneGuide : public neon::Component {
-        struct GuideInstancingData {
+    class PlaneGuide : public neon::Component
+    {
+        struct GuideInstancingData
+        {
             float active;
             float lastUpdate;
         };
@@ -27,7 +30,7 @@ namespace neoneuron {
 
         void updatePlaneState(bool active) const;
 
-    public:
+      public:
         explicit PlaneGuide(NeoneuronRender* render);
 
         ~PlaneGuide() override;
@@ -35,8 +38,10 @@ namespace neoneuron {
         void onStart() override;
     };
 
-    class SphereGuide : public neon::Component {
-        struct GuideInstancingData {
+    class SphereGuide : public neon::Component
+    {
+        struct GuideInstancingData
+        {
             float active;
             float lastUpdate;
             rush::Vec3f center;
@@ -55,7 +60,7 @@ namespace neoneuron {
 
         void updateSphereState() const;
 
-    public:
+      public:
         explicit SphereGuide(NeoneuronRender* render, neon::IdentifiableWrapper<OrbitalCameraController> controller);
 
         ~SphereGuide() override;
@@ -65,8 +70,10 @@ namespace neoneuron {
         void onPreDraw() override;
     };
 
-    class PointGuide : public neon::Component {
-        struct GuideInstancingData {
+    class PointGuide : public neon::Component
+    {
+        struct GuideInstancingData
+        {
             float active;
             float lastUpdate;
             rush::Vec3f center;
@@ -87,7 +94,7 @@ namespace neoneuron {
 
         void updatePointState();
 
-    public:
+      public:
         explicit PointGuide(NeoneuronRender* render, neon::IdentifiableWrapper<OrbitalCameraController> controller);
 
         ~PointGuide() override;
@@ -96,7 +103,6 @@ namespace neoneuron {
 
         void onPreDraw() override;
     };
-}
-
+} // namespace neoneuron
 
 #endif //GUIDE_H

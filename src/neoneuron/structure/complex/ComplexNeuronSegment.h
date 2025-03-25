@@ -11,8 +11,10 @@
 #include <mnemea/DefaultProperties.h>
 #include <mnemea/Identifiable.h>
 
-namespace neoneuron {
-    class ComplexNeuronSegment : public mnemea::Identifiable {
+namespace neoneuron
+{
+    class ComplexNeuronSegment : public mnemea::Identifiable
+    {
         mnemea::NeuriteType _type;
         rush::Vec3f _start;
         rush::Vec3f _end;
@@ -22,18 +24,10 @@ namespace neoneuron {
         uint32_t _childrenAmount;
         uint32_t _lod;
 
-    public:
-        ComplexNeuronSegment(
-            mnemea::UID id,
-            mnemea::NeuriteType type,
-            const rush::Vec3f& start,
-            const rush::Vec3f& end,
-            float startRadius,
-            float endRadius,
-            const std::optional<mnemea::UID>& parentId = {},
-            uint32_t childrenAmount = 0,
-            uint32_t lod = 0
-        );
+      public:
+        ComplexNeuronSegment(mnemea::UID id, mnemea::NeuriteType type, const rush::Vec3f& start, const rush::Vec3f& end,
+                             float startRadius, float endRadius, const std::optional<mnemea::UID>& parentId = {},
+                             uint32_t childrenAmount = 0, uint32_t lod = 0);
 
         [[nodiscard]] mnemea::NeuriteType getType() const;
 
@@ -71,7 +65,6 @@ namespace neoneuron {
 
         void clearParentId();
     };
-}
-
+} // namespace neoneuron
 
 #endif //COMPLEXNEURONSEGMENT_H

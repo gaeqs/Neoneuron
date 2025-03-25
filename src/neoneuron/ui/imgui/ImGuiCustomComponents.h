@@ -8,11 +8,11 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 
-namespace neoneuron {
+namespace neoneuron
+{
     void ImGuiTitle(const char* label, ImVec2 size);
 
     bool collapsingHeaderWithCloseButton(const char* label, bool& closed);
-}
-
+} // namespace neoneuron
 
 #endif //IMGUICUSTOMCOMPONENTS_H
