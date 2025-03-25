@@ -4,6 +4,8 @@
 
 #ifndef NEONEURONAPPLICATION_H
 #define NEONEURONAPPLICATION_H
+
+#include <mnemea/Dataset.h>
 #include <mnemea/loader/LoaderRegistry.h>
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/structure/Storage.h>
@@ -11,6 +13,11 @@
 
 namespace neoneuron
 {
+
+    /**
+    * This is the main class of Neoneuron.
+    * The application should only have one instance of this class.
+    */
     class NeoneuronApplication
     {
       public:
@@ -24,38 +31,97 @@ namespace neoneuron
 
       private:
         nlohmann::json _settings;
-        hey::Observable<std::string> _settingsNodeChange;
+
+        mnemea::Dataset _dataset;
         NeoneuronRender _render;
         Storage<DefinedProperty> _propertyStorage;
         mnemea::LoaderRegistry _loaderStorage;
+        hey::Observable<std::string> _settingsNodeChange;
 
         static nlohmann::json loadSettings();
 
       public:
+        NeoneuronApplication(const NeoneuronApplication&) = delete;
+
         explicit NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo);
 
+        /**
+        * The dataset where all the neuronal information is stored.
+        * Insert your brain data here!
+        */
+        [[nodiscard]] mnemea::Dataset& getDataset();
+
+        /**
+        * The dataset where all the neuronal information is stored.
+        * Insert your brain data here!
+        */
+        [[nodiscard]] const mnemea::Dataset& getDataset() const;
+
+        /**
+        * This class manages the render part of the application.
+        */
         [[nodiscard]] NeoneuronRender& getRender();
 
+        /**
+        * This class manages the render part of the application.
+        */
         [[nodiscard]] const NeoneuronRender& getRender() const;
 
+        /**
+        * A JSON file used to store the global settings of Neoneuron.
+        */
         [[nodiscard]] nlohmann::json& getSettings();
 
+        /**
+        * A JSON file used to store the global settings of Neoneuron.
+        */
         [[nodiscard]] const nlohmann::json& getSettings() const;
 
+        /**
+        * Storage used to store all properties' definitions.
+        * If you want to define a new property that can be saved, loaded and edited,
+        * you should store its definition here!
+        */
         Storage<DefinedProperty>& getPropertyStorage();
 
+        /**
+        * Storage used to store all properties' definitions.
+        * If you want to define a new property that can be saved, loaded and edited,
+        * you should store its definition here!
+        */
         const Storage<DefinedProperty>& getPropertyStorage() const;
 
+        /**
+        * This registry is used to register loaders Neoneuron can use to load scenes.
+        * If you have created a new loader, you should register it here!
+        */
         mnemea::LoaderRegistry& getLoaderRegistry();
 
+        /**
+        * This registry is used to register loaders Neoneuron can use to load scenes.
+        * If you have created a new loader, you should register it here!
+        */
         const mnemea::LoaderRegistry& getLoaderRegistry() const;
 
+        /**
+         * Registers a new listener that will be called when a parameter inside the settings' json is changed.
+         * The listener will only receive the key of the changed parameter.
+         */
         void registerSettingsListener(const hey::Listener<std::string>& listener) const;
 
+        /**
+        * Unregisters a listener registered using "registerSettingsListener()".
+        */
         void unregisterSettingsListener(const hey::Listener<std::string>& listener) const;
 
+        /**
+        * Signals a parameter change inside the settings' json.
+        */
         void signalSettingsChange(std::string node) const;
 
+        /**
+        * Saves the settings' json into a file.
+        */
         void saveSettings() const;
     };
 } // namespace neoneuron
