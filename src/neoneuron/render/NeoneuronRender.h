@@ -9,7 +9,7 @@
 
 #include <neoneuron/ui/NeoneuronUI.h>
 #include <neoneuron/render/component/camera/CameraData.h>
-#include <neoneuron/render/AbstractNeuronScene.h>
+#include <neoneuron/render/AbstractNeuronRepresentation.h>
 #include <neoneuron/render/NeoneuronRenderData.h>
 
 namespace neoneuron
@@ -20,7 +20,7 @@ namespace neoneuron
     {
         struct Components
         {
-            std::unique_ptr<AbstractNeuronScene> neuronScene;
+            std::unique_ptr<AbstractNeuronRepresentation> neuronScene;
             NeoneuronUI ui;
             CameraData cameraData;
 
@@ -65,9 +65,9 @@ namespace neoneuron
 
         [[nodiscard]] const std::shared_ptr<neon::Room>& getRoom() const;
 
-        [[nodiscard]] std::unique_ptr<AbstractNeuronScene>& getNeuronScene();
+        [[nodiscard]] std::unique_ptr<AbstractNeuronRepresentation>& getNeuronScene();
 
-        [[nodiscard]] const std::unique_ptr<AbstractNeuronScene>& getNeuronScene() const;
+        [[nodiscard]] const std::unique_ptr<AbstractNeuronRepresentation>& getNeuronScene() const;
 
         [[nodiscard]] NeoneuronUI& getUI();
 

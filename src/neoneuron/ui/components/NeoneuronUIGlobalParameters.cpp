@@ -5,7 +5,7 @@
 #include "NeoneuronUIGlobalParameters.h"
 
 #include <neoneuron/application/NeoneuronApplication.h>
-#include <neoneuron/render/complex/ComplexNeuronScene.h>
+#include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
 
 namespace neoneuron
 {
@@ -70,7 +70,7 @@ namespace neoneuron
                 ImGui::SliderInt("Level of detail", &aux, 0, 7);
                 d.lod = static_cast<uint32_t>(aux);
 
-                if (auto* complexScene = dynamic_cast<ComplexNeuronScene*>(scene)) {
+                if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
                     bool wireframe = complexScene->isWireframeMode();
                     ImGui::Checkbox("Wireframe", &wireframe);
                     complexScene->setWireframeMode(wireframe);

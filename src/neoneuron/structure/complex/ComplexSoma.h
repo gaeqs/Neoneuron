@@ -6,22 +6,22 @@
 #define COMPLEXSOMA_H
 
 #include <vector>
-#include <mnemea/Identifiable.h>
+#include <mindset/Identifiable.h>
 
 namespace neoneuron
 {
-    class ComplexSoma : public mnemea::Identifiable
+    class ComplexSoma : public mindset::Identifiable
     {
-        std::vector<mnemea::UID> _children;
+        std::vector<mindset::UID> _children;
 
       public:
-        ComplexSoma(mnemea::UID id, std::vector<mnemea::UID> children);
+        ComplexSoma(mindset::UID id, std::vector<mindset::UID> children);
 
-        explicit ComplexSoma(mnemea::UID id);
+        explicit ComplexSoma(mindset::UID id);
 
-        [[nodiscard]] std::vector<mnemea::UID>& getChildren();
+        [[nodiscard]] std::vector<mindset::UID>& getChildren();
 
-        [[nodiscard]] const std::vector<mnemea::UID>& getChildren() const;
+        [[nodiscard]] const std::vector<mindset::UID>& getChildren() const;
     };
 } // namespace neoneuron
 

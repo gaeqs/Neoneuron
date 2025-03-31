@@ -6,23 +6,23 @@
 
 namespace neoneuron
 {
-    ComplexSoma::ComplexSoma(mnemea::UID id, std::vector<mnemea::UID> children) :
+    ComplexSoma::ComplexSoma(mindset::UID id, std::vector<mindset::UID> children) :
         Identifiable(id),
         _children(std::move(children))
     {
     }
 
-    ComplexSoma::ComplexSoma(mnemea::UID id) :
+    ComplexSoma::ComplexSoma(mindset::UID id) :
         Identifiable(id)
     {
     }
 
-    std::vector<mnemea::UID>& ComplexSoma::getChildren()
+    std::vector<mindset::UID>& ComplexSoma::getChildren()
     {
         return _children;
     }
 
-    const std::vector<mnemea::UID>& ComplexSoma::getChildren() const
+    const std::vector<mindset::UID>& ComplexSoma::getChildren() const
     {
         return _children;
     }

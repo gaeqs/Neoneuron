@@ -14,7 +14,7 @@
 #include <neoneuron/loader/SceneLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
-#include <neoneuron/render/complex/ComplexNeuronScene.h>
+#include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
 
 #include "components/NeoneuronUIOpenFile.h"
 #include "components/actions/ActionSave.h"
@@ -113,7 +113,7 @@ namespace neoneuron
     void NeoneuronTopBar::viewMenu() const
     {
         auto* scene = _render->getNeuronScene().get();
-        if (auto* complexScene = dynamic_cast<ComplexNeuronScene*>(scene)) {
+        if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
             bool drawSegments = complexScene->shouldDrawSegments();
             bool drawJoints = complexScene->shouldDrawJoints();
             bool drawSomas = complexScene->shouldDrawSomas();
@@ -175,6 +175,9 @@ namespace neoneuron
                 fonts::imGuiPushFont(fonts::SS3_18);
                 if (ImGui::MenuItem("Open file", "Ctrl+O")) {
                     openFile();
+                }
+                if (ImGui::MenuItem("Close scene")) {
+                    _render->getNeoneuronApplication()->getDataset().clear();
                 }
                 if (ImGui::MenuItem("Save scene")) {
                     saveFile(saveScene(_render).dump(4));

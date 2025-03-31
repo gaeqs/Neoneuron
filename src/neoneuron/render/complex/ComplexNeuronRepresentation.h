@@ -5,18 +5,19 @@
 #ifndef COMPLEXNEURONSCENE_H
 #define COMPLEXNEURONSCENE_H
 #include <memory>
+#include <hey/Listener.h>
 
 #include <neon/Neon.h>
 #include <neoneuron/structure/complex/ComplexNeuron.h>
 #include <neoneuron/render/complex/ComplexGPUNeuron.h>
-#include <neoneuron/render/AbstractNeuronScene.h>
+#include <neoneuron/render/AbstractNeuronRepresentation.h>
 #include <neoneuron/render/complex/ComplexNeuronSelector.h>
 
 namespace neoneuron
 {
     class NeoneuronRender;
 
-    class ComplexNeuronScene : public AbstractNeuronScene
+    class ComplexNeuronRepresentation : public AbstractNeuronRepresentation
     {
       public:
         static constexpr size_t UNIFORM_SET = 2;
@@ -52,9 +53,12 @@ namespace neoneuron
         std::shared_ptr<neon::Model> _jointModel;
         std::shared_ptr<neon::Model> _somaModel;
 
-        mnemea::Dataset _dataset;
-        std::vector<ComplexNeuron> _neurons;
-        std::vector<ComplexGPUNeuron> _gpuNeurons;
+        hey::Listener<mindset::Neuron*> _neuronAddListener;
+        hey::Listener<mindset::UID> _neuronRemoveListener;
+        hey::Listener<void*> _clearListener;
+
+        std::unordered_map<mindset::UID, ComplexNeuron> _neurons;
+        std::unordered_map<mindset::UID, ComplexGPUNeuron> _gpuNeurons;
         rush::AABB<3, float> _sceneBoundingBox;
 
         bool _wireframe;
@@ -88,18 +92,26 @@ namespace neoneuron
 
         void reassignMaterials() const;
 
+        void onNeuronAdded(mindset::Neuron* neuron);
+
+        void onNeuronRemoved(mindset::UID uid);
+
+        void addComplexNeuron(ComplexNeuron&& complex);
+
+        void onClear();
+
       public:
-        ComplexNeuronScene(const ComplexNeuronScene&) = delete;
+        ComplexNeuronRepresentation(const ComplexNeuronRepresentation&) = delete;
 
-        explicit ComplexNeuronScene(NeoneuronRender* render);
+        explicit ComplexNeuronRepresentation(NeoneuronRender* render);
 
-        ~ComplexNeuronScene() override;
+        ~ComplexNeuronRepresentation() override;
 
         [[nodiscard]] NeoneuronRender* getRender() override;
 
         [[nodiscard]] const NeoneuronRender* getRender() const override;
 
-        [[nodiscard]] const std::vector<ComplexNeuron>& getNeurons() const;
+        [[nodiscard]] const std::unordered_map<mindset::UID, ComplexNeuron>& getNeurons() const;
 
         [[nodiscard]] AbstractSelector& getSelector() override;
 
@@ -113,27 +125,13 @@ namespace neoneuron
 
         [[nodiscard]] size_t getSomasAmount() override;
 
-        [[nodiscard]] mnemea::Dataset& getDataset() override;
+        [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(mindset::UID uid);
 
-        [[nodiscard]] const mnemea::Dataset& getDataset() const override;
+        [[nodiscard]] std::optional<const ComplexNeuron*> findNeuron(mindset::UID uid) const;
 
-        [[nodiscard]] std::optional<mnemea::Neuron*> findPrototypeNeuron(mnemea::UID uid) override;
+        [[nodiscard]] std::optional<ComplexGPUNeuron*> findGPUNeuron(mindset::UID uid);
 
-        [[nodiscard]] std::optional<const mnemea::Neuron*> findPrototypeNeuron(mnemea::UID uid) const override;
-
-        [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(mnemea::UID uid);
-
-        [[nodiscard]] std::optional<const ComplexNeuron*> findNeuron(mnemea::UID uid) const;
-
-        [[nodiscard]] std::optional<ComplexGPUNeuron*> findGPUNeuron(mnemea::UID uid);
-
-        [[nodiscard]] std::optional<const ComplexGPUNeuron*> findGPUNeuron(mnemea::UID uid) const;
-
-        bool addNeuron(const mnemea::Neuron& neuron) override;
-
-        bool addNeuron(mnemea::Neuron&& neuron) override;
-
-        bool removeNeuron(mnemea::UID neuronId) override;
+        [[nodiscard]] std::optional<const ComplexGPUNeuron*> findGPUNeuron(mindset::UID uid) const;
 
         [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
 
@@ -151,17 +149,15 @@ namespace neoneuron
 
         const std::shared_ptr<neon::ShaderUniformBuffer>& getUBO() const;
 
-        void refreshNeuronProperty(mnemea::UID neuronId, const std::string& propertyName) override;
+        void refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName) override;
 
-        [[nodiscard]] mnemea::UID findAvailableUID() const override;
+        [[nodiscard]] mindset::UID findAvailableUID() const override;
 
         [[nodiscard]] bool isWireframeMode() const;
 
         void setWireframeMode(bool wireframe);
 
         void reloadShader();
-
-        void checkForNewNeurons() override;
     };
 } // namespace neoneuron
 

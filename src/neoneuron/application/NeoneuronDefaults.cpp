@@ -4,22 +4,22 @@
 
 #include "NeoneuronDefaults.h"
 
-#include <mnemea/util/NeuronTransform.h>
+#include <mindset/util/NeuronTransform.h>
 
 #include <neoneuron/structure/property/DefaultProperties.h>
-#include <mnemea/DefaultProperties.h>
+#include <mindset/DefaultProperties.h>
 
 namespace neoneuron
 {
     void initDefaultProperties(Storage<DefinedProperty>& storage)
     {
-        storage.add(mnemea::PROPERTY_TRANSFORM,
-                    DefinedProperty(mnemea::PROPERTY_TRANSFORM, typeid(mnemea::NeuronTransform), PropertyTarget::NEURON,
+        storage.add(mindset::PROPERTY_TRANSFORM,
+                    DefinedProperty(mindset::PROPERTY_TRANSFORM, typeid(mindset::NeuronTransform), PropertyTarget::NEURON,
                                     "Transform", property::transformEditor, property::transformGenerator,
                                     property::transformToJson, property::transformFromJson));
 
-        storage.add(mnemea::PROPERTY_NAME,
-                    DefinedProperty{mnemea::PROPERTY_NAME, typeid(std::string), PropertyTarget::NEURON, "Name",
+        storage.add(mindset::PROPERTY_NAME,
+                    DefinedProperty{mindset::PROPERTY_NAME, typeid(std::string), PropertyTarget::NEURON, "Name",
                                     property::nameEditor, property::nameGenerator, property::nameToJson,
                                     property::nameFromJson});
 
@@ -27,20 +27,20 @@ namespace neoneuron
                                                   "Level of Detail", property::lodEditor, property::lodGenerator,
                                                   property::uint32ToJson, property::uint32FromJson});
 
-        storage.add(mnemea::PROPERTY_POSITION,
-                    DefinedProperty{mnemea::PROPERTY_POSITION, typeid(rush::Vec3f), PropertyTarget::SEGMENT, "End",
+        storage.add(mindset::PROPERTY_POSITION,
+                    DefinedProperty{mindset::PROPERTY_POSITION, typeid(rush::Vec3f), PropertyTarget::SEGMENT, "End",
                                     nullptr, nullptr, property::vec3fToJson, property::vec3fFromJson});
 
-        storage.add(mnemea::PROPERTY_RADIUS,
-                    DefinedProperty{mnemea::PROPERTY_RADIUS, typeid(float), PropertyTarget::SEGMENT, "Radius", nullptr,
+        storage.add(mindset::PROPERTY_RADIUS,
+                    DefinedProperty{mindset::PROPERTY_RADIUS, typeid(float), PropertyTarget::SEGMENT, "Radius", nullptr,
                                     nullptr, property::floatToJson, property::floatFromJson});
 
-        storage.add(mnemea::PROPERTY_PARENT,
-                    DefinedProperty{mnemea::PROPERTY_PARENT, typeid(int64_t), PropertyTarget::SEGMENT, "Parent",
+        storage.add(mindset::PROPERTY_PARENT,
+                    DefinedProperty{mindset::PROPERTY_PARENT, typeid(int64_t), PropertyTarget::SEGMENT, "Parent",
                                     nullptr, nullptr, property::int64ToJson, property::int64FromJson});
 
-        storage.add(mnemea::PROPERTY_NEURITE_TYPE,
-                    DefinedProperty{mnemea::PROPERTY_NEURITE_TYPE, typeid(int64_t), PropertyTarget::SEGMENT, "Type",
+        storage.add(mindset::PROPERTY_NEURITE_TYPE,
+                    DefinedProperty{mindset::PROPERTY_NEURITE_TYPE, typeid(int64_t), PropertyTarget::SEGMENT, "Type",
                                     nullptr, nullptr, property::uint32ToJson, property::uint32FromJson});
     }
 } // namespace neoneuron

@@ -14,13 +14,13 @@ namespace neoneuron
     {
         NeoneuronRender* _render;
 
-        bool neuronSection(const mnemea::Neuron* neuron, size_t id, bool selected) const;
+        bool neuronSection(const mindset::Neuron* neuron, size_t id, bool selected) const;
 
         void neuronList();
 
         void neuronInformation() const;
 
-        void neuronNewProperty(mnemea::Neuron* neuron) const;
+        void neuronNewProperty(mindset::Neuron* neuron) const;
 
       public:
         explicit NeoneuronUINeuronList(NeoneuronRender* render);

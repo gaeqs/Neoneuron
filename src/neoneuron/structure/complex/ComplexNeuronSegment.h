@@ -8,30 +8,30 @@
 #include <optional>
 
 #include <rush/rush.h>
-#include <mnemea/DefaultProperties.h>
-#include <mnemea/Identifiable.h>
+#include <mindset/DefaultProperties.h>
+#include <mindset/Identifiable.h>
 
 namespace neoneuron
 {
-    class ComplexNeuronSegment : public mnemea::Identifiable
+    class ComplexNeuronSegment : public mindset::Identifiable
     {
-        mnemea::NeuriteType _type;
+        mindset::NeuriteType _type;
         rush::Vec3f _start;
         rush::Vec3f _end;
         float _startRadius;
         float _endRadius;
-        std::optional<mnemea::UID> _parentID;
+        std::optional<mindset::UID> _parentID;
         uint32_t _childrenAmount;
         uint32_t _lod;
 
       public:
-        ComplexNeuronSegment(mnemea::UID id, mnemea::NeuriteType type, const rush::Vec3f& start, const rush::Vec3f& end,
-                             float startRadius, float endRadius, const std::optional<mnemea::UID>& parentId = {},
+        ComplexNeuronSegment(mindset::UID id, mindset::NeuriteType type, const rush::Vec3f& start, const rush::Vec3f& end,
+                             float startRadius, float endRadius, const std::optional<mindset::UID>& parentId = {},
                              uint32_t childrenAmount = 0, uint32_t lod = 0);
 
-        [[nodiscard]] mnemea::NeuriteType getType() const;
+        [[nodiscard]] mindset::NeuriteType getType() const;
 
-        void setType(mnemea::NeuriteType type);
+        void setType(mindset::NeuriteType type);
 
         [[nodiscard]] rush::Vec3f getStart() const;
 
@@ -49,9 +49,9 @@ namespace neoneuron
 
         void setEndRadius(float endRadius);
 
-        [[nodiscard]] std::optional<mnemea::UID> getParentId() const;
+        [[nodiscard]] std::optional<mindset::UID> getParentId() const;
 
-        void setParentId(const mnemea::UID& parentId);
+        void setParentId(const mindset::UID& parentId);
 
         [[nodiscard]] uint32_t getChildrenAmount() const;
 

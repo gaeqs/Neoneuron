@@ -5,7 +5,7 @@
 #include "ComplexGPUNeuron.h"
 
 #include <utility>
-#include <mnemea/util/NeuronTransform.h>
+#include <mindset/util/NeuronTransform.h>
 #include <neoneuron/application/NeoneuronDefaults.h>
 
 namespace neoneuron
@@ -59,7 +59,7 @@ namespace neoneuron
             return;
         }
 
-        mnemea::UID maxSegment = 0;
+        mindset::UID maxSegment = 0;
         for (auto& segment : neuron->getSegments()) {
             maxSegment = std::max(maxSegment, segment.getUID());
         }
@@ -75,9 +75,9 @@ namespace neoneuron
         auto* prototype = neuron->getPrototypeNeuron();
         auto* dataset = neuron->getDataset();
         if (prototype != nullptr && dataset != nullptr) {
-            auto prop = dataset->getProperties().getPropertyUID(mnemea::PROPERTY_TRANSFORM);
+            auto prop = dataset->getProperties().getPropertyUID(mindset::PROPERTY_TRANSFORM);
             if (prop.has_value()) {
-                auto transform = prototype->getProperty<mnemea::NeuronTransform>(prop.value());
+                auto transform = prototype->getProperty<mindset::NeuronTransform>(prop.value());
                 if (transform.has_value()) {
                     data.model = transform->getModel();
                     data.normal = transform->getNormal();
@@ -275,14 +275,14 @@ namespace neoneuron
 
     void ComplexGPUNeuron::refreshProperty(const ComplexNeuron* neuron, uint32_t frame, const std::string& propertyName)
     {
-        if (propertyName == mnemea::PROPERTY_TRANSFORM) {
+        if (propertyName == mindset::PROPERTY_TRANSFORM) {
             refreshGlobalData(neuron, frame);
         } else if (propertyName == PROPERTY_LOD) {
             refreshGlobalData(neuron, frame);
         }
     }
 
-    std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findSegment(mnemea::UID uid) const
+    std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findSegment(mindset::UID uid) const
     {
         auto id = _segmentInstancesByUID.find(uid);
         if (id == _segmentInstancesByUID.end()) {
@@ -291,7 +291,7 @@ namespace neoneuron
         return id->second;
     }
 
-    std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findJoint(mnemea::UID uid) const
+    std::optional<neon::InstanceData::Instance> ComplexGPUNeuron::findJoint(mindset::UID uid) const
     {
         auto id = _jointInstancesByUID.find(uid);
         if (id == _segmentInstancesByUID.end()) {

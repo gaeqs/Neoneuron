@@ -10,14 +10,14 @@
 #include <neoneuron/render/component/GlobalParametersUpdaterComponent.h>
 #include <neoneuron/render/component/camera/OrbitalCameraController.h>
 
-#include <neoneuron/render/complex/ComplexNeuronScene.h>
+#include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
 
 CMRC_DECLARE(resources);
 
 namespace neoneuron
 {
     NeoneuronRender::Components::Components(NeoneuronRender* render) :
-        neuronScene(std::make_unique<ComplexNeuronScene>(render)),
+        neuronScene(std::make_unique<ComplexNeuronRepresentation>(render)),
         ui(render),
         cameraData(render)
     {
@@ -121,12 +121,12 @@ namespace neoneuron
         return _room;
     }
 
-    std::unique_ptr<AbstractNeuronScene>& NeoneuronRender::getNeuronScene()
+    std::unique_ptr<AbstractNeuronRepresentation>& NeoneuronRender::getNeuronScene()
     {
         return _components->neuronScene;
     }
 
-    const std::unique_ptr<AbstractNeuronScene>& NeoneuronRender::getNeuronScene() const
+    const std::unique_ptr<AbstractNeuronRepresentation>& NeoneuronRender::getNeuronScene() const
     {
         return _components->neuronScene;
     }

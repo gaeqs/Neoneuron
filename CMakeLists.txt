@@ -22,13 +22,13 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(neon)
 
 FetchContent_Declare(
-        mnemea
-        GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mnemea.git
+        mindset
+        GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mindset.git
         GIT_TAG master
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/mnemea
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/mindset
 )
 
-FetchContent_MakeAvailable(mnemea)
+FetchContent_MakeAvailable(mindset)
 
 FetchContent_Declare(
         nativefiledialog
@@ -60,7 +60,7 @@ endif ()
 find_package(glfw3 CONFIG REQUIRED)
 list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
-list(APPEND LIBRARIES neon nfd hey pugixml mnemea)
+list(APPEND LIBRARIES neon nfd hey pugixml mindset)
 
 include_directories(src)
 add_subdirectory(src)

@@ -5,8 +5,8 @@
 #ifndef NEONEURONAPPLICATION_H
 #define NEONEURONAPPLICATION_H
 
-#include <mnemea/Dataset.h>
-#include <mnemea/loader/LoaderRegistry.h>
+#include <mindset/Dataset.h>
+#include <mindset/loader/LoaderRegistry.h>
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/structure/Storage.h>
 #include <neoneuron/structure/property/DefinedProperty.h>
@@ -31,12 +31,12 @@ namespace neoneuron
 
       private:
         nlohmann::json _settings;
+        hey::Observable<std::string> _settingsNodeChange;
 
-        mnemea::Dataset _dataset;
+        mindset::Dataset _dataset;
         NeoneuronRender _render;
         Storage<DefinedProperty> _propertyStorage;
-        mnemea::LoaderRegistry _loaderStorage;
-        hey::Observable<std::string> _settingsNodeChange;
+        mindset::LoaderRegistry _loaderStorage;
 
         static nlohmann::json loadSettings();
 
@@ -49,13 +49,13 @@ namespace neoneuron
         * The dataset where all the neuronal information is stored.
         * Insert your brain data here!
         */
-        [[nodiscard]] mnemea::Dataset& getDataset();
+        [[nodiscard]] mindset::Dataset& getDataset();
 
         /**
         * The dataset where all the neuronal information is stored.
         * Insert your brain data here!
         */
-        [[nodiscard]] const mnemea::Dataset& getDataset() const;
+        [[nodiscard]] const mindset::Dataset& getDataset() const;
 
         /**
         * This class manages the render part of the application.
@@ -95,13 +95,13 @@ namespace neoneuron
         * This registry is used to register loaders Neoneuron can use to load scenes.
         * If you have created a new loader, you should register it here!
         */
-        mnemea::LoaderRegistry& getLoaderRegistry();
+        mindset::LoaderRegistry& getLoaderRegistry();
 
         /**
         * This registry is used to register loaders Neoneuron can use to load scenes.
         * If you have created a new loader, you should register it here!
         */
-        const mnemea::LoaderRegistry& getLoaderRegistry() const;
+        const mindset::LoaderRegistry& getLoaderRegistry() const;
 
         /**
          * Registers a new listener that will be called when a parameter inside the settings' json is changed.

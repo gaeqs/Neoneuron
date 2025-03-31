@@ -5,7 +5,7 @@
 #ifndef COMPLEXJOINT_H
 #define COMPLEXJOINT_H
 #include <vector>
-#include <mnemea/Identifiable.h>
+#include <mindset/Identifiable.h>
 
 namespace neoneuron
 {
@@ -15,17 +15,17 @@ namespace neoneuron
     * The UID of this joint must represent the UID
     * of the parent segment.
     */
-    class ComplexJoint : public mnemea::Identifiable
+    class ComplexJoint : public mindset::Identifiable
     {
-        std::vector<mnemea::UID> _children;
+        std::vector<mindset::UID> _children;
         uint32_t _rotationIndex;
 
       public:
-        ComplexJoint(mnemea::UID id, std::vector<mnemea::UID> children);
+        ComplexJoint(mindset::UID id, std::vector<mindset::UID> children);
 
-        [[nodiscard]] std::vector<mnemea::UID>& getChildren();
+        [[nodiscard]] std::vector<mindset::UID>& getChildren();
 
-        [[nodiscard]] const std::vector<mnemea::UID>& getChildren() const;
+        [[nodiscard]] const std::vector<mindset::UID>& getChildren() const;
 
         [[nodiscard]] uint32_t getRotationIndex() const;
 

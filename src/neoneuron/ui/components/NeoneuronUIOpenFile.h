@@ -6,8 +6,8 @@
 #define NEONEURONUIOPENFILE_H
 
 #include <neon/Neon.h>
-#include <mnemea/loader/Loader.h>
-#include <neoneuron/render/AbstractNeuronScene.h>
+#include <mindset/loader/Loader.h>
+#include <neoneuron/render/AbstractNeuronRepresentation.h>
 
 namespace neoneuron
 {
@@ -19,13 +19,13 @@ namespace neoneuron
             AVAILABLE
         };
 
-        AbstractNeuronScene* _scene;
+        AbstractNeuronRepresentation* _scene;
         std::unique_ptr<neon::FileSystem> _fileSystem;
         std::filesystem::path _path;
         neon::File _file;
         bool _open;
 
-        std::vector<mnemea::LoaderFactory> _loaders;
+        std::vector<mindset::LoaderFactory> _loaders;
         std::vector<std::string> _loaderNames;
         std::vector<const char*> _loaderCNames;
         int _selectedLoader;
@@ -36,7 +36,7 @@ namespace neoneuron
 
         [[nodiscard]] int fetchLoaderIndex(const std::string& name) const;
 
-        [[nodiscard]] std::unique_ptr<mnemea::Loader> generateLoader() const;
+        [[nodiscard]] std::unique_ptr<mindset::Loader> generateLoader() const;
 
         void loaderCombo();
 
@@ -45,7 +45,7 @@ namespace neoneuron
         void loadButton() const;
 
       public:
-        explicit NeoneuronUiOpenFile(AbstractNeuronScene* scene, std::unique_ptr<neon::FileSystem> fileSystem,
+        explicit NeoneuronUiOpenFile(AbstractNeuronRepresentation* scene, std::unique_ptr<neon::FileSystem> fileSystem,
                                      std::filesystem::path path, neon::File file);
 
         void onPreDraw() override;

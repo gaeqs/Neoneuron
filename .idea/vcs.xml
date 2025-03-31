@@ -2,26 +2,26 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MVDTool" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MVDTool/deps/libsonata" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MVDTool/python/pybind11" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO/3rdparty/Catch2" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO/3rdparty/GSL_LITE" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO/3rdparty/HighFive" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO/3rdparty/HighFive/deps/catch2" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO/3rdparty/ghc_filesystem" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO/3rdparty/lexertl14" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/MorphIO/binds/python/pybind11" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/libsonata" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/libsonata/extlib/Catch2" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/libsonata/extlib/HighFive" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/libsonata/extlib/HighFive/deps/catch2" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/libsonata/extlib/fmt" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/brion/deps/libsonata/python/pybind11" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/lib/mnemea/lib/hey" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MVDTool" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MVDTool/deps/libsonata" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MVDTool/python/pybind11" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MorphIO" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MorphIO/3rdparty/Catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MorphIO/3rdparty/GSL_LITE" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MorphIO/3rdparty/HighFive" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MorphIO/3rdparty/HighFive/deps/catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MorphIO/3rdparty/ghc_filesystem" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MorphIO/3rdparty/lexertl14" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MorphIO/binds/python/pybind11" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/libsonata" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/libsonata/extlib/Catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/libsonata/extlib/HighFive" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/libsonata/extlib/HighFive/deps/catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/libsonata/extlib/fmt" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/libsonata/python/pybind11" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/hey-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/mindset" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/nativefiledialog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/neon" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/neon/lib/glslang" vcs="Git" />

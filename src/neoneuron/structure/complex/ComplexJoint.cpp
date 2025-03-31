@@ -39,7 +39,7 @@ namespace neoneuron
         auto desiredBaseDirection = tangent;
         std::vector<rush::Vec3f> children;
         children.reserve(_children.size());
-        for (mnemea::UID& childUID : _children) {
+        for (mindset::UID& childUID : _children) {
             auto optChildren = neuron.findSegment(childUID);
             if (optChildren.has_value()) {
                 auto direction = (optChildren.value()->getEnd() - parent->getEnd()).normalized();
@@ -79,19 +79,19 @@ namespace neoneuron
         }
     }
 
-    ComplexJoint::ComplexJoint(mnemea::UID id, std::vector<mnemea::UID> children) :
+    ComplexJoint::ComplexJoint(mindset::UID id, std::vector<mindset::UID> children) :
         Identifiable(id),
         _children(std::move(children)),
         _rotationIndex(0)
     {
     }
 
-    std::vector<mnemea::UID>& ComplexJoint::getChildren()
+    std::vector<mindset::UID>& ComplexJoint::getChildren()
     {
         return _children;
     }
 
-    const std::vector<mnemea::UID>& ComplexJoint::getChildren() const
+    const std::vector<mindset::UID>& ComplexJoint::getChildren() const
     {
         return _children;
     }

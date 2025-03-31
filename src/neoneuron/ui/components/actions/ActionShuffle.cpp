@@ -5,12 +5,14 @@
 #include "ActionShuffle.h"
 
 #include <imgui.h>
-#include <mnemea/DefaultProperties.h>
-#include <mnemea/util/NeuronTransform.h>
+#include <mindset/DefaultProperties.h>
+#include <mindset/util/NeuronTransform.h>
+#include <neoneuron/application/NeoneuronApplication.h>
+#include <neoneuron/render/NeoneuronRender.h>
 
 namespace neoneuron
 {
-    void ActionShuffle::shuffle(mnemea::UID prop, mnemea::Neuron* neuron)
+    void ActionShuffle::shuffle(mindset::UID prop, mindset::Neuron* neuron)
     {
         std::uniform_real_distribution dis(-1.0f, 1.0f);
         std::uniform_real_distribution rDis(0.0f, 1.0f);
@@ -18,7 +20,7 @@ namespace neoneuron
         auto v = rush::Vec3f(dis(_randomGenerator), dis(_randomGenerator), dis(_randomGenerator));
         v = v.normalized() * std::cbrt(rDis(_randomGenerator)) * _radius;
 
-        mnemea::NeuronTransform transform;
+        mindset::NeuronTransform transform;
         transform.setPosition(_center + v);
 
         if (_shuffleRotation) {
@@ -27,29 +29,31 @@ namespace neoneuron
             transform.setRotation(r);
         }
 
-        neuron->setPropertyAsAny(prop, transform);
-        _scene->refreshNeuronProperty(neuron->getUID(), mnemea::PROPERTY_TRANSFORM);
+        neuron->setProperty(prop, transform);
+        _scene->refreshNeuronProperty(neuron->getUID(), mindset::PROPERTY_TRANSFORM);
     }
 
     void ActionShuffle::run()
     {
-        auto propId = _scene->getDataset().getProperties().defineProperty(mnemea::PROPERTY_TRANSFORM);
+        auto& dataset = _scene->getRender()->getNeoneuronApplication()->getDataset();
+        auto propId = dataset.getProperties().defineProperty(mindset::PROPERTY_TRANSFORM);
+
         auto& neurons = _scene->getSelector().getSelectedNeurons();
         if (neurons.empty()) {
             // Shuffle all neurons
-            for (auto& neuron : _scene->getDataset().getNeurons()) {
-                shuffle(propId, &neuron);
+            for (auto neuron : dataset.getNeurons()) {
+                shuffle(propId, neuron.getRaw());
             }
         } else {
             for (auto& uid : neurons) {
-                if (auto neuron = _scene->findPrototypeNeuron(uid); neuron.has_value()) {
+                if (auto neuron = dataset.getNeuron(uid); neuron.has_value()) {
                     shuffle(propId, neuron.value());
                 }
             }
         }
     }
 
-    ActionShuffle::ActionShuffle(AbstractNeuronScene* scene) :
+    ActionShuffle::ActionShuffle(AbstractNeuronRepresentation* scene) :
         ModalComponent("Shuffle", true),
         _scene(scene),
         _radius(1000.0f),

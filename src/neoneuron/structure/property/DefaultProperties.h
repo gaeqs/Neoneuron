@@ -5,31 +5,31 @@
 #ifndef NEONEURON_DEFAULTPROPERTIES_H
 #define NEONEURON_DEFAULTPROPERTIES_H
 
-#include <mnemea/Neuron.h>
+#include <mindset/Neuron.h>
 #include <nlohmann/json_fwd.hpp>
-#include <neoneuron/render/AbstractNeuronScene.h>
+#include <neoneuron/render/AbstractNeuronRepresentation.h>
 
 namespace neoneuron::property
 {
-    bool transformEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
+    bool transformEditor(std::any* property, const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
 
-    std::any transformGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
+    std::any transformGenerator(const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
 
     std::any transformFromJson(const nlohmann::json& json);
 
     nlohmann::json transformToJson(const std::any& any);
 
-    bool nameEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
+    bool nameEditor(std::any* property, const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
 
-    std::any nameGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
+    std::any nameGenerator(const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
 
     std::any nameFromJson(const nlohmann::json& json);
 
     nlohmann::json nameToJson(const std::any& any);
 
-    bool lodEditor(std::any* property, const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
+    bool lodEditor(std::any* property, const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
 
-    std::any lodGenerator(const mnemea::Neuron* neuron, const AbstractNeuronScene* scene);
+    std::any lodGenerator(const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
 
     std::any int32FromJson(const nlohmann::json& json);
 

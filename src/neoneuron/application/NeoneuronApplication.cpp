@@ -24,6 +24,14 @@ namespace neoneuron
     {
         initDefaultProperties(_propertyStorage);
     }
+    mindset::Dataset& NeoneuronApplication::getDataset()
+    {
+        return _dataset;
+    }
+    const mindset::Dataset& NeoneuronApplication::getDataset() const
+    {
+    return _dataset;
+    }
 
     NeoneuronRender& NeoneuronApplication::getRender()
     {
@@ -55,12 +63,12 @@ namespace neoneuron
         return _propertyStorage;
     }
 
-    mnemea::LoaderRegistry& NeoneuronApplication::getLoaderRegistry()
+    mindset::LoaderRegistry& NeoneuronApplication::getLoaderRegistry()
     {
         return _loaderStorage;
     }
 
-    const mnemea::LoaderRegistry& NeoneuronApplication::getLoaderRegistry() const
+    const mindset::LoaderRegistry& NeoneuronApplication::getLoaderRegistry() const
     {
         return _loaderStorage;
     }

@@ -4,8 +4,8 @@
 
 #include "NeoneuronUIOpenFile.h"
 
-#include <mnemea/loader/BlueConfigLoader.h>
-#include <mnemea/loader/SWCLoader.h>
+#include <mindset/loader/BlueConfigLoader.h>
+#include <mindset/loader/SWCLoader.h>
 #include <neon/util/Chronometer.h>
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/NeoneuronRender.h>
@@ -21,7 +21,7 @@ namespace neoneuron
             }
         }
 
-        return mnemea::SWC_LOADER_NAME;
+        return mindset::SWC_LOADER_NAME;
     }
 
     int NeoneuronUiOpenFile::fetchLoaderIndex(const std::string& name) const
@@ -34,7 +34,7 @@ namespace neoneuron
         return -1;
     }
 
-    std::unique_ptr<mnemea::Loader> NeoneuronUiOpenFile::generateLoader() const
+    std::unique_ptr<mindset::Loader> NeoneuronUiOpenFile::generateLoader() const
     {
         auto fileProvider = [&](std::filesystem::path path) { return _fileSystem->readFile(path)->readLines(); };
 
@@ -96,31 +96,34 @@ namespace neoneuron
             auto loader = generateLoader();
             loader->addUIDProvider([&] { return _scene->findAvailableUID(); });
 
-            if (auto* l = dynamic_cast<mnemea::BlueConfigLoader*>(loader.get())) {
+            if (auto* l = dynamic_cast<mindset::BlueConfigLoader*>(loader.get())) {
                 l->addTarget("MiniColumn_501");
             }
 
-            auto listener = loader->createListener([](mnemea::LoaderStatus status) {
+            auto listener = loader->createListener([](mindset::LoaderStatus status) {
                 std::cout << status.currentTask << " (" << status.stagesCompleted << "/" << status.stages << ")"
                           << std::endl;
             });
 
-            loader->load(_scene->getDataset());
+            auto& dataset = _scene->getRender()->getNeoneuronApplication()->getDataset();
+            loader->load(dataset);
             neon::debug() << chrono.elapsedSeconds() << " - Scene loaded. Refreshing scene.";
-            _scene->checkForNewNeurons();
-            neon::debug() << chrono.elapsedSeconds() << " - Scene refreshed successfully.";
 
             ImGui::CloseCurrentPopup();
             getLogger().debug(neon::MessageBuilder()
                                   .print("Time required to load: ")
                                   .print(chrono.elapsedSeconds())
                                   .print(" seconds."));
+
+            neon::debug() << "Neurons in dataset: " << dataset.getNeurons().size();
+            neon::debug() << "Synapses in dataset: " << dataset.getCircuit().getSynapses().size();
         }
         ImGui::EndDisabled();
     }
 
-    NeoneuronUiOpenFile::NeoneuronUiOpenFile(AbstractNeuronScene* scene, std::unique_ptr<neon::FileSystem> fileSystem,
-                                             std::filesystem::path path, neon::File file) :
+    NeoneuronUiOpenFile::NeoneuronUiOpenFile(AbstractNeuronRepresentation* scene,
+                                             std::unique_ptr<neon::FileSystem> fileSystem, std::filesystem::path path,
+                                             neon::File file) :
         _scene(scene),
         _fileSystem(std::move(fileSystem)),
         _path(std::move(path)),
