@@ -14,9 +14,10 @@ namespace neoneuron
     void initDefaultProperties(Storage<DefinedProperty>& storage)
     {
         storage.add(mindset::PROPERTY_TRANSFORM,
-                    DefinedProperty(mindset::PROPERTY_TRANSFORM, typeid(mindset::NeuronTransform), PropertyTarget::NEURON,
-                                    "Transform", property::transformEditor, property::transformGenerator,
-                                    property::transformToJson, property::transformFromJson));
+                    DefinedProperty(mindset::PROPERTY_TRANSFORM, typeid(mindset::NeuronTransform),
+                                    PropertyTarget::NEURON, "Transform", property::transformEditor,
+                                    property::transformGenerator, property::transformToJson,
+                                    property::transformFromJson));
 
         storage.add(mindset::PROPERTY_NAME,
                     DefinedProperty{mindset::PROPERTY_NAME, typeid(std::string), PropertyTarget::NEURON, "Name",

@@ -74,19 +74,19 @@ struct Neuron {
     mat4 normal;
 };
 
-layout(std430, set = 2, binding = 0) buffer Neurons {
+layout(std430, set = 2, binding = 1) buffer Neurons {
     Neuron neurons[];
 };
 
-layout(std430, set = 2, binding = 1) buffer Data {
+layout(std430, set = 2, binding = 2) buffer Data {
     Section sections[];
 };
 
-layout(std430, set = 2, binding = 3) buffer Somas {
+layout(std430, set = 2, binding = 4) buffer Somas {
     Soma somas[];
 };
 
-layout(std430, set = 2, binding = 5) buffer SomaGPUData {
+layout(std430, set = 2, binding = 6) buffer SomaGPUData {
     uint packedConnection[];
 };
 

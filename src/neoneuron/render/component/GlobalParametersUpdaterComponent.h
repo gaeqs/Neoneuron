@@ -27,8 +27,6 @@ namespace neoneuron
         rush::Vec3f sceneCenter;
         float dummy;
         rush::Vec3f sceneRadius;
-        uint32_t sectionsAmount;
-        uint32_t jointsAmount;
     };
 
     class GlobalParametersUpdaterComponent : public neon::Component

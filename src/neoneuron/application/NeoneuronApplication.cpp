@@ -20,17 +20,30 @@ namespace neoneuron
 
     NeoneuronApplication::NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo) :
         _settings(loadSettings()),
+        _selector(&_dataset),
         _render(this, std::move(renderCreateInfo))
     {
         initDefaultProperties(_propertyStorage);
     }
+
     mindset::Dataset& NeoneuronApplication::getDataset()
     {
         return _dataset;
     }
+
     const mindset::Dataset& NeoneuronApplication::getDataset() const
     {
-    return _dataset;
+        return _dataset;
+    }
+
+    Selector& NeoneuronApplication::getSelector()
+    {
+        return _selector;
+    }
+
+    const Selector& NeoneuronApplication::getSelector() const
+    {
+        return _selector;
     }
 
     NeoneuronRender& NeoneuronApplication::getRender()
@@ -96,5 +109,13 @@ namespace neoneuron
         }
         std::string data = _settings.dump(4);
         out.write(data.c_str(), data.size());
+    }
+    mindset::UID NeoneuronApplication::findSmallestAvailableUID() const
+    {
+        mindset::UID smallest = 0;
+        while (_dataset.getNeuron(smallest).has_value()) {
+            ++smallest;
+        }
+        return smallest;
     }
 } // namespace neoneuron

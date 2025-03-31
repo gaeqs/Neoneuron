@@ -23,11 +23,9 @@ namespace neoneuron
     class DefinedProperty
     {
       public:
-        using EditorFunction =
-            std::function<bool(std::any* property, const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene)>;
+        using EditorFunction = std::function<bool(std::any* property, const mindset::Neuron* neuron)>;
 
-        using GeneratorFunction =
-            std::function<std::any(const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene)>;
+        using GeneratorFunction = std::function<std::any(const mindset::Neuron* neuron)>;
 
         using ToJsonFunction = std::function<nlohmann::json(const std::any& any)>;
         using FromJsonFunction = std::function<std::any(const nlohmann::json& json)>;

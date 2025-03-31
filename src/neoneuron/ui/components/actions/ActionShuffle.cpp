@@ -30,15 +30,15 @@ namespace neoneuron
         }
 
         neuron->setProperty(prop, transform);
-        _scene->refreshNeuronProperty(neuron->getUID(), mindset::PROPERTY_TRANSFORM);
+        _application->getRender().refreshNeuronProperty(neuron->getUID(), mindset::PROPERTY_TRANSFORM);
     }
 
     void ActionShuffle::run()
     {
-        auto& dataset = _scene->getRender()->getNeoneuronApplication()->getDataset();
+        auto& dataset = _application->getDataset();
         auto propId = dataset.getProperties().defineProperty(mindset::PROPERTY_TRANSFORM);
 
-        auto& neurons = _scene->getSelector().getSelectedNeurons();
+        auto& neurons = _application->getSelector().getSelectedNeurons();
         if (neurons.empty()) {
             // Shuffle all neurons
             for (auto neuron : dataset.getNeurons()) {
@@ -53,9 +53,9 @@ namespace neoneuron
         }
     }
 
-    ActionShuffle::ActionShuffle(AbstractNeuronRepresentation* scene) :
+    ActionShuffle::ActionShuffle(NeoneuronApplication* application) :
         ModalComponent("Shuffle", true),
-        _scene(scene),
+        _application(application),
         _radius(1000.0f),
         _shuffleRotation(true),
         _randomGenerator(_randomDevice())

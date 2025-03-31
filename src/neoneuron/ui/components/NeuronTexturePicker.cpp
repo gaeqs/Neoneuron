@@ -11,17 +11,21 @@
 
 #include "nfd_glfw3.h"
 
+#include <neoneuron/application/NeoneuronApplication.h>
+
 namespace neoneuron
 {
-    std::unordered_set<rush::Vec<2, uint32_t>> NeuronTexturePicker::pickNeurons(const rush::Vec4i* data, size_t size)
+    std::vector<std::pair<mindset::UID, mindset::UID>> NeuronTexturePicker::pickNeurons(const rush::Vec4i* data,
+                                                                                        size_t size)
     {
-        std::unordered_set<rush::Vec<2, uint32_t>> selection;
+        std::vector<std::pair<mindset::UID, mindset::UID>> selection;
 
         for (size_t i = 0; i < size; ++i) {
             rush::Vec4i current = data[i];
             if (current.x() > 0) {
-                rush::Vec<2, uint32_t> pair = {current.y(), current.z()};
-                selection.insert(pair);
+                mindset::UID neuronId = current.y();
+                mindset::UID neuriteId = current.z();
+                selection.push_back(std::make_pair(neuronId, neuriteId));
             }
         }
 
@@ -74,15 +78,8 @@ namespace neoneuron
             auto data = std::make_unique<rush::Vec4i[]>(amount);
             _texture->fetchData(data.get(), {min, 0}, size, 0, 1);
 
-            auto result = pickNeurons(data.get(), amount);
-
-            auto& selector = _render->getNeuronScene()->getSelector();
-
-            Selection selection(true);
-
-            selection.selections.insert(selection.selections.begin(), result.begin(), result.end());
-
-            selector.setSelectionData(selection);
+            auto& selector = _render->getNeoneuronApplication()->getSelector();
+            selector.selectSegments(SelectionMode::OVERRIDE_ALL, pickNeurons(data.get(), amount));
 
             _selecting = false;
         }

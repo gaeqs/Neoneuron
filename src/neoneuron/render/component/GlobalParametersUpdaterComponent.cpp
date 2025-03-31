@@ -41,14 +41,8 @@ namespace neoneuron
         renderData.frame = _render.getApplication().getCurrentFrameInformation().currentFrame;
         buffer.uploadData<NeoneuronRenderData>(1, renderData);
 
-        auto bb = _render.getNeuronScene()->getSceneBoundingBox();
+        auto bb = _render.getCombinedAABB();
 
-        buffer.uploadData<Scene>(2, Scene{
-                                        bb.center,
-                                        0,
-                                        bb.radius,
-                                        static_cast<uint32_t>(_render.getNeuronScene()->getSectionsAmount()),
-                                        static_cast<uint32_t>(_render.getNeuronScene()->getJointsAmount()),
-                                    });
+        buffer.uploadData<Scene>(2, Scene{bb.center, 0, bb.radius});
     }
 } // namespace neoneuron

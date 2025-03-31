@@ -8,6 +8,7 @@
 #include <mindset/Dataset.h>
 #include <mindset/loader/LoaderRegistry.h>
 #include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/structure/Selector.h>
 #include <neoneuron/structure/Storage.h>
 #include <neoneuron/structure/property/DefinedProperty.h>
 
@@ -34,6 +35,7 @@ namespace neoneuron
         hey::Observable<std::string> _settingsNodeChange;
 
         mindset::Dataset _dataset;
+        Selector _selector;
         NeoneuronRender _render;
         Storage<DefinedProperty> _propertyStorage;
         mindset::LoaderRegistry _loaderStorage;
@@ -56,6 +58,16 @@ namespace neoneuron
         * Insert your brain data here!
         */
         [[nodiscard]] const mindset::Dataset& getDataset() const;
+
+        /**
+        * The selection of the application.
+        */
+        [[nodiscard]] Selector& getSelector();
+
+        /**
+        * The selection of the application.
+        */
+        [[nodiscard]] const Selector& getSelector() const;
 
         /**
         * This class manages the render part of the application.
@@ -123,6 +135,9 @@ namespace neoneuron
         * Saves the settings' json into a file.
         */
         void saveSettings() const;
+
+        //TODO move this method to mindset.
+        mindset::UID findSmallestAvailableUID() const;
     };
 } // namespace neoneuron
 

@@ -6,6 +6,7 @@
 #define NEURONTEXTUREPICKER_H
 
 #include <unordered_set>
+#include <mindset/UID.h>
 #include <neon/render/texture/Texture.h>
 #include <neon/structure/Component.h>
 #include <neon/util/component/ViewportComponent.h>
@@ -27,7 +28,7 @@ namespace neoneuron
         bool _selecting = false;
         rush::Vec2i _origin;
 
-        std::unordered_set<rush::Vec<2, uint32_t>> pickNeurons(const rush::Vec4i* data, size_t size);
+        std::vector<std::pair<mindset::UID, mindset::UID>> pickNeurons(const rush::Vec4i* data, size_t size);
 
       public:
         explicit NeuronTexturePicker(NeoneuronRender* render,

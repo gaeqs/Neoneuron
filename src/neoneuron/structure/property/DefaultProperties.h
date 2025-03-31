@@ -11,25 +11,25 @@
 
 namespace neoneuron::property
 {
-    bool transformEditor(std::any* property, const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
+    bool transformEditor(std::any* property, const mindset::Neuron* neuron);
 
-    std::any transformGenerator(const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
+    std::any transformGenerator(const mindset::Neuron* neuron);
 
     std::any transformFromJson(const nlohmann::json& json);
 
     nlohmann::json transformToJson(const std::any& any);
 
-    bool nameEditor(std::any* property, const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
+    bool nameEditor(std::any* property, const mindset::Neuron* neuron);
 
-    std::any nameGenerator(const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
+    std::any nameGenerator(const mindset::Neuron* neuron);
 
     std::any nameFromJson(const nlohmann::json& json);
 
     nlohmann::json nameToJson(const std::any& any);
 
-    bool lodEditor(std::any* property, const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
+    bool lodEditor(std::any* property, const mindset::Neuron* neuron);
 
-    std::any lodGenerator(const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene);
+    std::any lodGenerator(const mindset::Neuron* neuron);
 
     std::any int32FromJson(const nlohmann::json& json);
 

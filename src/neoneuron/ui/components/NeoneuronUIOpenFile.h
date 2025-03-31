@@ -7,7 +7,7 @@
 
 #include <neon/Neon.h>
 #include <mindset/loader/Loader.h>
-#include <neoneuron/render/AbstractNeuronRepresentation.h>
+#include <neoneuron/application/NeoneuronApplication.h>
 
 namespace neoneuron
 {
@@ -19,7 +19,7 @@ namespace neoneuron
             AVAILABLE
         };
 
-        AbstractNeuronRepresentation* _scene;
+        NeoneuronApplication* _application;
         std::unique_ptr<neon::FileSystem> _fileSystem;
         std::filesystem::path _path;
         neon::File _file;
@@ -45,7 +45,7 @@ namespace neoneuron
         void loadButton() const;
 
       public:
-        explicit NeoneuronUiOpenFile(AbstractNeuronRepresentation* scene, std::unique_ptr<neon::FileSystem> fileSystem,
+        explicit NeoneuronUiOpenFile(NeoneuronApplication* application, std::unique_ptr<neon::FileSystem> fileSystem,
                                      std::filesystem::path path, neon::File file);
 
         void onPreDraw() override;

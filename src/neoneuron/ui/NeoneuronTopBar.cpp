@@ -50,7 +50,7 @@ namespace neoneuron
             return;
         }
         _render->getRoom()->newGameObject()->newComponent<NeoneuronUiOpenFile>(
-            _render->getNeuronScene().get(), std::move(fileSystem), path, std::move(optional.value()));
+            _render->getNeoneuronApplication(), std::move(fileSystem), path, std::move(optional.value()));
     }
 
     void NeoneuronTopBar::saveFile(const std::string& data) const
@@ -112,33 +112,34 @@ namespace neoneuron
 
     void NeoneuronTopBar::viewMenu() const
     {
-        auto* scene = _render->getNeuronScene().get();
-        if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
-            bool drawSegments = complexScene->shouldDrawSegments();
-            bool drawJoints = complexScene->shouldDrawJoints();
-            bool drawSomas = complexScene->shouldDrawSomas();
-            if (ImGui::MenuItem("Draw segments", nullptr, &drawSegments)) {
-                complexScene->setDrawSegments(drawSegments);
-            }
-            if (ImGui::MenuItem("Draw joints", nullptr, &drawJoints)) {
-                complexScene->setDrawJoints(drawJoints);
-            }
-            if (ImGui::MenuItem("Draw somas", nullptr, &drawSomas)) {
-                complexScene->setDrawSomas(drawSomas);
-            }
-        }
+        //auto* scene = _render->getNeuronScene().get();
+        //if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
+        //    bool drawSegments = complexScene->shouldDrawSegments();
+        //    bool drawJoints = complexScene->shouldDrawJoints();
+        //    bool drawSomas = complexScene->shouldDrawSomas();
+        //    if (ImGui::MenuItem("Draw segments", nullptr, &drawSegments)) {
+        //        complexScene->setDrawSegments(drawSegments);
+        //    }
+        //    if (ImGui::MenuItem("Draw joints", nullptr, &drawJoints)) {
+        //        complexScene->setDrawJoints(drawJoints);
+        //    }
+        //    if (ImGui::MenuItem("Draw somas", nullptr, &drawSomas)) {
+        //        complexScene->setDrawSomas(drawSomas);
+        //    }
+        //}
     }
 
     void NeoneuronTopBar::actionsMenu() const
     {
+        auto app = _render->getNeoneuronApplication();
         if (ImGui::MenuItem("Focus scene")) {
             _render->focusScene();
         }
         if (ImGui::MenuItem("Shuffle")) {
-            _render->getRoom()->newGameObject()->newComponent<ActionShuffle>(_render->getNeuronScene().get());
+            _render->getRoom()->newGameObject()->newComponent<ActionShuffle>(app);
         }
         if (ImGui::MenuItem("Save neuron model")) {
-            _render->getRoom()->newGameObject()->newComponent<ActionSave>(_render->getNeuronScene().get());
+            _render->getRoom()->newGameObject()->newComponent<ActionSave>(app);
         }
     }
 

@@ -73,27 +73,27 @@ struct Joint {
     uint connection[8];
 };
 
-layout(std430, set = 2, binding = 0) buffer Neurons {
+layout(std430, set = 2, binding = 1) buffer Neurons {
     Neuron neurons[];
 };
 
-layout(std430, set = 2, binding = 1) buffer Data {
+layout(std430, set = 2, binding = 2) buffer Data {
     Section sections[];
 };
 
-layout(std430, set = 2, binding = 2) buffer Joints {
+layout(std430, set = 2, binding = 3) buffer Joints {
     Joint joints[];
 };
 
-layout(std430, set = 2, binding = 4) buffer Selection {
+layout(std430, set = 2, binding = 5) buffer Selection {
     bool selected[];
 };
 
-layout(std430, set = 2, binding = 7) buffer SavingVertices {
+layout(std430, set = 2, binding = 8) buffer SavingVertices {
     vec4 savingVertices[];
 };
 
-layout(std430, set = 2, binding = 8) buffer SavingIndices {
+layout(std430, set = 2, binding = 9) buffer SavingIndices {
     uvec4 savingIndices[];
 };
 

@@ -75,7 +75,7 @@ namespace neoneuron
 
         _uidProvider = static_cast<UIDProvider>(index);
 
-        if (_uidProvider == UIDProvider::FILE && _scene->getNeuronsAmount() > 0) {
+        if (_uidProvider == UIDProvider::FILE && _application->getDataset().getNeuronsAmount() > 0) {
             ImGui::Indent();
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
             ImGui::TextWrapped("Neurons provided by the file may overwrite the neurons present in the scene if the "
@@ -94,7 +94,7 @@ namespace neoneuron
         if (ImGui::Button("Load", ImVec2(120, 0))) {
             neon::Chronometer chrono;
             auto loader = generateLoader();
-            loader->addUIDProvider([&] { return _scene->findAvailableUID(); });
+            loader->addUIDProvider([&] { return _application->findSmallestAvailableUID(); });
 
             if (auto* l = dynamic_cast<mindset::BlueConfigLoader*>(loader.get())) {
                 l->addTarget("MiniColumn_501");
@@ -105,7 +105,7 @@ namespace neoneuron
                           << std::endl;
             });
 
-            auto& dataset = _scene->getRender()->getNeoneuronApplication()->getDataset();
+            auto& dataset = _application->getDataset();
             loader->load(dataset);
             neon::debug() << chrono.elapsedSeconds() << " - Scene loaded. Refreshing scene.";
 
@@ -121,10 +121,10 @@ namespace neoneuron
         ImGui::EndDisabled();
     }
 
-    NeoneuronUiOpenFile::NeoneuronUiOpenFile(AbstractNeuronRepresentation* scene,
+    NeoneuronUiOpenFile::NeoneuronUiOpenFile(NeoneuronApplication* application,
                                              std::unique_ptr<neon::FileSystem> fileSystem, std::filesystem::path path,
                                              neon::File file) :
-        _scene(scene),
+        _application(application),
         _fileSystem(std::move(fileSystem)),
         _path(std::move(path)),
         _file(std::move(file)),
@@ -132,7 +132,7 @@ namespace neoneuron
         _selectedLoader(0),
         _uidProvider(UIDProvider::FILE)
     {
-        auto& loaders = scene->getRender()->getNeoneuronApplication()->getLoaderRegistry();
+        auto& loaders = _application->getLoaderRegistry();
         for (auto& loader : loaders.getAll()) {
             _loaders.push_back(loader);
             _loaderNames.push_back(loader.getDisplayName());

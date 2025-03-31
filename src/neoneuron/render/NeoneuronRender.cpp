@@ -17,7 +17,6 @@ CMRC_DECLARE(resources);
 namespace neoneuron
 {
     NeoneuronRender::Components::Components(NeoneuronRender* render) :
-        neuronScene(std::make_unique<ComplexNeuronRepresentation>(render)),
         ui(render),
         cameraData(render)
     {
@@ -79,6 +78,8 @@ namespace neoneuron
 
         initGameObjects();
         initSelectionResolver();
+
+        _representations.push_back(std::make_unique<ComplexNeuronRepresentation>(this));
     }
 
     NeoneuronRender::~NeoneuronRender()
@@ -121,16 +122,6 @@ namespace neoneuron
         return _room;
     }
 
-    std::unique_ptr<AbstractNeuronRepresentation>& NeoneuronRender::getNeuronScene()
-    {
-        return _components->neuronScene;
-    }
-
-    const std::unique_ptr<AbstractNeuronRepresentation>& NeoneuronRender::getNeuronScene() const
-    {
-        return _components->neuronScene;
-    }
-
     NeoneuronUI& NeoneuronRender::getUI()
     {
         return _components->ui;
@@ -161,6 +152,25 @@ namespace neoneuron
         return _renderData;
     }
 
+    std::vector<AbstractNeuronRepresentation*> NeoneuronRender::getRepresentations()
+    {
+        std::vector<AbstractNeuronRepresentation*> result;
+        for (auto& rep : _representations) {
+            result.push_back(rep.get());
+        }
+
+        return result;
+    }
+    std::vector<const AbstractNeuronRepresentation*> NeoneuronRender::getRepresentations() const
+    {
+        std::vector<const AbstractNeuronRepresentation*> result;
+        for (auto& rep : _representations) {
+            result.push_back(rep.get());
+        }
+
+        return result;
+    }
+
     void NeoneuronRender::setSkybox(const std::shared_ptr<neon::Texture>& skybox) const
     {
         auto& materials = _selectionResolver->getMeshes()[0]->getMaterials();
@@ -169,6 +179,25 @@ namespace neoneuron
             ubo->setTexture(2, skybox);
             ubo->uploadData(3, 1);
         }
+    }
+    rush::AABB<3, float> NeoneuronRender::getCombinedAABB() const
+    {
+        if (_representations.empty()) {
+            return {};
+        }
+        rush::AABB<3, float> aabb = _representations[0]->getSceneBoundingBox();
+
+        for (size_t i = 1; i < _representations.size(); i++) {
+            auto repAABB = _representations[1]->getSceneBoundingBox();
+            auto min = rush::min(aabb.center - aabb.radius, repAABB.center - repAABB.radius);
+            auto max = rush::max(aabb.center + aabb.radius, repAABB.center + repAABB.radius);
+            aabb = rush::AABB<3, float>::fromEdges(min, max);
+        }
+
+        for (auto& rep : _representations) {
+        }
+
+        return aabb;
     }
 
     float NeoneuronRender::getCurrentTime() const
@@ -188,6 +217,12 @@ namespace neoneuron
 
     void NeoneuronRender::focusScene() const
     {
-        _components->cameraData.getCameraController()->focusOn(_components->neuronScene->getSceneBoundingBox());
+        _components->cameraData.getCameraController()->focusOn(getCombinedAABB());
+    }
+    void NeoneuronRender::refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName)
+    {
+        for (auto& rep : _representations) {
+            rep->refreshNeuronProperty(neuronId, propertyName);
+        }
     }
 } // namespace neoneuron

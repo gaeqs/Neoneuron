@@ -35,15 +35,14 @@ namespace neoneuron
         }
         if (ImGui::Button(taggedName.c_str(), ImVec2(-1.0f, 25.0f))) {
             bool control = ImGui::IsKeyDown(ImGuiKey_ModCtrl);
-            auto& selector = _render->getNeuronScene()->getSelector();
+            auto& selector = _render->getNeoneuronApplication()->getSelector();
             if (!control) {
-                selector.clearSelection();
-                selector.selectNeuron(neuron->getUID());
+                selector.selectNeuron(SelectionMode::OVERRIDE_ALL, neuron->getUID());
             } else {
                 if (selected) {
                     selector.deselectNeuron(neuron->getUID());
                 } else {
-                    selector.selectNeuron(neuron->getUID());
+                    selector.selectNeuron(SelectionMode::APPEND, neuron->getUID());
                 }
             }
         }
@@ -62,7 +61,7 @@ namespace neoneuron
             }
             if (ImGui::MenuItem("Duplicate")) {
                 mindset::Neuron copy(*neuron);
-                copy.setUID(_render->getNeuronScene()->findAvailableUID());
+                copy.setUID(_render->getNeoneuronApplication()->findSmallestAvailableUID());
                 auto prop = dataset.getProperties().defineProperty(mindset::PROPERTY_NAME);
                 copy.setProperty(prop, name + " (copy)");
                 dataset.addNeuron(std::move(copy));
@@ -78,10 +77,8 @@ namespace neoneuron
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg));
         ImGui::BeginChild("List", ImVec2(0, ImGui::GetContentRegionAvail().y / 3.0f), ImGuiChildFlags_Borders);
 
-        auto* scene = _render->getNeuronScene().get();
         auto& dataset = _render->getNeoneuronApplication()->getDataset();
-
-        auto& selectedNeurons = scene->getSelector().getSelectedNeurons();
+        auto& selectedNeurons = _render->getNeoneuronApplication()->getSelector().getSelectedNeurons();
 
         std::vector<mindset::Neuron*> neurons;
         for (auto neuron : dataset.getNeurons()) {
@@ -111,7 +108,7 @@ namespace neoneuron
         ImGui::BeginChild("Information", ImVec2(0, ImGui::GetContentRegionAvail().y));
 
         auto& dataset = _render->getNeoneuronApplication()->getDataset();
-        auto& selectedNeurons = _render->getNeuronScene()->getSelector().getSelectedNeurons();
+        auto& selectedNeurons = _render->getNeoneuronApplication()->getSelector().getSelectedNeurons();
 
         if (selectedNeurons.size() != 1) {
             ImGui::EndChild();
@@ -120,7 +117,6 @@ namespace neoneuron
 
         auto selectedNeuron = *selectedNeurons.begin();
 
-        auto* scene = _render->getNeuronScene().get();
         auto* prototype = dataset.getNeuron(selectedNeuron).value_or(nullptr);
 
         if (prototype == nullptr) {
@@ -161,16 +157,16 @@ namespace neoneuron
                 ImGui::Indent();
                 if (auto editor = prop.value()->getEditor(); editor != nullptr) {
                     auto value = optionalValue.value();
-                    if (editor(&value, prototype, scene)) {
+                    if (editor(&value, prototype)) {
                         prototype->setProperty(uid, value);
-                        scene->refreshNeuronProperty(selectedNeuron, name);
+                        _render->refreshNeuronProperty(selectedNeuron, name);
                     }
                 }
                 ImGui::Unindent();
             }
             if (closed) {
                 prototype->deleteProperty(uid);
-                scene->refreshNeuronProperty(selectedNeuron, name);
+                _render->refreshNeuronProperty(selectedNeuron, name);
             }
         }
 
@@ -230,10 +226,10 @@ namespace neoneuron
             ImGui::SameLine();
             if (ImGui::Button("Add property", ImVec2(-1.0f, 0.0f))) {
                 auto* prop = properties[selectedProperty];
-                auto val = prop->getGenerator()(prototype, _render->getNeuronScene().get());
+                auto val = prop->getGenerator()(prototype);
                 auto uid = dataset.getProperties().defineProperty(prop->getName());
                 prototype->setProperty(uid, val);
-                _render->getNeuronScene()->refreshNeuronProperty(prototype->getUID(), prop->getName());
+                _render->refreshNeuronProperty(prototype->getUID(), prop->getName());
             }
             ImGui::EndDisabled();
         }

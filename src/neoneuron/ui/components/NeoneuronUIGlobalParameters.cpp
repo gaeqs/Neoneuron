@@ -22,7 +22,6 @@ namespace neoneuron
         bool keepOpen = true;
 
         auto& d = _render->getRenderData();
-        auto* scene = _render->getNeuronScene().get();
         if (opened) {
             if (ImGui::Begin("Global parameters", &keepOpen)) {
                 ImGui::PushItemWidth(ImGui::GetFontSize() * -16);
@@ -70,6 +69,7 @@ namespace neoneuron
                 ImGui::SliderInt("Level of detail", &aux, 0, 7);
                 d.lod = static_cast<uint32_t>(aux);
 
+                /*auto* scene = _render->getNeuronScene().get();
                 if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
                     bool wireframe = complexScene->isWireframeMode();
                     ImGui::Checkbox("Wireframe", &wireframe);
@@ -78,7 +78,7 @@ namespace neoneuron
                     if (ImGui::Button("Reload shaders")) {
                         complexScene->reloadShader();
                     }
-                }
+                }*/
 
                 ImGui::PopItemWidth();
             }

@@ -5,6 +5,7 @@
 #ifndef ACTIONSAVE_H
 #define ACTIONSAVE_H
 #include <neon/util/task/Coroutine.h>
+#include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/AbstractNeuronRepresentation.h>
 #include <neoneuron/ui/components/ModalComponent.h>
 
@@ -12,14 +13,14 @@ namespace neoneuron
 {
     class ActionSave : public ModalComponent
     {
-        AbstractNeuronRepresentation* _scene;
+        NeoneuronApplication* _application;
 
         void run();
 
         neon::Coroutine<> saveCoroutine(std::unordered_set<mindset::UID> uids);
 
       public:
-        ActionSave(AbstractNeuronRepresentation* scene);
+        ActionSave(NeoneuronApplication* application);
 
         void onModalDraw() override;
 

@@ -10,7 +10,7 @@
 
 namespace neoneuron::property
 {
-    bool transformEditor(std::any* property, const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene)
+    bool transformEditor(std::any* property, const mindset::Neuron* neuron)
     {
         auto* t = std::any_cast<mindset::NeuronTransform>(property);
         if (t == nullptr) {
@@ -53,7 +53,7 @@ namespace neoneuron::property
         return updated;
     }
 
-    std::any transformGenerator(const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene)
+    std::any transformGenerator(const mindset::Neuron* neuron)
     {
         return mindset::NeuronTransform();
     }
@@ -151,7 +151,7 @@ namespace neoneuron::property
         return json;
     }
 
-    bool nameEditor(std::any* property, const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene)
+    bool nameEditor(std::any* property, const mindset::Neuron* neuron)
     {
         constexpr size_t BUF_SIZE = 64;
         auto* s = std::any_cast<std::string>(property);
@@ -179,7 +179,7 @@ namespace neoneuron::property
         return false;
     }
 
-    std::any nameGenerator(const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene)
+    std::any nameGenerator(const mindset::Neuron* neuron)
     {
         return std::string();
     }
@@ -198,7 +198,7 @@ namespace neoneuron::property
         return *s;
     }
 
-    bool lodEditor(std::any* property, const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene)
+    bool lodEditor(std::any* property, const mindset::Neuron* neuron)
     {
         auto* i = std::any_cast<uint32_t>(property);
         if (i == nullptr) {
@@ -238,7 +238,7 @@ namespace neoneuron::property
         return false;
     }
 
-    std::any lodGenerator(const mindset::Neuron* neuron, const AbstractNeuronRepresentation* scene)
+    std::any lodGenerator(const mindset::Neuron* neuron)
     {
         return 0u;
     }

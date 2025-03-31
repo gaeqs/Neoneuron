@@ -13,7 +13,7 @@ namespace neoneuron
 {
     void ActionSave::run()
     {
-        auto selection = _scene->getSelector().getSelectedNeurons();
+        auto selection = _application->getSelector().getSelectedNeurons();
         getTaskRunner().launchCoroutine(saveCoroutine(std::move(selection)));
     }
 
@@ -23,12 +23,20 @@ namespace neoneuron
         constexpr size_t VALUES_PER_JOINT = 68;
         constexpr size_t VALUES_PER_SOMA = 128 * 64 + 8 * 32;
 
-        auto* scene = dynamic_cast<ComplexNeuronRepresentation*>(_scene);
-        if (scene == nullptr) {
+        ComplexNeuronRepresentation* representation = nullptr;
+
+        for (auto rep : _application->getRender().getRepresentations()) {
+            if (auto* complex = dynamic_cast<ComplexNeuronRepresentation*>(rep)) {
+                representation = complex;
+                break;
+            }
+        }
+
+        if (representation == nullptr) {
             co_return;
         }
 
-        auto& dataset = _scene->getRender()->getNeoneuronApplication()->getDataset();
+        auto& dataset = _application->getDataset();
         auto typeProp = dataset.getProperties().getPropertyUID(mindset::PROPERTY_NEURITE_TYPE);
 
         for (mindset::UID uid : uids) {
@@ -49,13 +57,13 @@ namespace neoneuron
                 maxSegment = std::max(maxSegment, segment);
             }
 
-            auto& ubo = scene->getUBO();
+            auto& ubo = representation->getUBO();
             ubo->clearData(7);
             ubo->clearData(8);
-            scene->getRender()->getRenderData().savingNeuron = uid;
+            representation->getRender()->getRenderData().savingNeuron = uid;
             co_yield neon::WaitForNextFrame();
 
-            scene->getRender()->getRenderData().savingNeuron = std::numeric_limits<uint32_t>::max();
+            representation->getRender()->getRenderData().savingNeuron = std::numeric_limits<uint32_t>::max();
 
             ubo->transferDataFromGPU(7);
             ubo->transferDataFromGPU(8);
@@ -66,8 +74,8 @@ namespace neoneuron
             std::vector<rush::Vec3f> vertices;
             for (auto segment : morph->getNeurites()) {
                 bool hasType = typeProp.has_value();
-                bool isSoma =
-                    hasType && segment->getProperty<mindset::NeuriteType>(typeProp.value()) == mindset::NeuriteType::SOMA;
+                bool isSoma = hasType && segment->getProperty<mindset::NeuriteType>(typeProp.value()) ==
+                                             mindset::NeuriteType::SOMA;
 
                 if (!isSoma) {
                     // Segment
@@ -139,9 +147,9 @@ namespace neoneuron
         }
     }
 
-    ActionSave::ActionSave(AbstractNeuronRepresentation* scene) :
+    ActionSave::ActionSave(NeoneuronApplication* application) :
         ModalComponent("Save neuron model", true),
-        _scene(scene)
+        _application(application)
     {
     }
 

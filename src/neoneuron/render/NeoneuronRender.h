@@ -20,7 +20,6 @@ namespace neoneuron
     {
         struct Components
         {
-            std::unique_ptr<AbstractNeuronRepresentation> neuronScene;
             NeoneuronUI ui;
             CameraData cameraData;
 
@@ -36,6 +35,8 @@ namespace neoneuron
         std::unique_ptr<Components> _components;
         NeoneuronRenderData _renderData;
         std::shared_ptr<neon::Model> _selectionResolver;
+
+        std::vector<std::unique_ptr<AbstractNeuronRepresentation>> _representations;
 
         std::shared_ptr<neon::Render> initRender();
 
@@ -65,10 +66,6 @@ namespace neoneuron
 
         [[nodiscard]] const std::shared_ptr<neon::Room>& getRoom() const;
 
-        [[nodiscard]] std::unique_ptr<AbstractNeuronRepresentation>& getNeuronScene();
-
-        [[nodiscard]] const std::unique_ptr<AbstractNeuronRepresentation>& getNeuronScene() const;
-
         [[nodiscard]] NeoneuronUI& getUI();
 
         [[nodiscard]] const NeoneuronUI& getUI() const;
@@ -81,13 +78,22 @@ namespace neoneuron
 
         [[nodiscard]] const NeoneuronRenderData& getRenderData() const;
 
+        [[nodiscard]] std::vector<AbstractNeuronRepresentation*> getRepresentations();
+
+        [[nodiscard]] std::vector<const AbstractNeuronRepresentation*> getRepresentations() const;
+
         void setSkybox(const std::shared_ptr<neon::Texture>& skybox) const;
+
+        rush::AABB<3, float> getCombinedAABB() const;
 
         float getCurrentTime() const;
 
         bool renderLoop();
 
         void focusScene() const;
+
+        void refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName);
+
     };
 } // namespace neoneuron
 

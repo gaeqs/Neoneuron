@@ -7,9 +7,6 @@
 #include <neon/util/Chronometer.h>
 #include <neon/util/task/Coroutine.h>
 #include <neoneuron/render/NeoneuronRender.h>
-
-#include "ComplexNeuronSelector.h"
-
 #include <neoneuron/application/NeoneuronApplication.h>
 
 CMRC_DECLARE(resources);
@@ -32,7 +29,9 @@ namespace neoneuron
         auto* app = &_render->getApplication();
 
         std::vector bindings = {
-            // GLOBAL DATA
+            // GLOBAL
+            neon::ShaderUniformBinding::uniformBuffer(sizeof(ComplexNeuronRepresentationData)),
+            // NEURONS
             neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronGlobalData) * SOMA_INSTANCES),
             // SEGMENTS
             neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSegment) * SEGMENT_INSTANCES),
@@ -41,7 +40,7 @@ namespace neoneuron
             // SOMAS
             neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSoma) * SOMA_INSTANCES),
             // SELECTION
-            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUNeuronSelectionData) * SEGMENT_INSTANCES),
+            neon::ShaderUniformBinding::storageBuffer(sizeof(ComplexGPUSelectionData) * SEGMENT_INSTANCES),
             // SOMA GPU DATA
             neon::ShaderUniformBinding::storageBuffer(STORAGE_PER_SOMA * SOMA_INSTANCES),
             // SECTION GPU DATA
@@ -61,7 +60,7 @@ namespace neoneuron
 
         std::vector slots = {
             neon::StorageBufferInstanceData::Slot(sizeof(ComplexGPUNeuronGlobalData),
-                                                  sizeof(ComplexGPUNeuronGlobalData), GLOBAL_DATA_BINDING, _ubo.get()),
+                                                  sizeof(ComplexGPUNeuronGlobalData), NEURON_BINDING, _ubo.get()),
         };
 
         std::vector<std::type_index> types = {typeid(ComplexGPUNeuronGlobalData)};
@@ -313,6 +312,8 @@ namespace neoneuron
                 gpuNeuron.value()->refreshGPUData(&neuron, frame);
             }
         }
+
+        updateGPURepresentationData();
     }
 
     void ComplexNeuronRepresentation::addComplexNeuron(ComplexNeuron&& complex)
@@ -333,13 +334,50 @@ namespace neoneuron
         } else {
             combineBoundingBoxes(bb);
         }
+
+        updateGPURepresentationData();
     }
     void ComplexNeuronRepresentation::onClear()
     {
-        _selector.clearSelection();
         _neurons.clear();
         _gpuNeurons.clear();
         _sceneBoundingBox = {};
+
+        updateGPURepresentationData();
+    }
+    void ComplexNeuronRepresentation::onSelectionEvent(SelectionEvent event)
+    {
+        if (!event.segmentsChanged) {
+            return;
+        }
+
+        auto data = static_cast<ComplexGPUSelectionData*>(_ubo->fetchData(SELECTION_BINDING));
+
+        for (uint32_t id : _selection) {
+            (data + id)->selected = false;
+        }
+
+        _selection.clear();
+
+        for (auto& [neuronId, segmentId] : event.selector->getSelectedSections()) {
+            auto gpuNeuron = findGPUNeuron(neuronId);
+            if (!gpuNeuron) {
+                continue;
+            }
+
+            auto segment = gpuNeuron.value()->findSegment(segmentId);
+            if (!segment.has_value()) {
+                continue;
+            }
+
+            _selection.push_back(*segment.value().id);
+            (data + *segment.value().id)->selected = true;
+        }
+    }
+    void ComplexNeuronRepresentation::updateGPURepresentationData()
+    {
+        _ubo->uploadData(REPRESENTATION_BINDING,
+                         ComplexNeuronRepresentationData(getSectionsAmount(), getJointsAmount()));
     }
 
     ComplexNeuronRepresentation::ComplexNeuronRepresentation(NeoneuronRender* render) :
@@ -359,16 +397,17 @@ namespace neoneuron
         loadNeuronModel();
         loadJointModel();
         loadSomaModel();
-        _selector = ComplexNeuronSelector(this, _ubo.get(), SELECTION_BINDING);
 
         _neuronAddListener = [this](mindset::Neuron* neuron) { onNeuronAdded(neuron); };
         _neuronRemoveListener = [this](mindset::UID uid) { onNeuronRemoved(uid); };
         _clearListener = [this](void*) { onClear(); };
+        _selectionListener = [this](SelectionEvent event) { onSelectionEvent(event); };
 
         auto& dataset = render->getNeoneuronApplication()->getDataset();
         dataset.getNeuronAddedEvent() += _neuronAddListener;
         dataset.getNeuronRemovedEvent() += _neuronRemoveListener;
         dataset.getClearEvent() += _clearListener;
+        render->getNeoneuronApplication()->getSelector().onSelectionEvent() += _selectionListener;
     }
 
     ComplexNeuronRepresentation::~ComplexNeuronRepresentation()
@@ -397,16 +436,6 @@ namespace neoneuron
     const std::unordered_map<mindset::UID, ComplexNeuron>& ComplexNeuronRepresentation::getNeurons() const
     {
         return _neurons;
-    }
-
-    AbstractSelector& ComplexNeuronRepresentation::getSelector()
-    {
-        return _selector;
-    }
-
-    const AbstractSelector& ComplexNeuronRepresentation::getSelector() const
-    {
-        return _selector;
     }
 
     size_t ComplexNeuronRepresentation::getNeuronsAmount()
@@ -546,15 +575,6 @@ namespace neoneuron
         if (propertyName == mindset::PROPERTY_TRANSFORM) {
             recalculateBoundingBox();
         }
-    }
-
-    mindset::UID ComplexNeuronRepresentation::findAvailableUID() const
-    {
-        size_t smallest = 0;
-        while (_neurons.contains(smallest)) {
-            ++smallest;
-        }
-        return smallest;
     }
 
     bool ComplexNeuronRepresentation::isWireframeMode() const

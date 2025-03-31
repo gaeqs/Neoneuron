@@ -6,14 +6,14 @@
 #define ACTIONSHUFFLE_H
 #include <imgui.h>
 #include <random>
-#include <neoneuron/render/AbstractNeuronRepresentation.h>
+#include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/ui/components/ModalComponent.h>
 
 namespace neoneuron
 {
     class ActionShuffle : public ModalComponent
     {
-        AbstractNeuronRepresentation* _scene;
+        NeoneuronApplication* _application;
         rush::Vec3f _center;
         float _radius;
         bool _shuffleRotation;
@@ -26,7 +26,7 @@ namespace neoneuron
         void run();
 
       public:
-        ActionShuffle(AbstractNeuronRepresentation* scene);
+        explicit ActionShuffle(NeoneuronApplication* application);
 
         void onModalDraw() override;
 
