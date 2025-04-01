@@ -4,6 +4,8 @@
 
 #include "NeoneuronRender.h"
 
+#include "synapse/SynapseRepresentation.h"
+
 #include <vector>
 #include <neon/util/DeferredUtils.h>
 
@@ -80,6 +82,7 @@ namespace neoneuron
         initSelectionResolver();
 
         _representations.push_back(std::make_unique<ComplexNeuronRepresentation>(this));
+        _representations.push_back(std::make_unique<SynapseRepresentation>(this));
     }
 
     NeoneuronRender::~NeoneuronRender()
@@ -192,9 +195,6 @@ namespace neoneuron
             auto min = rush::min(aabb.center - aabb.radius, repAABB.center - repAABB.radius);
             auto max = rush::max(aabb.center + aabb.radius, repAABB.center + repAABB.radius);
             aabb = rush::AABB<3, float>::fromEdges(min, max);
-        }
-
-        for (auto& rep : _representations) {
         }
 
         return aabb;

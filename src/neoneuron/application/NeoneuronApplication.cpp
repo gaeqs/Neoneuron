@@ -110,12 +110,4 @@ namespace neoneuron
         std::string data = _settings.dump(4);
         out.write(data.c_str(), data.size());
     }
-    mindset::UID NeoneuronApplication::findSmallestAvailableUID() const
-    {
-        mindset::UID smallest = 0;
-        while (_dataset.getNeuron(smallest).has_value()) {
-            ++smallest;
-        }
-        return smallest;
-    }
 } // namespace neoneuron

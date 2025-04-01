@@ -16,7 +16,6 @@ FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
         GIT_TAG master
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/neon
 )
 
 FetchContent_MakeAvailable(neon)
@@ -25,7 +24,6 @@ FetchContent_Declare(
         mindset
         GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mindset.git
         GIT_TAG master
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/mindset
 )
 
 FetchContent_MakeAvailable(mindset)
@@ -34,7 +32,6 @@ FetchContent_Declare(
         nativefiledialog
         GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
         GIT_TAG a1a401062819beb8c3da84518ab1fe7de88632db
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/nativefiledialog
 )
 
 FetchContent_MakeAvailable(nativefiledialog)

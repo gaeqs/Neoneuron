@@ -144,7 +144,6 @@ namespace neoneuron
 
     void ComplexNeuronRepresentation::loadNeuronModel()
     {
-        constexpr size_t INSTANCES = 10000000;
         auto* app = &_render->getApplication();
 
         auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Neuron", _neuronMaterial);
@@ -155,7 +154,7 @@ namespace neoneuron
         });
 
         neon::ModelCreateInfo modelCreateInfo;
-        modelCreateInfo.maximumInstances = INSTANCES;
+        modelCreateInfo.maximumInstances = SEGMENT_INSTANCES;
         modelCreateInfo.drawables.push_back(drawable);
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
@@ -175,7 +174,6 @@ namespace neoneuron
 
     void ComplexNeuronRepresentation::loadJointModel()
     {
-        constexpr size_t INSTANCES = 10000000;
         auto* app = &_render->getApplication();
 
         auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Joint", _jointMaterial);
@@ -186,7 +184,7 @@ namespace neoneuron
         });
 
         neon::ModelCreateInfo modelCreateInfo;
-        modelCreateInfo.maximumInstances = INSTANCES;
+        modelCreateInfo.maximumInstances = JOINT_INSTANCES;
         modelCreateInfo.drawables.push_back(drawable);
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
@@ -208,7 +206,6 @@ namespace neoneuron
 
     void ComplexNeuronRepresentation::loadSomaModel()
     {
-        constexpr size_t INSTANCES = 100000;
         auto* app = &_render->getApplication();
 
         auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "Soma", _somaMaterial);
@@ -217,7 +214,7 @@ namespace neoneuron
         });
 
         neon::ModelCreateInfo modelCreateInfo;
-        modelCreateInfo.maximumInstances = INSTANCES;
+        modelCreateInfo.maximumInstances = SOMA_INSTANCES;
         modelCreateInfo.drawables.push_back(drawable);
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
@@ -313,6 +310,7 @@ namespace neoneuron
             }
         }
 
+        recalculateBoundingBox();
         updateGPURepresentationData();
     }
 
@@ -374,7 +372,7 @@ namespace neoneuron
             (data + *segment.value().id)->selected = true;
         }
     }
-    void ComplexNeuronRepresentation::updateGPURepresentationData()
+    void ComplexNeuronRepresentation::updateGPURepresentationData() const
     {
         _ubo->uploadData(REPRESENTATION_BINDING,
                          ComplexNeuronRepresentationData(getSectionsAmount(), getJointsAmount()));
@@ -438,22 +436,22 @@ namespace neoneuron
         return _neurons;
     }
 
-    size_t ComplexNeuronRepresentation::getNeuronsAmount()
+    size_t ComplexNeuronRepresentation::getNeuronsAmount() const
     {
         return _neurons.size();
     }
 
-    size_t ComplexNeuronRepresentation::getSectionsAmount()
+    size_t ComplexNeuronRepresentation::getSectionsAmount() const
     {
         return _neuronModel->getInstanceData(0)->getInstanceAmount();
     }
 
-    size_t ComplexNeuronRepresentation::getJointsAmount()
+    size_t ComplexNeuronRepresentation::getJointsAmount() const
     {
         return _jointModel->getInstanceData(0)->getInstanceAmount();
     }
 
-    size_t ComplexNeuronRepresentation::getSomasAmount()
+    size_t ComplexNeuronRepresentation::getSomasAmount() const
     {
         return _somaModel->getInstanceData(0)->getInstanceAmount();
     }

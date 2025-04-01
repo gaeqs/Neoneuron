@@ -29,9 +29,8 @@ namespace neoneuron
             if (prototype != nullptr && prop.has_value()) {
                 auto transform = prototype->getProperty<mindset::NeuronTransform>(prop.value());
                 if (transform.has_value()) {
-                    auto model = transform.value().getModel();
-                    min = model * rush::Vec4f(min, 1.0f);
-                    max = model * rush::Vec4f(max, 1.0f);
+                    min = transform->positionToGlobalCoordinates(min);
+                    max = transform->positionToGlobalCoordinates(max);
                 }
             }
         }

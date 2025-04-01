@@ -39,6 +39,10 @@ cmrc_add_resource_library(
         resources/shader/selector/selector_resolver.vert
         resources/shader/selector/selector_resolver.json
 
+        resources/shader/synapse/synapse.task
+        resources/shader/synapse/synapse.mesh
+        resources/shader/synapse/synapse.frag
+
         resources/texture/skybox/back.png
         resources/texture/skybox/bottom.png
         resources/texture/skybox/front.png

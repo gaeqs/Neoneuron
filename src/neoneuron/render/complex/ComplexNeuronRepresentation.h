@@ -41,7 +41,7 @@ namespace neoneuron
         static constexpr size_t SOMA_GPU_DATA_BINDING = 6;
 
         static constexpr size_t SEGMENT_INSTANCES = 10000000;
-        static constexpr size_t JOINT_INSTANCES = 10000000;
+        static constexpr size_t JOINT_INSTANCES = 1000000;
         static constexpr size_t SOMA_INSTANCES = 100000;
         static constexpr size_t STORAGE_PER_SOMA = 64 * 64;
         static constexpr size_t STORAGE_PER_SECTION = sizeof(uint32_t);
@@ -116,7 +116,7 @@ namespace neoneuron
 
         void onSelectionEvent(SelectionEvent event);
 
-        void updateGPURepresentationData();
+        void updateGPURepresentationData() const;
 
       public:
         ComplexNeuronRepresentation(const ComplexNeuronRepresentation&) = delete;
@@ -131,13 +131,13 @@ namespace neoneuron
 
         [[nodiscard]] const std::unordered_map<mindset::UID, ComplexNeuron>& getNeurons() const;
 
-        [[nodiscard]] size_t getNeuronsAmount() override;
+        [[nodiscard]] size_t getNeuronsAmount() const;
 
-        [[nodiscard]] size_t getSectionsAmount() override;
+        [[nodiscard]] size_t getSectionsAmount() const;
 
-        [[nodiscard]] size_t getJointsAmount() override;
+        [[nodiscard]] size_t getJointsAmount() const;
 
-        [[nodiscard]] size_t getSomasAmount() override;
+        [[nodiscard]] size_t getSomasAmount() const;
 
         [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(mindset::UID uid);
 

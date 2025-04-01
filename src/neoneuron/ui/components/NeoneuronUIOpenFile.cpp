@@ -94,10 +94,10 @@ namespace neoneuron
         if (ImGui::Button("Load", ImVec2(120, 0))) {
             neon::Chronometer chrono;
             auto loader = generateLoader();
-            loader->addUIDProvider([&] { return _application->findSmallestAvailableUID(); });
+            loader->addUIDProvider([&] { return _application->getDataset().findSmallestAvailableNeuronUID(); });
 
             if (auto* l = dynamic_cast<mindset::BlueConfigLoader*>(loader.get())) {
-                l->addTarget("MiniColumn_501");
+                l->addTarget("felix");
             }
 
             auto listener = loader->createListener([](mindset::LoaderStatus status) {

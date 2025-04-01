@@ -135,9 +135,6 @@ namespace neoneuron
         * Saves the settings' json into a file.
         */
         void saveSettings() const;
-
-        //TODO move this method to mindset.
-        mindset::UID findSmallestAvailableUID() const;
     };
 } // namespace neoneuron
 

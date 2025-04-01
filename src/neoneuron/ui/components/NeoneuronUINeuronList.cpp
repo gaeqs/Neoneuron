@@ -61,7 +61,7 @@ namespace neoneuron
             }
             if (ImGui::MenuItem("Duplicate")) {
                 mindset::Neuron copy(*neuron);
-                copy.setUID(_render->getNeoneuronApplication()->findSmallestAvailableUID());
+                copy.setUID(_render->getNeoneuronApplication()->getDataset().findSmallestAvailableNeuronUID());
                 auto prop = dataset.getProperties().defineProperty(mindset::PROPERTY_NAME);
                 copy.setProperty(prop, name + " (copy)");
                 dataset.addNeuron(std::move(copy));
