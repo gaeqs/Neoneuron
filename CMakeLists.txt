@@ -36,6 +36,15 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(nativefiledialog)
 
+set(IMBLUEPRINT_IMGUI_TARGET imgui)
+FetchContent_Declare(
+        imblueprint
+        GIT_REPOSITORY https://github.com/gaeqs/ImBlueprint.git
+        GIT_TAG master
+)
+
+FetchContent_MakeAvailable(imblueprint)
+
 find_package(Vulkan REQUIRED)
 find_package(pugixml REQUIRED)
 
@@ -57,7 +66,7 @@ endif ()
 find_package(glfw3 CONFIG REQUIRED)
 list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
-list(APPEND LIBRARIES neon nfd hey pugixml mindset)
+list(APPEND LIBRARIES neon nfd hey pugixml mindset imblueprint)
 
 include_directories(src)
 add_subdirectory(src)

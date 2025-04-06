@@ -4,6 +4,8 @@
 
 #include "NeoneuronUI.h"
 
+#include "components/NeoneuronUINodeEditor.h"
+
 #include <neon/util/component/DebugOverlayComponent.h>
 #include <neon/util/component/DockSpaceComponent.h>
 #include <neon/util/component/ViewportComponent.h>
@@ -105,6 +107,7 @@ namespace neoneuron
         _gameObject->newComponent<NeoneuronUIGlobalParameters>(render);
         _gameObject->newComponent<NeuronTexturePicker>(render, _viewport);
         _gameObject->newComponent<neon::vulkan::VulkanInfoCompontent>();
+        _gameObject->newComponent<NeoneuronUINodeEditor>();
 
         initDebugToggle();
 
