@@ -4,6 +4,8 @@
 
 #include "NeoneuronUINodeEditor.h"
 
+#include "nodes/DatasetNode.h"
+
 namespace
 {
 
@@ -18,7 +20,7 @@ namespace
             defineInput<int>("Hello2!");
             defineInput<int>("Hello3!");
             defineInput<int>("Hello4!");
-            //defineOutput<int>("World");
+            // defineOutput<int>("World");
         }
 
         void renderBody() override
@@ -32,9 +34,12 @@ namespace
 namespace neoneuron
 {
 
-    NeoneuronUINodeEditor::NeoneuronUINodeEditor()
+    NeoneuronUINodeEditor::NeoneuronUINodeEditor(NeoneuronApplication* application) :
+        _application(application)
     {
         _editor.showMinimap(true);
+
+        _factories.push_back(DatasetNode::createFactory());
     }
 
     NeoneuronUINodeEditor::~NeoneuronUINodeEditor()
@@ -47,39 +52,51 @@ namespace neoneuron
 
     void NeoneuronUINodeEditor::onPreDraw()
     {
-        ImGui::Begin("Container Window");
+        if (ImGui::Begin("Scene editor")) {
+            float sidebarWidth = 200.0f;
 
-        float sidebarWidth = 200.0f;
+            ImGui::BeginChild("Sidebar", ImVec2(sidebarWidth, 0), ImGuiChildFlags_Border);
 
-        ImGui::BeginChild("Sidebar", ImVec2(sidebarWidth, 0), ImGuiChildFlags_Border);
-        ImGui::Text("Sidebar Content");
-        ImGui::Button("Button 1");
-        if (ImGui::BeginDragDropSource(ImGuiChildFlags_None)) {
-            int i = 10;
-            ImGui::SetDragDropPayload("neoneuron:node", &i, sizeof(int));
-            ImGui::Text("Button 1...");
-            ImGui::EndDragDropSource();
-        }
-
-        ImGui::EndChild();
-
-        ImGui::SameLine();
-
-        ImGui::BeginChild("Main", ImVec2(0, 0), ImGuiChildFlags_None);
-        _editor.render();
-        if (ImGui::BeginDragDropTarget()) {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("neoneuron:node")) {
-                IM_ASSERT(payload->DataSize == sizeof(int));
-                neon::debug() << "OWO";
-                auto node = _editor.addNode<TestNode>();
-                neon::debug() << node;
-                auto pos = _editor.getNodePosition(node);
-                neon::debug() << pos.x << " - " << pos.y;
+            for (size_t i = 0; i < _factories.size(); ++i) {
+                ImGui::Button(_factories[i].getDisplayName().c_str());
+                if (ImGui::BeginDragDropSource(ImGuiChildFlags_None)) {
+                    ImGui::SetDragDropPayload("neoneuron:node", &i, sizeof(size_t));
+                    ImGui::Text(_factories[i].getDisplayName().c_str());
+                    ImGui::EndDragDropSource();
+                }
             }
+
+            ImGui::EndChild();
+
+            ImGui::SameLine();
+
+            ImGui::BeginChild("neoneuron:main", ImVec2(0, 0), ImGuiChildFlags_None);
+            _editor.render();
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("neoneuron:node")) {
+                    IM_ASSERT(payload->DataSize == sizeof(size_t));
+                    size_t index = *static_cast<size_t*>(payload->Data);
+                    neon::debug() << index;
+                    if (_factories.size() > index) {
+                        neon::debug() << "Creating";
+                        auto& factory = _factories[index];
+                        auto* node = factory.create(_application, _editor);
+                        neon::debug() << node;
+                        if (node != nullptr) {
+                            _editor.setNodeScreenPosition(node, ImGui::GetMousePos());
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+            }
+
+            ImGui::EndChild();
         }
-
-        ImGui::EndChild();
-
         ImGui::End();
+    }
+
+    void NeoneuronUINodeEditor::addFactory(NodeFactory factory)
+    {
+        _factories.push_back(std::move(factory));
     }
 } // namespace neoneuron

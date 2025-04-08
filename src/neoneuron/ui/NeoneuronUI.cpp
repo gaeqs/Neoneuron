@@ -107,7 +107,7 @@ namespace neoneuron
         _gameObject->newComponent<NeoneuronUIGlobalParameters>(render);
         _gameObject->newComponent<NeuronTexturePicker>(render, _viewport);
         _gameObject->newComponent<neon::vulkan::VulkanInfoCompontent>();
-        _gameObject->newComponent<NeoneuronUINodeEditor>();
+        _gameObject->newComponent<NeoneuronUINodeEditor>(render->getNeoneuronApplication());
 
         initDebugToggle();
 
