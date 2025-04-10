@@ -47,9 +47,13 @@ namespace neoneuron
         {
             std::vector<std::pair<GID, Result>> results;
 
-            for (auto& [gid, task] : _tasks) {
+            for (auto it = _tasks.begin(); it != _tasks.end();) {
+                auto& [gid, task] = *it;
                 if (auto result = task->moveResult()) {
                     result.emplace_back(gid, std::move(result.value()));
+                    it = _tasks.erase(it);
+                } else {
+                    ++it;
                 }
             }
 
