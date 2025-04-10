@@ -11,6 +11,8 @@
 #include <neoneuron/render/AbstractNeuronRepresentation.h>
 #include <nlohmann/json.hpp>
 
+#include <mindset/mindset.h>
+
 namespace neoneuron
 {
     enum class PropertyTarget

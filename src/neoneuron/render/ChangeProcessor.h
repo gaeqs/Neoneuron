@@ -18,6 +18,7 @@ namespace neoneuron
         neon::TaskRunner* _runner;
         std::unordered_map<GID, std::shared_ptr<neon::Task<Result>>> _tasks;
         std::function<Result(Input input)> _processor;
+        std::mutex _mutex;
 
         hey::Observable<GID> _processFinishedEvent;
 
@@ -30,21 +31,27 @@ namespace neoneuron
 
         void process(GID gid, Input&& input)
         {
-            // Search for tasks with the same id.
+            cancel(gid);
+            std::lock_guard lock(_mutex);
+            auto task = _runner->executeAsync(_processor, std::move(input));
+            task->then(false, true, [this, gid] { _processFinishedEvent.invoke(gid); });
+            _tasks.insert({gid, task});
+        }
+
+        void cancel(GID gid)
+        {
+            std::lock_guard lock(_mutex);
             auto it = _tasks.find(gid);
             if (it != _tasks.end()) {
                 it->second->cancel();
                 _tasks.erase(it);
             }
-
-            auto task = _runner->executeAsync(_processor, std::move(input));
-            task->then(false, true, [this, gid] { _processFinishedEvent.invoke(gid); });
-
-            _tasks.insert({gid, task});
         }
 
         std::vector<std::pair<GID, Result>> getResults()
         {
+            std::lock_guard lock(_mutex);
+
             std::vector<std::pair<GID, Result>> results;
 
             for (auto it = _tasks.begin(); it != _tasks.end();) {
@@ -58,6 +65,20 @@ namespace neoneuron
             }
 
             return std::move(results);
+        }
+
+        template<typename F>
+        void fetchResults(F&& consumer)
+        {
+            for (auto it = _tasks.begin(); it != _tasks.end();) {
+                auto& [gid, task] = *it;
+                if (auto result = task->moveResult()) {
+                    std::invoke(std::forward<F>(consumer), std::move(result.value()));
+                    it = _tasks.erase(it);
+                } else {
+                    ++it;
+                }
+            }
         }
 
         /**

@@ -20,7 +20,7 @@ namespace neoneuron
 
     public:
 
-        DatasetNode(NeoneuronApplication* application);
+        explicit DatasetNode(NeoneuronApplication* application);
 
         ~DatasetNode() override = default;
 

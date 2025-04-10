@@ -170,7 +170,7 @@ namespace neoneuron
         loadMaterial();
         loadModel();
 
-        auto& dataset = render->getNeoneuronApplication()->getDataset();
+        /*auto& dataset = render->getNeoneuronApplication()->getDataset();
 
         _createInfo =
             GPUSynapseCreateInfo(&dataset, _model->getInstanceData(0),
@@ -184,7 +184,8 @@ namespace neoneuron
         auto& circuit = render->getNeoneuronApplication()->getDataset().getCircuit();
         circuit.getSynapseAddedEvent() += _synapseAddListener;
         circuit.getSynapseRemovedEvent() += _synapseRemoveListener;
-        circuit.getClearEvent() += _clearListener;
+        circuit.getClearEvent() += _clearListener;*/
+
     }
 
     SynapseRepresentation::~SynapseRepresentation()
@@ -209,7 +210,11 @@ namespace neoneuron
         return _sceneBoundingBox;
     }
 
-    void SynapseRepresentation::refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName)
+    void SynapseRepresentation::refreshNeuronProperty(GID neuronId, const std::string& propertyName)
+    {
+    }
+
+    void SynapseRepresentation::refreshData(const RepositoryView& view)
     {
     }
 } // namespace neoneuron

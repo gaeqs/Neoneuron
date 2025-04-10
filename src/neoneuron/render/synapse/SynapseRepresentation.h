@@ -84,9 +84,11 @@ namespace neoneuron
 
         [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
 
-        void refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName) override;
+        void refreshNeuronProperty(GID gid, const std::string& propertyName) override;
+
+        void refreshData(const RepositoryView& view) override;
     };
 
 } // namespace neoneuron
 
-#endif //SYNAPSEREPRESENTATION_H
+#endif // SYNAPSEREPRESENTATION_H

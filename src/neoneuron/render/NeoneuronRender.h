@@ -92,7 +92,7 @@ namespace neoneuron
 
         void focusScene() const;
 
-        void refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName);
+        void refreshNeuronProperty(GID neuronId, const std::string& propertyName);
 
     };
 } // namespace neoneuron

@@ -65,6 +65,31 @@ namespace neoneuron
         return {};
     }
 
+    std::optional<std::pair<mindset::Dataset*, mindset::Neuron*>> Repository::getNeuronAndDataset(GID gid)
+    {
+        auto it = _datasets.find(gid.datasetId);
+        if (it != _datasets.end()) {
+            auto neuron = it->second.getNeuron(gid.internalId);
+            if (neuron.has_value()) {
+                return std::make_pair(&it->second, neuron.value());
+            }
+        }
+        return {};
+    }
+
+    std::optional<std::pair<const mindset::Dataset*, const mindset::Neuron*>> Repository::getNeuronAndDataset(
+        GID gid) const
+    {
+        auto it = _datasets.find(gid.datasetId);
+        if (it != _datasets.end()) {
+            auto neuron = it->second.getNeuron(gid.internalId);
+            if (neuron.has_value()) {
+                return std::make_pair(&it->second, neuron.value());
+            }
+        }
+        return {};
+    }
+
     std::optional<mindset::Synapse*> Repository::getSynapse(GID gid)
     {
         auto it = _datasets.find(gid.datasetId);

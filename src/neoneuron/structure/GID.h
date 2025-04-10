@@ -28,6 +28,10 @@ namespace neoneuron
         GID();
 
         GID(mindset::UID datasetId, mindset::UID internalId);
+
+        bool operator==(const GID& other) const;
+
+        bool operator!=(const GID& other) const;
     };
 
 } // namespace neoneuron

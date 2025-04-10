@@ -14,7 +14,7 @@ namespace neoneuron
 {
     struct SelectionEntry
     {
-        mindset::UID neuron;
+        GID neuron;
         mindset::UID segment;
 
         bool operator==(const SelectionEntry& other) const;
@@ -29,7 +29,8 @@ struct std::hash<neoneuron::SelectionEntry>
     size_t operator()(const neoneuron::SelectionEntry& entry) const noexcept
     {
         std::hash<uint32_t> hasher;
-        size_t hash1 = hasher(entry.neuron);
+        std::hash<neoneuron::GID> gidHasher;
+        size_t hash1 = gidHasher(entry.neuron);
         size_t hash2 = hasher(entry.segment);
         return hash1 ^ hash2 + 0x9e3779b9 + (hash1 << 6) + (hash1 >> 2);
     }
@@ -59,8 +60,8 @@ namespace neoneuron
         const Repository* _repository;
 
         std::unordered_set<SelectionEntry> _selectedSegments;
-        std::unordered_set<mindset::UID> _selectedNeurons;
-        std::unordered_set<mindset::UID> _selectedSynapses;
+        std::unordered_set<GID> _selectedNeurons;
+        std::unordered_set<GID> _selectedSynapses;
 
         hey::Observable<SelectionEvent> _selectionEvent;
 
@@ -71,19 +72,19 @@ namespace neoneuron
 
         const std::unordered_set<SelectionEntry>& getSelectedSections() const;
 
-        const std::unordered_set<mindset::UID>& getSelectedNeurons() const;
+        const std::unordered_set<GID>& getSelectedNeurons() const;
 
-        const std::unordered_set<mindset::UID>& getSelectedSynapses() const;
+        const std::unordered_set<GID>& getSelectedSynapses() const;
 
-        void selectNeuron(SelectionMode selectionMode, mindset::UID neuronId);
+        void selectNeuron(SelectionMode selectionMode, GID neuronId);
 
-        void selectSegment(SelectionMode selectionMode, mindset::UID neuronId, mindset::UID segmentId);
+        void selectSegment(SelectionMode selectionMode, GID neuronId, mindset::UID segmentId);
 
-        void selectSegments(SelectionMode selectionMode, std::vector<std::pair<mindset::UID, mindset::UID>> pairs);
+        void selectSegments(SelectionMode selectionMode, const std::vector<std::pair<GID, mindset::UID>>& pairs);
 
-        void selectSynapse(SelectionMode selectionMode, mindset::UID synapseId);
+        void selectSynapse(SelectionMode selectionMode, GID synapseId);
 
-        void deselectNeuron(mindset::UID neuronId);
+        void deselectNeuron(GID neuronId);
 
         void clearSelection();
 

@@ -164,6 +164,7 @@ namespace neoneuron
 
         return result;
     }
+
     std::vector<const AbstractNeuronRepresentation*> NeoneuronRender::getRepresentations() const
     {
         std::vector<const AbstractNeuronRepresentation*> result;
@@ -183,6 +184,7 @@ namespace neoneuron
             ubo->uploadData(3, 1);
         }
     }
+
     rush::AABB<3, float> NeoneuronRender::getCombinedAABB() const
     {
         if (_representations.empty()) {
@@ -219,7 +221,8 @@ namespace neoneuron
     {
         _components->cameraData.getCameraController()->focusOn(getCombinedAABB());
     }
-    void NeoneuronRender::refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName)
+
+    void NeoneuronRender::refreshNeuronProperty(GID neuronId, const std::string& propertyName)
     {
         for (auto& rep : _representations) {
             rep->refreshNeuronProperty(neuronId, propertyName);

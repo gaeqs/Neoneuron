@@ -14,7 +14,7 @@ namespace neoneuron
     {
         NeoneuronRender* _render;
 
-        bool neuronSection(const mindset::Neuron* neuron, size_t id, bool selected) const;
+        bool neuronSection(GID gid, const mindset::Dataset* dataset, const mindset::Neuron* neuron, size_t id, bool selected) const;
 
         void neuronList();
 

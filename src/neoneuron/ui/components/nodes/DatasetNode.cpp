@@ -5,15 +5,16 @@
 #include "DatasetNode.h"
 
 #include <mindset/Dataset.h>
+#include <neoneuron/structure/RepositoryView.h>
 
 namespace neoneuron
 {
 
     DatasetNode::DatasetNode(NeoneuronApplication* application) :
         Node("Dataset"),
-        _dataset(&application->getDataset())
+        _dataset(nullptr)
     {
-        defineOutput<mindset::Dataset*>("Dataset", _dataset);
+        defineOutput<RepositoryView>("Data");
     }
 
     void DatasetNode::renderBody()

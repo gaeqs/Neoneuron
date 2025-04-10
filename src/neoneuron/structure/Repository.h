@@ -13,7 +13,7 @@
 namespace neoneuron
 {
 
-    class Repository
+    class Repository : public mindset::Versioned
     {
         std::unordered_map<mindset::UID, mindset::Dataset> _datasets;
         mindset::UID _uidGenerator;
@@ -37,6 +37,11 @@ namespace neoneuron
 
         [[nodiscard]] std::optional<const mindset::Neuron*> getNeuron(GID gid) const;
 
+        [[nodiscard]] std::optional<std::pair<mindset::Dataset*, mindset::Neuron*>> getNeuronAndDataset(GID gid);
+
+        [[nodiscard]] std::optional<std::pair<const mindset::Dataset*, const mindset::Neuron*>> getNeuronAndDataset(
+            GID gid) const;
+
         [[nodiscard]] std::optional<mindset::Synapse*> getSynapse(GID gid);
 
         [[nodiscard]] std::optional<const mindset::Synapse*> getSynapse(GID gid) const;
@@ -46,14 +51,60 @@ namespace neoneuron
             return _datasets | std::views::keys;
         }
 
-        [[nodiscard]] auto getDatasets()
+        [[nodiscard]] decltype(auto) getDatasets()
         {
-            return _datasets | std::views::transform([this](auto& pair) { return &pair.second; });
+            return _datasets |
+                   std::views::transform([this](auto& pair) { return std::make_pair(pair.first, &pair.second); });
         }
 
-        [[nodiscard]] auto getDatasets() const
+        [[nodiscard]] decltype(auto) getDatasets() const
         {
-            return _datasets | std::views::transform([this](auto& pair) { return &pair.second; });
+            return _datasets |
+                   std::views::transform([this](auto& pair) { return std::make_pair(pair.first, &pair.second); });
+        }
+
+        [[nodiscard]] decltype(auto) getNeurons()
+        {
+            return getDatasets() | std::views::transform([](const auto& pair) {
+                       return pair.second->getNonContextualizedNeurons() |
+                              std::views::transform([uid = pair.first](auto* neuron) {
+                                  return std::make_pair(GID(uid, neuron->getUID()), neuron);
+                              });
+                   }) |
+                   std::views::join;
+        }
+
+        [[nodiscard]] decltype(auto) getNeurons() const
+        {
+            return getDatasets() | std::views::transform([](const auto& pair) {
+                       return pair.second->getNonContextualizedNeurons() |
+                              std::views::transform([uid = pair.first](const auto* neuron) {
+                                  return std::make_pair(GID(uid, neuron->getUID()), neuron);
+                              });
+                   }) |
+                   std::views::join;
+        }
+
+        [[nodiscard]] decltype(auto) getSynapses()
+        {
+            return getDatasets() | std::views::transform([](const auto& pair) {
+                       return pair.second->getCircuit().getSynapses() |
+                              std::views::transform([uid = pair.first](auto* synapse) {
+                                  return std::make_pair(GID(uid, synapse->getUID()), synapse);
+                              });
+                   }) |
+                   std::views::join;
+        }
+
+        [[nodiscard]] decltype(auto) getSynapses() const
+        {
+            return getDatasets() | std::views::transform([](const auto& pair) {
+                       return pair.second->getCircuit().getSynapses() |
+                              std::views::transform([uid = pair.first](auto* synapse) {
+                                  return std::make_pair(GID(uid, synapse->getUID()), synapse);
+                              });
+                   }) |
+                   std::views::join;
         }
     };
 

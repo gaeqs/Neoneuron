@@ -10,12 +10,12 @@
 
 namespace neoneuron
 {
-    bool NeoneuronUINeuronList::neuronSection(const mindset::Neuron* neuron, size_t id, bool selected) const
+    bool NeoneuronUINeuronList::neuronSection(GID gid, mindset::Dataset* dataset, const mindset::Neuron* neuron,
+                                              size_t id, bool selected) const
     {
         std::string name;
 
-        auto& dataset = _render->getNeoneuronApplication()->getDataset();
-        auto prop = dataset.getProperties().getPropertyUID(mindset::PROPERTY_NAME);
+        auto prop = dataset->getProperties().getPropertyUID(mindset::PROPERTY_NAME);
         if (prop.has_value()) {
             if (auto opt = neuron->getProperty<std::string>(prop.value()); opt.has_value()) {
                 name = opt.value();
@@ -37,12 +37,12 @@ namespace neoneuron
             bool control = ImGui::IsKeyDown(ImGuiKey_ModCtrl);
             auto& selector = _render->getNeoneuronApplication()->getSelector();
             if (!control) {
-                selector.selectNeuron(SelectionMode::OVERRIDE_ALL, neuron->getUID());
+                selector.selectNeuron(SelectionMode::OVERRIDE_ALL, gid);
             } else {
                 if (selected) {
-                    selector.deselectNeuron(neuron->getUID());
+                    selector.deselectNeuron(gid);
                 } else {
-                    selector.selectNeuron(SelectionMode::APPEND, neuron->getUID());
+                    selector.selectNeuron(SelectionMode::APPEND, gid);
                 }
             }
         }
@@ -56,15 +56,15 @@ namespace neoneuron
             ImGui::Text(name.c_str());
             ImGui::Separator();
             if (ImGui::MenuItem("Delete")) {
-                deleted = dataset.removeNeuron(neuron->getUID());
+                deleted = dataset->removeNeuron(neuron->getUID());
                 ImGui::CloseCurrentPopup();
             }
             if (ImGui::MenuItem("Duplicate")) {
                 mindset::Neuron copy(*neuron);
-                copy.setUID(_render->getNeoneuronApplication()->getDataset().findSmallestAvailableNeuronUID());
-                auto prop = dataset.getProperties().defineProperty(mindset::PROPERTY_NAME);
+                copy.setUID(dataset->findSmallestAvailableNeuronUID());
+                auto prop = dataset->getProperties().defineProperty(mindset::PROPERTY_NAME);
                 copy.setProperty(prop, name + " (copy)");
-                dataset.addNeuron(std::move(copy));
+                dataset->addNeuron(std::move(copy));
             }
             ImGui::EndPopup();
         }
@@ -77,11 +77,11 @@ namespace neoneuron
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg));
         ImGui::BeginChild("List", ImVec2(0, ImGui::GetContentRegionAvail().y / 3.0f), ImGuiChildFlags_Borders);
 
-        auto& dataset = _render->getNeoneuronApplication()->getDataset();
+        auto& repo = _render->getNeoneuronApplication()->getRepository();
         auto& selectedNeurons = _render->getNeoneuronApplication()->getSelector().getSelectedNeurons();
 
-        std::vector<mindset::Neuron*> neurons;
-        for (auto neuron : dataset.getNeurons()) {
+        std::vector<std::pair<mindset::Dataset*, mindset::Neuron*>> neurons;
+        for (auto& dataset : repo.getDatasets()) {
             neurons.push_back(neuron.getRaw());
         }
 
@@ -91,8 +91,8 @@ namespace neoneuron
         bool deleted = false;
         while (!deleted && clipper.Step()) {
             for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-                auto* neuron = neurons.at(row);
-                if (neuronSection(neuron, row, selectedNeurons.contains(neuron->getUID()))) {
+                auto& [gid, neuron] = neurons.at(row);
+                if (neuronSection(gid, neuron, row, selectedNeurons.contains(gid))) {
                     deleted = true;
                     break;
                 }

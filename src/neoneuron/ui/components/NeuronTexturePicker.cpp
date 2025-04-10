@@ -15,17 +15,17 @@
 
 namespace neoneuron
 {
-    std::vector<std::pair<mindset::UID, mindset::UID>> NeuronTexturePicker::pickNeurons(const rush::Vec4i* data,
-                                                                                        size_t size)
+    std::vector<std::pair<GID, mindset::UID>> NeuronTexturePicker::pickNeurons(const rush::Vec4i* data, size_t size)
     {
-        std::vector<std::pair<mindset::UID, mindset::UID>> selection;
+        std::vector<std::pair<GID, mindset::UID>> selection;
 
         for (size_t i = 0; i < size; ++i) {
             rush::Vec4i current = data[i];
             if (current.x() > 0) {
+                mindset::UID datasetId = current.x();
                 mindset::UID neuronId = current.y();
                 mindset::UID neuriteId = current.z();
-                selection.push_back(std::make_pair(neuronId, neuriteId));
+                selection.push_back(std::make_pair(GID(datasetId, neuronId), neuriteId));
             }
         }
 

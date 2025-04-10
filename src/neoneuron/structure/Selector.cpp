@@ -24,17 +24,17 @@ namespace neoneuron
         return _selectedSegments;
     }
 
-    const std::unordered_set<mindset::UID>& Selector::getSelectedNeurons() const
+    const std::unordered_set<GID>& Selector::getSelectedNeurons() const
     {
         return _selectedNeurons;
     }
 
-    const std::unordered_set<mindset::UID>& Selector::getSelectedSynapses() const
+    const std::unordered_set<GID>& Selector::getSelectedSynapses() const
     {
         return _selectedSynapses;
     }
 
-    void Selector::selectNeuron(SelectionMode selectionMode, mindset::UID neuronId)
+    void Selector::selectNeuron(SelectionMode selectionMode, GID neuronId)
     {
         SelectionEvent event{.selector = this, .segmentsChanged = true, .synapsesChanged = false};
         if (selectionMode == SelectionMode::OVERRIDE_ALL) {
@@ -56,7 +56,7 @@ namespace neoneuron
         _selectionEvent.invoke(event);
     }
 
-    void Selector::selectSegment(SelectionMode selectionMode, mindset::UID neuronId, mindset::UID segmentId)
+    void Selector::selectSegment(SelectionMode selectionMode, GID neuronId, mindset::UID segmentId)
     {
         SelectionEvent event{.selector = this, .segmentsChanged = true, .synapsesChanged = false};
         if (selectionMode == SelectionMode::OVERRIDE_ALL) {
@@ -72,7 +72,7 @@ namespace neoneuron
         _selectionEvent.invoke(event);
     }
 
-    void Selector::selectSegments(SelectionMode selectionMode, std::vector<std::pair<mindset::UID, mindset::UID>> pairs)
+    void Selector::selectSegments(SelectionMode selectionMode, const std::vector<std::pair<GID, mindset::UID>>& pairs)
     {
         SelectionEvent event{.selector = this, .segmentsChanged = true, .synapsesChanged = false};
         if (selectionMode == SelectionMode::OVERRIDE_ALL) {
@@ -91,7 +91,7 @@ namespace neoneuron
         _selectionEvent.invoke(event);
     }
 
-    void Selector::selectSynapse(SelectionMode selectionMode, mindset::UID synapseId)
+    void Selector::selectSynapse(SelectionMode selectionMode, GID synapseId)
     {
         SelectionEvent event{.selector = this, .segmentsChanged = false, .synapsesChanged = true};
         if (selectionMode == SelectionMode::OVERRIDE_ALL) {
@@ -104,7 +104,7 @@ namespace neoneuron
         _selectedSynapses.insert(synapseId);
         _selectionEvent.invoke(event);
     }
-    void Selector::deselectNeuron(mindset::UID neuronId)
+    void Selector::deselectNeuron(GID neuronId)
     {
         bool result = _selectedNeurons.erase(neuronId);
         if (!result) {

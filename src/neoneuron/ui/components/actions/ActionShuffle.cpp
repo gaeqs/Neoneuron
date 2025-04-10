@@ -9,6 +9,7 @@
 #include <mindset/util/NeuronTransform.h>
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/util/AnyView.h>
 
 namespace neoneuron
 {
@@ -35,18 +36,22 @@ namespace neoneuron
 
     void ActionShuffle::run()
     {
-        auto& dataset = _application->getDataset();
-        auto propId = dataset.getProperties().defineProperty(mindset::PROPERTY_TRANSFORM);
+        auto cast = _application->getRepository().getNeurons();
+        AnyView<std::pair<GID, mindset::Neuron*>> n = cast;
+        n.begin()
+
+        auto* dataset = _application->getRepository().getDataset(0).value();
+        auto propId = dataset->getProperties().defineProperty(mindset::PROPERTY_TRANSFORM);
 
         auto& neurons = _application->getSelector().getSelectedNeurons();
         if (neurons.empty()) {
             // Shuffle all neurons
-            for (auto neuron : dataset.getNeurons()) {
+            for (auto neuron : dataset->getNeurons()) {
                 shuffle(propId, neuron.getRaw());
             }
         } else {
             for (auto& uid : neurons) {
-                if (auto neuron = dataset.getNeuron(uid); neuron.has_value()) {
+                if (auto neuron = dataset->getNeuron(uid.internalId); neuron.has_value()) {
                     shuffle(propId, neuron.value());
                 }
             }

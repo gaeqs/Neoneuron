@@ -74,15 +74,6 @@ namespace neoneuron
         ImGui::Combo("##uid_provider", &index, "Provided by the file\0Generate automatically\0");
 
         _uidProvider = static_cast<UIDProvider>(index);
-
-        if (_uidProvider == UIDProvider::FILE && _application->getDataset().getNeuronsAmount() > 0) {
-            ImGui::Indent();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-            ImGui::TextWrapped("Neurons provided by the file may overwrite the neurons present in the scene if the "
-                               "share the same UID.");
-            ImGui::PopStyleColor();
-            ImGui::Unindent();
-        }
     }
 
     void NeoneuronUiOpenFile::loadButton() const
@@ -94,7 +85,6 @@ namespace neoneuron
         if (ImGui::Button("Load", ImVec2(120, 0))) {
             neon::Chronometer chrono;
             auto loader = generateLoader();
-            loader->addUIDProvider([&] { return _application->getDataset().findSmallestAvailableNeuronUID(); });
 #ifdef MINDSET_BRION
             if (auto* l = dynamic_cast<mindset::BlueConfigLoader*>(loader.get())) {
                 l->addTarget("felix");
@@ -105,7 +95,7 @@ namespace neoneuron
                           << std::endl;
             });
 
-            auto& dataset = _application->getDataset();
+            mindset::Dataset dataset;
             loader->load(dataset);
             neon::debug() << chrono.elapsedSeconds() << " - Scene loaded. Refreshing scene.";
 
@@ -117,6 +107,7 @@ namespace neoneuron
 
             neon::debug() << "Neurons in dataset: " << dataset.getNeurons().size();
             neon::debug() << "Synapses in dataset: " << dataset.getCircuit().getSynapses().size();
+            _application->getRepository().addDataset(std::move(dataset));
         }
         ImGui::EndDisabled();
     }

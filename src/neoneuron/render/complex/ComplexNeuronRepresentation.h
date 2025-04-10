@@ -11,6 +11,7 @@
 #include <neoneuron/structure/complex/ComplexNeuron.h>
 #include <neoneuron/render/complex/ComplexGPUNeuron.h>
 #include <neoneuron/render/AbstractNeuronRepresentation.h>
+#include <neoneuron/render/ChangeProcessor.h>
 #include <neoneuron/structure/Selector.h>
 
 namespace neoneuron
@@ -26,6 +27,12 @@ namespace neoneuron
     {
         uint32_t sections;
         uint32_t joints;
+    };
+
+    struct ComplexNeuronRepresentations
+    {
+        ComplexNeuron neuron;
+        ComplexGPUNeuron gpu;
     };
 
     class ComplexNeuronRepresentation : public AbstractNeuronRepresentation
@@ -64,13 +71,12 @@ namespace neoneuron
         std::shared_ptr<neon::Model> _jointModel;
         std::shared_ptr<neon::Model> _somaModel;
 
-        hey::Listener<mindset::Neuron*> _neuronAddListener;
-        hey::Listener<mindset::UID> _neuronRemoveListener;
-        hey::Listener<void*> _clearListener;
+        ChangeProcessor<std::pair<mindset::Dataset*, mindset::Neuron*>, ComplexNeuron> _neuronProcessor;
+
         hey::Listener<SelectionEvent> _selectionListener;
 
-        std::unordered_map<GID, ComplexNeuron> _neurons;
-        std::unordered_map<GID, ComplexGPUNeuron> _gpuNeurons;
+        std::unordered_set<GID> _neuronsInDataset;
+        std::unordered_map<GID, ComplexNeuronRepresentations> _neurons;
         rush::AABB<3, float> _sceneBoundingBox;
 
         std::vector<uint32_t> _selection;
@@ -106,13 +112,7 @@ namespace neoneuron
 
         void reassignMaterials() const;
 
-        void onNeuronAdded(mindset::Neuron* neuron);
-
-        void onNeuronRemoved(mindset::UID uid);
-
         void addComplexNeuron(ComplexNeuron&& complex);
-
-        void onClear();
 
         void onSelectionEvent(SelectionEvent event);
 
@@ -129,23 +129,21 @@ namespace neoneuron
 
         [[nodiscard]] const NeoneuronRender* getRender() const override;
 
-        [[nodiscard]] const std::unordered_map<GID, ComplexNeuron>& getNeurons() const;
-
         [[nodiscard]] size_t getNeuronsAmount() const;
 
-        [[nodiscard]] size_t  getSectionsAmount() const;
+        [[nodiscard]] size_t getSectionsAmount() const;
 
         [[nodiscard]] size_t getJointsAmount() const;
 
         [[nodiscard]] size_t getSomasAmount() const;
 
-        [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(mindset::UID uid);
+        [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(GID gid);
 
-        [[nodiscard]] std::optional<const ComplexNeuron*> findNeuron(mindset::UID uid) const;
+        [[nodiscard]] std::optional<const ComplexNeuron*> findNeuron(GID gid) const;
 
-        [[nodiscard]] std::optional<ComplexGPUNeuron*> findGPUNeuron(mindset::UID uid);
+        [[nodiscard]] std::optional<ComplexGPUNeuron*> findGPUNeuron(GID gid);
 
-        [[nodiscard]] std::optional<const ComplexGPUNeuron*> findGPUNeuron(mindset::UID uid) const;
+        [[nodiscard]] std::optional<const ComplexGPUNeuron*> findGPUNeuron(GID gid) const;
 
         [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
 
@@ -163,7 +161,9 @@ namespace neoneuron
 
         const std::shared_ptr<neon::ShaderUniformBuffer>& getUBO() const;
 
-        void refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName) override;
+        void refreshNeuronProperty(GID neuronId, const std::string& propertyName) override;
+
+        void refreshData(const RepositoryView& view) override;
 
         [[nodiscard]] bool isWireframeMode() const;
 
@@ -173,4 +173,4 @@ namespace neoneuron
     };
 } // namespace neoneuron
 
-#endif //COMPLEXNEURONSCENE_H
+#endif // COMPLEXNEURONSCENE_H
