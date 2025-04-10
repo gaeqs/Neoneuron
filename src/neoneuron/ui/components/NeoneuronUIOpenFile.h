@@ -5,8 +5,8 @@
 #ifndef NEONEURONUIOPENFILE_H
 #define NEONEURONUIOPENFILE_H
 
+#include <mindset/mindset.h>
 #include <neon/Neon.h>
-#include <mindset/loader/Loader.h>
 #include <neoneuron/application/NeoneuronApplication.h>
 
 namespace neoneuron

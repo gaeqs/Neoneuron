@@ -6,7 +6,7 @@
 #define SELECTOR_H
 
 #include <mindset/mindset.h>
-#include <hey/Hey.h>
+#include <neoneuron/structure/Repository.h>
 
 #include <unordered_set>
 
@@ -56,7 +56,7 @@ namespace neoneuron
 
     class Selector
     {
-        const mindset::Dataset* _dataset;
+        const Repository* _repository;
 
         std::unordered_set<SelectionEntry> _selectedSegments;
         std::unordered_set<mindset::UID> _selectedNeurons;
@@ -67,7 +67,7 @@ namespace neoneuron
         void clear();
 
       public:
-        explicit Selector(const mindset::Dataset* dataset);
+        explicit Selector(const Repository* dataset);
 
         const std::unordered_set<SelectionEntry>& getSelectedSections() const;
 
@@ -92,4 +92,4 @@ namespace neoneuron
 
 } // namespace neoneuron
 
-#endif //SELECTOR_H
+#endif // SELECTOR_H

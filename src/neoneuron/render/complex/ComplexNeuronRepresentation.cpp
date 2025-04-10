@@ -431,7 +431,7 @@ namespace neoneuron
         return _render;
     }
 
-    const std::unordered_map<mindset::UID, ComplexNeuron>& ComplexNeuronRepresentation::getNeurons() const
+    const std::unordered_map<GID, ComplexNeuron>& ComplexNeuronRepresentation::getNeurons() const
     {
         return _neurons;
     }

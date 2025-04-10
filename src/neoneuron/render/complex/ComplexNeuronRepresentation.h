@@ -69,8 +69,8 @@ namespace neoneuron
         hey::Listener<void*> _clearListener;
         hey::Listener<SelectionEvent> _selectionListener;
 
-        std::unordered_map<mindset::UID, ComplexNeuron> _neurons;
-        std::unordered_map<mindset::UID, ComplexGPUNeuron> _gpuNeurons;
+        std::unordered_map<GID, ComplexNeuron> _neurons;
+        std::unordered_map<GID, ComplexGPUNeuron> _gpuNeurons;
         rush::AABB<3, float> _sceneBoundingBox;
 
         std::vector<uint32_t> _selection;
@@ -129,11 +129,11 @@ namespace neoneuron
 
         [[nodiscard]] const NeoneuronRender* getRender() const override;
 
-        [[nodiscard]] const std::unordered_map<mindset::UID, ComplexNeuron>& getNeurons() const;
+        [[nodiscard]] const std::unordered_map<GID, ComplexNeuron>& getNeurons() const;
 
         [[nodiscard]] size_t getNeuronsAmount() const;
 
-        [[nodiscard]] size_t getSectionsAmount() const;
+        [[nodiscard]] size_t  getSectionsAmount() const;
 
         [[nodiscard]] size_t getJointsAmount() const;
 

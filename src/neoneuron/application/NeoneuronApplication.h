@@ -5,9 +5,9 @@
 #ifndef NEONEURONAPPLICATION_H
 #define NEONEURONAPPLICATION_H
 
-#include <mindset/Dataset.h>
 #include <mindset/loader/LoaderRegistry.h>
 #include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/structure/Repository.h>
 #include <neoneuron/structure/Selector.h>
 #include <neoneuron/structure/Storage.h>
 #include <neoneuron/structure/property/DefinedProperty.h>
@@ -34,7 +34,7 @@ namespace neoneuron
         nlohmann::json _settings;
         hey::Observable<std::string> _settingsNodeChange;
 
-        mindset::Dataset _dataset;
+        Repository _repository;
         Selector _selector;
         NeoneuronRender _render;
         Storage<DefinedProperty> _propertyStorage;
@@ -48,16 +48,16 @@ namespace neoneuron
         explicit NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo);
 
         /**
-        * The dataset where all the neuronal information is stored.
+        * The repository where all the neuronal information is stored.
         * Insert your brain data here!
         */
-        [[nodiscard]] mindset::Dataset& getDataset();
+        [[nodiscard]] Repository& getRepository();
 
         /**
-        * The dataset where all the neuronal information is stored.
+        * The repository where all the neuronal information is stored.
         * Insert your brain data here!
         */
-        [[nodiscard]] const mindset::Dataset& getDataset() const;
+        [[nodiscard]] const Repository& getRepository() const;
 
         /**
         * The selection of the application.

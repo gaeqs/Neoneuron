@@ -20,20 +20,20 @@ namespace neoneuron
 
     NeoneuronApplication::NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo) :
         _settings(loadSettings()),
-        _selector(&_dataset),
-        _render(this, std::move(renderCreateInfo))
+        _selector(&_repository),
+        _render(this, renderCreateInfo)
     {
         initDefaultProperties(_propertyStorage);
     }
 
-    mindset::Dataset& NeoneuronApplication::getDataset()
+    Repository& NeoneuronApplication::getRepository()
     {
-        return _dataset;
+        return _repository;
     }
 
-    const mindset::Dataset& NeoneuronApplication::getDataset() const
+    const Repository& NeoneuronApplication::getRepository() const
     {
-        return _dataset;
+        return _repository;
     }
 
     Selector& NeoneuronApplication::getSelector()

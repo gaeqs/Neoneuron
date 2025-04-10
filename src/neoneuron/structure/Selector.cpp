@@ -14,8 +14,8 @@ namespace neoneuron
         _selectedSynapses.clear();
     }
 
-    Selector::Selector(const mindset::Dataset* dataset) :
-        _dataset(dataset)
+    Selector::Selector(const Repository* dataset) :
+        _repository(dataset)
     {
     }
 
@@ -47,11 +47,11 @@ namespace neoneuron
 
         _selectedNeurons.insert(neuronId);
 
-        if (auto morphology = getMorphology(*_dataset, neuronId)) {
-            for (auto uid : morphology.value()->getNeuritesUIDs()) {
-                _selectedSegments.insert({neuronId, uid});
-            }
-        }
+        //if (auto morphology = getMorphology(*_repository, neuronId)) {
+        //    for (auto uid : morphology.value()->getNeuritesUIDs()) {
+        //        _selectedSegments.insert({neuronId, uid});
+        //    }
+        //}
 
         _selectionEvent.invoke(event);
     }

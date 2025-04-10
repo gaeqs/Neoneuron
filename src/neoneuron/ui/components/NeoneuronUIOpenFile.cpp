@@ -95,11 +95,11 @@ namespace neoneuron
             neon::Chronometer chrono;
             auto loader = generateLoader();
             loader->addUIDProvider([&] { return _application->getDataset().findSmallestAvailableNeuronUID(); });
-
+#ifdef MINDSET_BRION
             if (auto* l = dynamic_cast<mindset::BlueConfigLoader*>(loader.get())) {
                 l->addTarget("felix");
             }
-
+#endif
             auto listener = loader->createListener([](mindset::LoaderStatus status) {
                 std::cout << status.currentTask << " (" << status.stagesCompleted << "/" << status.stages << ")"
                           << std::endl;
