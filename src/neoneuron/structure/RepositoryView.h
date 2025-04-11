@@ -8,6 +8,7 @@
 #include <neoneuron/structure/Repository.h>
 #include <neoneuron/structure/GID.h>
 
+#include <ranges>
 #include <vector>
 
 namespace neoneuron

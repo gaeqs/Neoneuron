@@ -12,8 +12,9 @@
 
 namespace neoneuron
 {
-    void ActionShuffle::shuffle(mindset::UID prop, mindset::Neuron* neuron)
+    void ActionShuffle::shuffle(GID gid, mindset::Dataset* dataset, mindset::Neuron* neuron)
     {
+        auto prop = dataset->getProperties().defineProperty(mindset::PROPERTY_TRANSFORM);
         std::uniform_real_distribution dis(-1.0f, 1.0f);
         std::uniform_real_distribution rDis(0.0f, 1.0f);
 
@@ -30,28 +31,28 @@ namespace neoneuron
         }
 
         neuron->setProperty(prop, transform);
-        _application->getRender().refreshNeuronProperty(neuron->getUID(), mindset::PROPERTY_TRANSFORM);
+        _application->getRender().refreshNeuronProperty(gid, mindset::PROPERTY_TRANSFORM);
     }
 
     void ActionShuffle::run()
     {
         auto cast = _application->getRepository().getNeurons();
-        AnyView<std::pair<GID, mindset::Neuron*>> n = cast;
-        n.begin()
 
-        auto* dataset = _application->getRepository().getDataset(0).value();
-        auto propId = dataset->getProperties().defineProperty(mindset::PROPERTY_TRANSFORM);
+        auto& repo = _application->getRepository();
 
         auto& neurons = _application->getSelector().getSelectedNeurons();
         if (neurons.empty()) {
             // Shuffle all neurons
-            for (auto neuron : dataset->getNeurons()) {
-                shuffle(propId, neuron.getRaw());
+            for (auto [uid, dataset] : repo.getDatasets()) {
+                for (auto neuron : dataset->getNonContextualizedNeurons()) {
+                    shuffle(GID(uid, neuron->getUID()), dataset, neuron);
+                }
             }
         } else {
-            for (auto& uid : neurons) {
-                if (auto neuron = dataset->getNeuron(uid.internalId); neuron.has_value()) {
-                    shuffle(propId, neuron.value());
+            for (auto& gid : neurons) {
+                if (auto opt = repo.getNeuronAndDataset(gid)) {
+                    auto [dataset, neuron] = *opt;
+                    shuffle(gid, dataset, neuron);
                 }
             }
         }

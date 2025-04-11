@@ -87,6 +87,8 @@ namespace neoneuron
         void refreshNeuronProperty(GID gid, const std::string& propertyName) override;
 
         void refreshData(const RepositoryView& view) override;
+
+        void clearData() override;
     };
 
 } // namespace neoneuron

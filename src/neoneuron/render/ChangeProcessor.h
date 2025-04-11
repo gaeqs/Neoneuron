@@ -5,6 +5,8 @@
 #ifndef CHANGEPROCESSOR_H
 #define CHANGEPROCESSOR_H
 
+#include <ranges>
+
 #include <neon/util/task/TaskRunner.h>
 #include <neoneuron/structure/GID.h>
 #include <hey/Hey.h>
@@ -48,6 +50,15 @@ namespace neoneuron
             }
         }
 
+        void cancelAll()
+        {
+            std::lock_guard lock(_mutex);
+            for (auto& task : _tasks | std::views::values) {
+                task->cancel();
+            }
+            _tasks.clear();
+        }
+
         std::vector<std::pair<GID, Result>> getResults()
         {
             std::lock_guard lock(_mutex);
@@ -70,6 +81,8 @@ namespace neoneuron
         template<typename F>
         void fetchResults(F&& consumer)
         {
+            std::lock_guard lock(_mutex);
+
             for (auto it = _tasks.begin(); it != _tasks.end();) {
                 auto& [gid, task] = *it;
                 if (auto result = task->moveResult()) {

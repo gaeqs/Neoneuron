@@ -18,12 +18,14 @@ namespace neoneuron
     class RepositoryNode : public ImBlueprint::Node
     {
         Repository* _repository;
+        uint64_t _version;
 
       public:
         explicit RepositoryNode(NeoneuronApplication* application);
 
         ~RepositoryNode() override = default;
 
+        void renderBody() override;
 
         static NodeFactory createFactory();
     };

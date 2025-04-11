@@ -64,7 +64,7 @@ namespace neoneuron
             maxSegment = std::max(maxSegment, segment.getUID());
         }
 
-        ComplexGPUNeuronGlobalData data{.neuronId = neuron->getUID(),
+        ComplexGPUNeuronGlobalData data{.neuronId = neuron->getGID().internalId,
                                         .lodMode = 8,
                                         .updateFrame = frame,
                                         .segmentsAmount = maxSegment,

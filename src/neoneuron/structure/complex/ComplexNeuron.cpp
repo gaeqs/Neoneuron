@@ -184,7 +184,7 @@ namespace neoneuron
     }
 
     ComplexNeuron::ComplexNeuron(ComplexNeuron&& other) noexcept :
-        Identifiable(other.getUID()),
+        _gid(other._gid),
         _dataset(std::move(other._dataset)),
         _segments(std::move(other._segments)),
         _segmentsByUID(std::move(other._segmentsByUID)),
@@ -201,7 +201,7 @@ namespace neoneuron
         if (this == &other) {
             return *this;
         }
-        Identifiable::operator=(std::move(other));
+        _gid = other._gid;
         _dataset = std::move(other._dataset);
         _segments = std::move(other._segments);
         _segmentsByUID = std::move(other._segmentsByUID);
@@ -213,8 +213,8 @@ namespace neoneuron
         return *this;
     }
 
-    ComplexNeuron::ComplexNeuron(mindset::Dataset* dataset, mindset::Neuron* prototype) :
-        Identifiable(prototype->getUID()),
+    ComplexNeuron::ComplexNeuron(GID gid, mindset::Dataset* dataset, mindset::Neuron* prototype) :
+        _gid(gid),
         _dataset(dataset)
     {
         auto morphology = prototype->getMorphology();
@@ -284,14 +284,19 @@ namespace neoneuron
         recalculateMetadata();
     }
 
+    GID ComplexNeuron::getGID() const
+    {
+        return _gid;
+    }
+
     mindset::Neuron* ComplexNeuron::getPrototypeNeuron()
     {
-        return _dataset->getNeuron(getUID()).value_or(nullptr);
+        return _dataset->getNeuron(_gid.internalId).value_or(nullptr);
     }
 
     const mindset::Neuron* ComplexNeuron::getPrototypeNeuron() const
     {
-        return _dataset->getNeuron(getUID()).value_or(nullptr);
+        return _dataset->getNeuron(_gid.internalId).value_or(nullptr);
     }
 
     mindset::Dataset* ComplexNeuron::getDataset()

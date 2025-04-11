@@ -21,9 +21,9 @@ namespace
         materials.clear();
     }
 
-    neoneuron::ComplexNeuron process(std::pair<mindset::Dataset*, mindset::Neuron*> pair)
+    neoneuron::ComplexNeuron process(neoneuron::ComplexNeuronProcessData&& data)
     {
-        return neoneuron::ComplexNeuron(pair.first, pair.second);
+        return neoneuron::ComplexNeuron(data.gid, data.dataset, data.neuron);
     }
 } // namespace
 
@@ -284,16 +284,20 @@ namespace neoneuron
         }
     }
 
+    void ComplexNeuronRepresentation::postProcess()
+    {
+        _neuronProcessor.fetchResults([this](ComplexNeuron&& neuron) { addComplexNeuron(std::move(neuron)); });
+    }
+
     void ComplexNeuronRepresentation::addComplexNeuron(ComplexNeuron&& complex)
     {
-        auto uid = complex.getUID();
         auto bb = complex.getBoundingBox();
         auto currentFrame = _render->getApplication().getCurrentFrameInformation().currentFrame;
 
         ComplexGPUNeuron gpu(_globalInstanceData, _neuronModel, _jointModel, _somaModel, 0, 0, 0, &complex,
                              currentFrame);
 
-        _neurons.emplace(std::piecewise_construct, std::forward_as_tuple(uid),
+        _neurons.emplace(std::piecewise_construct, std::forward_as_tuple(complex.getGID()),
                          std::forward_as_tuple(std::move(complex), std::move(gpu)));
         if (_neurons.size() == 1) {
             _sceneBoundingBox = bb;
@@ -360,8 +364,10 @@ namespace neoneuron
         loadSomaModel();
 
         _selectionListener = [this](SelectionEvent event) { onSelectionEvent(event); };
+        _processorListener = [this](GID) { postProcess(); };
 
         render->getNeoneuronApplication()->getSelector().onSelectionEvent() += _selectionListener;
+        _neuronProcessor.onProcessedEvent() += _processorListener;
     }
 
     ComplexNeuronRepresentation::~ComplexNeuronRepresentation()
@@ -545,8 +551,9 @@ namespace neoneuron
         // Add
         for (const auto& gid : set) {
             if (!_neuronsInDataset.contains(gid)) {
-                if (auto neuron = view.getRepository()->getNeuronAndDataset(gid)) {
-                    _neuronProcessor.process(gid, std::move(neuron.value()));
+                if (auto optional = view.getRepository()->getNeuronAndDataset(gid)) {
+                    auto [dataset, neuron] = *optional;
+                    _neuronProcessor.process(gid, ComplexNeuronProcessData(gid, dataset, neuron));
                 }
             }
         }
@@ -560,6 +567,13 @@ namespace neoneuron
         }
 
         _neuronsInDataset = set;
+    }
+
+    void ComplexNeuronRepresentation::clearData()
+    {
+        _neuronProcessor.cancelAll();
+        _neuronsInDataset.clear();
+        _neurons.clear();
     }
 
     bool ComplexNeuronRepresentation::isWireframeMode() const

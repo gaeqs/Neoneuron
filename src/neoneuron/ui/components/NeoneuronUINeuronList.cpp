@@ -119,13 +119,13 @@ namespace neoneuron
         auto selectedNeuron = *selectedNeurons.begin();
 
         auto optionalNeuron = _render->getNeoneuronApplication()->getRepository().getNeuronAndDataset(selectedNeuron);
-        auto [dataset, neuron] = *optionalNeuron;
 
-        if (neuron == nullptr) {
+        if (!optionalNeuron.has_value()) {
             ImGui::EndChild();
             return;
         }
 
+        auto [dataset, neuron] = *optionalNeuron;
         auto morph = neuron->getMorphology();
 
         ImGui::Text("Id: %d", neuron->getUID());

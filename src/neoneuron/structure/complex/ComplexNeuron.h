@@ -11,14 +11,16 @@
 #include <mindset/Neuron.h>
 
 #include <neoneuron/structure/complex/ComplexNeuronSegment.h>
+#include <neoneuron/structure/GID.h>
 
 #include "ComplexJoint.h"
 #include "ComplexSoma.h"
 
 namespace neoneuron
 {
-    class ComplexNeuron : public mindset::Identifiable
+    class ComplexNeuron
     {
+        GID _gid;
         mindset::Dataset* _dataset;
         std::vector<ComplexNeuronSegment> _segments;
         std::unordered_map<mindset::UID, size_t> _segmentsByUID;
@@ -45,7 +47,9 @@ namespace neoneuron
 
         ComplexNeuron& operator=(ComplexNeuron&& other) noexcept;
 
-        ComplexNeuron(mindset::Dataset* dataset, mindset::Neuron* prototype);
+        ComplexNeuron(GID gid, mindset::Dataset* dataset, mindset::Neuron* prototype);
+
+        [[nodiscard]] GID getGID() const;
 
         mindset::Neuron* getPrototypeNeuron();
 
@@ -81,4 +85,4 @@ namespace neoneuron
     };
 } // namespace neoneuron
 
-#endif //COMPLEXNEURON_H
+#endif // COMPLEXNEURON_H

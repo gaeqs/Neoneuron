@@ -27,6 +27,8 @@ namespace neoneuron
         virtual void refreshNeuronProperty(GID neuronId, const std::string& propertyName) = 0;
 
         virtual void refreshData(const RepositoryView& view) = 0;
+
+        virtual void clearData() = 0;
     };
 } // namespace neoneuron
 

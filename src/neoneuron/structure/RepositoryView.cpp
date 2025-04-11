@@ -14,6 +14,11 @@ namespace neoneuron
     {
     }
 
+    Repository* RepositoryView::getRepository() const
+    {
+        return _repository;
+    }
+
     const std::vector<GID>& RepositoryView::getNeurons() const
     {
         return _neurons;

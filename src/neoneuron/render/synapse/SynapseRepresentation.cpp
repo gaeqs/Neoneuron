@@ -217,4 +217,8 @@ namespace neoneuron
     void SynapseRepresentation::refreshData(const RepositoryView& view)
     {
     }
+
+    void SynapseRepresentation::clearData()
+    {
+    }
 } // namespace neoneuron

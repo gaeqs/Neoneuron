@@ -21,7 +21,7 @@ namespace neoneuron
         std::random_device _randomDevice;
         std::mt19937 _randomGenerator;
 
-        void shuffle(mindset::UID prop, mindset::Neuron* neuron);
+        void shuffle(GID gid, mindset::Dataset* dataset, mindset::Neuron* neuron);
 
         void run();
 

@@ -11,9 +11,19 @@ namespace neoneuron
 
     RepositoryNode::RepositoryNode(NeoneuronApplication* application) :
         Node("Repository"),
-        _repository(&application->getRepository())
+        _repository(&application->getRepository()),
+        _version(application->getRepository().getVersion())
     {
         defineOutput<RepositoryView>("Data", RepositoryView::ofFullRepository(_repository));
+    }
+
+    void RepositoryNode::renderBody()
+    {
+        Node::renderBody();
+        if (_repository->getVersion() != _version) {
+            sendOutput("Data", RepositoryView::ofFullRepository(_repository));
+            _version = _repository->getVersion();
+        }
     }
 
     NodeFactory RepositoryNode::createFactory()

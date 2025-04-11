@@ -35,6 +35,13 @@ namespace neoneuron
         ComplexGPUNeuron gpu;
     };
 
+    struct ComplexNeuronProcessData
+    {
+        GID gid;
+        mindset::Dataset* dataset;
+        mindset::Neuron* neuron;
+    };
+
     class ComplexNeuronRepresentation : public AbstractNeuronRepresentation
     {
       public:
@@ -71,9 +78,10 @@ namespace neoneuron
         std::shared_ptr<neon::Model> _jointModel;
         std::shared_ptr<neon::Model> _somaModel;
 
-        ChangeProcessor<std::pair<mindset::Dataset*, mindset::Neuron*>, ComplexNeuron> _neuronProcessor;
+        ChangeProcessor<ComplexNeuronProcessData, ComplexNeuron> _neuronProcessor;
 
         hey::Listener<SelectionEvent> _selectionListener;
+        hey::Listener<GID> _processorListener;
 
         std::unordered_set<GID> _neuronsInDataset;
         std::unordered_map<GID, ComplexNeuronRepresentations> _neurons;
@@ -111,6 +119,8 @@ namespace neoneuron
         void recalculateBoundingBox();
 
         void reassignMaterials() const;
+
+        void postProcess();
 
         void addComplexNeuron(ComplexNeuron&& complex);
 
@@ -164,6 +174,8 @@ namespace neoneuron
         void refreshNeuronProperty(GID neuronId, const std::string& propertyName) override;
 
         void refreshData(const RepositoryView& view) override;
+
+        void clearData() override;
 
         [[nodiscard]] bool isWireframeMode() const;
 

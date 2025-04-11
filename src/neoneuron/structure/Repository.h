@@ -5,6 +5,9 @@
 #ifndef REPOSITORY_H
 #define REPOSITORY_H
 
+#include <ranges>
+#include <optional>
+
 #include <neoneuron/structure/GID.h>
 #include <mindset/mindset.h>
 
@@ -17,6 +20,10 @@ namespace neoneuron
     {
         std::unordered_map<mindset::UID, mindset::Dataset> _datasets;
         mindset::UID _uidGenerator;
+
+        hey::Listener<mindset::Neuron*> _neuronAddedListener;
+        hey::Listener<mindset::UID> _neuronRemovedListener;
+        hey::Listener<void*> _clearListener;
 
       public:
         Repository();

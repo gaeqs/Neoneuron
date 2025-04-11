@@ -8,7 +8,10 @@ namespace neoneuron
 {
 
     Repository::Repository() :
-        _uidGenerator(0)
+        _uidGenerator(0),
+        _neuronAddedListener([this](auto*) { incrementVersion(); }),
+        _neuronRemovedListener([this](auto) { incrementVersion(); }),
+        _clearListener([this](auto*) { incrementVersion(); })
     {
     }
 
@@ -16,17 +19,29 @@ namespace neoneuron
     {
         mindset::UID uid = _uidGenerator++;
         auto [ptr, ok] = _datasets.insert({uid, std::move(dataset)});
+        if (ok) {
+            ptr->second.getNeuronAddedEvent() += _neuronAddedListener;
+            ptr->second.getNeuronRemovedEvent() += _neuronRemovedListener;
+            ptr->second.getClearEvent() += _clearListener;
+            incrementVersion();
+        }
         return {uid, &ptr->second, ok};
     }
 
     bool Repository::removeDataset(mindset::UID uid)
     {
-        return _datasets.erase(uid) > 0;
+        bool removed = _datasets.erase(uid) > 0;
+        if (removed) {
+            incrementVersion();
+        }
+
+        return removed;
     }
 
     void Repository::clear()
     {
         _datasets.clear();
+        incrementVersion();
     }
 
     std::optional<mindset::Dataset*> Repository::getDataset(mindset::UID uid)

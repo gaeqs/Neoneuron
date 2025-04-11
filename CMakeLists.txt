@@ -12,6 +12,10 @@ if (UNIX)
     list(APPEND LIBRARIES ${GTK_LIBRARIES})
 endif ()
 
+if (MSVC)
+    add_compile_definitions(NOMINMAX)
+endif ()
+
 FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git

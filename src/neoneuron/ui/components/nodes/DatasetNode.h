@@ -15,20 +15,16 @@ namespace neoneuron
 
     class DatasetNode : public ImBlueprint::Node
     {
-
         mindset::Dataset* _dataset;
 
-    public:
-
+      public:
         explicit DatasetNode(NeoneuronApplication* application);
 
         ~DatasetNode() override = default;
 
         void renderBody() override;
 
-
         static NodeFactory createFactory();
-
     };
 
 } // namespace neoneuron
