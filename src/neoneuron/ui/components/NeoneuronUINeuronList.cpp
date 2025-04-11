@@ -80,9 +80,11 @@ namespace neoneuron
         auto& repo = _render->getNeoneuronApplication()->getRepository();
         auto& selectedNeurons = _render->getNeoneuronApplication()->getSelector().getSelectedNeurons();
 
-        std::vector<std::pair<mindset::Dataset*, mindset::Neuron*>> neurons;
-        for (auto& dataset : repo.getDatasets()) {
-            neurons.push_back(neuron.getRaw());
+        std::vector<std::tuple<GID, mindset::Dataset*, mindset::Neuron*>> neurons;
+        for (auto [uid, dataset] : repo.getDatasets()) {
+            for (auto neuron : dataset->getNonContextualizedNeurons()) {
+                neurons.emplace_back(GID(uid, neuron->getUID()), dataset, neuron);
+            }
         }
 
         ImGuiListClipper clipper;
@@ -91,8 +93,8 @@ namespace neoneuron
         bool deleted = false;
         while (!deleted && clipper.Step()) {
             for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-                auto& [gid, neuron] = neurons.at(row);
-                if (neuronSection(gid, neuron, row, selectedNeurons.contains(gid))) {
+                auto& [gid, dataset, neuron] = neurons.at(row);
+                if (neuronSection(gid, dataset, neuron, row, selectedNeurons.contains(gid))) {
                     deleted = true;
                     break;
                 }
@@ -107,7 +109,6 @@ namespace neoneuron
     {
         ImGui::BeginChild("Information", ImVec2(0, ImGui::GetContentRegionAvail().y));
 
-        auto& dataset = _render->getNeoneuronApplication()->getDataset();
         auto& selectedNeurons = _render->getNeoneuronApplication()->getSelector().getSelectedNeurons();
 
         if (selectedNeurons.size() != 1) {
@@ -117,16 +118,17 @@ namespace neoneuron
 
         auto selectedNeuron = *selectedNeurons.begin();
 
-        auto* prototype = dataset.getNeuron(selectedNeuron).value_or(nullptr);
+        auto optionalNeuron = _render->getNeoneuronApplication()->getRepository().getNeuronAndDataset(selectedNeuron);
+        auto [dataset, neuron] = *optionalNeuron;
 
-        if (prototype == nullptr) {
+        if (neuron == nullptr) {
             ImGui::EndChild();
             return;
         }
 
-        auto morph = prototype->getMorphology();
+        auto morph = neuron->getMorphology();
 
-        ImGui::Text("Id: %d", prototype->getUID());
+        ImGui::Text("Id: %d", neuron->getUID());
         ImGui::Text("Sections: %d", morph.has_value() ? morph.value()->getNeuritesAmount() : 0);
         ImGui::Text("Properties provided:");
 
@@ -135,9 +137,9 @@ namespace neoneuron
         std::vector<std::string> segmentProperties;
         std::vector<std::string> undefinedProperties;
 
-        auto& props = dataset.getProperties();
+        auto& props = dataset->getProperties();
         for (const auto& [name, uid] : props.getPropertiesUIDs()) {
-            auto optionalValue = prototype->getPropertyAsAny(uid);
+            auto optionalValue = neuron->getPropertyAsAny(uid);
             if (!optionalValue.has_value()) {
                 continue;
             }
@@ -157,15 +159,15 @@ namespace neoneuron
                 ImGui::Indent();
                 if (auto editor = prop.value()->getEditor(); editor != nullptr) {
                     auto value = optionalValue.value();
-                    if (editor(&value, prototype)) {
-                        prototype->setProperty(uid, value);
+                    if (editor(&value, neuron)) {
+                        neuron->setProperty(uid, value);
                         _render->refreshNeuronProperty(selectedNeuron, name);
                     }
                 }
                 ImGui::Unindent();
             }
             if (closed) {
-                prototype->deleteProperty(uid);
+                neuron->deleteProperty(uid);
                 _render->refreshNeuronProperty(selectedNeuron, name);
             }
         }
@@ -185,16 +187,14 @@ namespace neoneuron
             ImGui::Unindent();
         }
 
-        neuronNewProperty(prototype);
+        neuronNewProperty(selectedNeuron, dataset, neuron);
 
         ImGui::EndChild();
     }
 
-    void NeoneuronUINeuronList::neuronNewProperty(mindset::Neuron* prototype) const
+    void NeoneuronUINeuronList::neuronNewProperty(GID gid, mindset::Dataset* dataset, mindset::Neuron* prototype) const
     {
         static int selectedProperty = -1;
-
-        auto& dataset = _render->getNeoneuronApplication()->getDataset();
 
         int amount = 0;
         const char* names[100];
@@ -202,7 +202,7 @@ namespace neoneuron
 
         auto& storage = _render->getNeoneuronApplication()->getPropertyStorage();
         for (auto& [name, prop] : storage) {
-            auto uid = dataset.getProperties().getPropertyUID(name);
+            auto uid = dataset->getProperties().getPropertyUID(name);
 
             if (prop.getGenerator() != nullptr && prop.getTarget() != PropertyTarget::SEGMENT &&
                 (!uid.has_value() || !prototype->getPropertyAsAny(uid.value()).has_value())) {
@@ -227,9 +227,9 @@ namespace neoneuron
             if (ImGui::Button("Add property", ImVec2(-1.0f, 0.0f))) {
                 auto* prop = properties[selectedProperty];
                 auto val = prop->getGenerator()(prototype);
-                auto uid = dataset.getProperties().defineProperty(prop->getName());
+                auto uid = dataset->getProperties().defineProperty(prop->getName());
                 prototype->setProperty(uid, val);
-                _render->refreshNeuronProperty(prototype->getUID(), prop->getName());
+                _render->refreshNeuronProperty(gid, prop->getName());
             }
             ImGui::EndDisabled();
         }

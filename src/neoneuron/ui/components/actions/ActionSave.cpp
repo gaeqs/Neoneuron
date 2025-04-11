@@ -17,7 +17,7 @@ namespace neoneuron
         getTaskRunner().launchCoroutine(saveCoroutine(std::move(selection)));
     }
 
-    neon::Coroutine<> ActionSave::saveCoroutine(std::unordered_set<mindset::UID> uids)
+    neon::Coroutine<> ActionSave::saveCoroutine(std::unordered_set<GID> gids)
     {
         constexpr size_t VALUES_PER_SEGMENT = 64;
         constexpr size_t VALUES_PER_JOINT = 68;
@@ -36,15 +36,15 @@ namespace neoneuron
             co_return;
         }
 
-        auto& dataset = _application->getDataset();
-        auto typeProp = dataset.getProperties().getPropertyUID(mindset::PROPERTY_NEURITE_TYPE);
+        auto& repo = _application->getRepository();
 
-        for (mindset::UID uid : uids) {
-            auto optional = dataset.getNeuron(uid);
+        for (GID gid : gids) {
+            auto optional = repo.getNeuronAndDataset(gid);
             if (!optional.has_value()) {
                 continue;
             }
-            auto* neuron = optional.value();
+            auto [dataset, neuron] = *optional;
+            auto typeProp = dataset->getProperties().getPropertyUID(mindset::PROPERTY_NEURITE_TYPE);
 
             if (!neuron->getMorphology().has_value()) {
                 continue;
@@ -60,7 +60,7 @@ namespace neoneuron
             auto& ubo = representation->getUBO();
             ubo->clearData(7);
             ubo->clearData(8);
-            representation->getRender()->getRenderData().savingNeuron = uid;
+            representation->getRender()->getRenderData().savingNeuron = gid.internalId;
             co_yield neon::WaitForNextFrame();
 
             representation->getRender()->getRenderData().savingNeuron = std::numeric_limits<uint32_t>::max();

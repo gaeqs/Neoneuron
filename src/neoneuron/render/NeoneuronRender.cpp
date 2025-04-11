@@ -82,7 +82,7 @@ namespace neoneuron
         initSelectionResolver();
 
         _representations.push_back(std::make_unique<ComplexNeuronRepresentation>(this));
-        _representations.push_back(std::make_unique<SynapseRepresentation>(this));
+        //_representations.push_back(std::make_unique<SynapseRepresentation>(this));
     }
 
     NeoneuronRender::~NeoneuronRender()

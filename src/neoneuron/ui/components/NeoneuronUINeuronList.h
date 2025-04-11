@@ -14,13 +14,14 @@ namespace neoneuron
     {
         NeoneuronRender* _render;
 
-        bool neuronSection(GID gid, const mindset::Dataset* dataset, const mindset::Neuron* neuron, size_t id, bool selected) const;
+        bool neuronSection(GID gid, mindset::Dataset* dataset, const mindset::Neuron* neuron, size_t id,
+                           bool selected) const;
 
         void neuronList();
 
         void neuronInformation() const;
 
-        void neuronNewProperty(mindset::Neuron* neuron) const;
+        void neuronNewProperty(GID gid, mindset::Dataset* dataset, mindset::Neuron* neuron) const;
 
       public:
         explicit NeoneuronUINeuronList(NeoneuronRender* render);
@@ -29,4 +30,4 @@ namespace neoneuron
     };
 } // namespace neoneuron
 
-#endif //NEONEURONUINEURONLIST_H
+#endif // NEONEURONUINEURONLIST_H

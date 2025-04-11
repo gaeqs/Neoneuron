@@ -17,7 +17,7 @@ namespace neoneuron
 
         void run();
 
-        neon::Coroutine<> saveCoroutine(std::unordered_set<mindset::UID> uids);
+        neon::Coroutine<> saveCoroutine(std::unordered_set<GID> gids);
 
       public:
         ActionSave(NeoneuronApplication* application);

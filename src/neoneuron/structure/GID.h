@@ -5,7 +5,7 @@
 #ifndef NEURONUID_H
 #define NEURONUID_H
 
-#include <xhash>
+#include <vector>
 #include <mindset/UID.h>
 
 namespace neoneuron

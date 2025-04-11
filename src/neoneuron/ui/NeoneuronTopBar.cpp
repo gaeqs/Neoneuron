@@ -112,21 +112,21 @@ namespace neoneuron
 
     void NeoneuronTopBar::viewMenu() const
     {
-        //auto* scene = _render->getNeuronScene().get();
-        //if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
-        //    bool drawSegments = complexScene->shouldDrawSegments();
-        //    bool drawJoints = complexScene->shouldDrawJoints();
-        //    bool drawSomas = complexScene->shouldDrawSomas();
-        //    if (ImGui::MenuItem("Draw segments", nullptr, &drawSegments)) {
-        //        complexScene->setDrawSegments(drawSegments);
-        //    }
-        //    if (ImGui::MenuItem("Draw joints", nullptr, &drawJoints)) {
-        //        complexScene->setDrawJoints(drawJoints);
-        //    }
-        //    if (ImGui::MenuItem("Draw somas", nullptr, &drawSomas)) {
-        //        complexScene->setDrawSomas(drawSomas);
-        //    }
-        //}
+        // auto* scene = _render->getNeuronScene().get();
+        // if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
+        //     bool drawSegments = complexScene->shouldDrawSegments();
+        //     bool drawJoints = complexScene->shouldDrawJoints();
+        //     bool drawSomas = complexScene->shouldDrawSomas();
+        //     if (ImGui::MenuItem("Draw segments", nullptr, &drawSegments)) {
+        //         complexScene->setDrawSegments(drawSegments);
+        //     }
+        //     if (ImGui::MenuItem("Draw joints", nullptr, &drawJoints)) {
+        //         complexScene->setDrawJoints(drawJoints);
+        //     }
+        //     if (ImGui::MenuItem("Draw somas", nullptr, &drawSomas)) {
+        //         complexScene->setDrawSomas(drawSomas);
+        //     }
+        // }
     }
 
     void NeoneuronTopBar::actionsMenu() const
@@ -178,7 +178,7 @@ namespace neoneuron
                     openFile();
                 }
                 if (ImGui::MenuItem("Close scene")) {
-                    _render->getNeoneuronApplication()->getDataset().clear();
+                    _render->getNeoneuronApplication()->getRepository().clear();
                 }
                 if (ImGui::MenuItem("Save scene")) {
                     saveFile(saveScene(_render).dump(4));

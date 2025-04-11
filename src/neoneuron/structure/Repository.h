@@ -85,6 +85,27 @@ namespace neoneuron
                    std::views::join;
         }
 
+        [[nodiscard]] decltype(auto) getNeuronsWithDatasets()
+        {
+            return getDatasets() | std::views::transform([](const auto& pair) {
+                       return pair.second->getNonContextualizedNeurons() |
+                              std::views::transform(
+                                  [dataset = pair.second](auto* neuron) { return std::make_pair(dataset, neuron); });
+                   }) |
+                   std::views::join;
+        }
+
+        [[nodiscard]] decltype(auto) getNeuronsWithDatasets() const
+        {
+            return getDatasets() | std::views::transform([](const auto& pair) {
+                       return pair.second->getNonContextualizedNeurons() |
+                              std::views::transform([dataset = pair.second](const auto* neuron) {
+                                  return std::make_pair(dataset, neuron);
+                              });
+                   }) |
+                   std::views::join;
+        }
+
         [[nodiscard]] decltype(auto) getSynapses()
         {
             return getDatasets() | std::views::transform([](const auto& pair) {

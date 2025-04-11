@@ -9,7 +9,6 @@
 #include <mindset/util/NeuronTransform.h>
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/NeoneuronRender.h>
-#include <neoneuron/util/AnyView.h>
 
 namespace neoneuron
 {
