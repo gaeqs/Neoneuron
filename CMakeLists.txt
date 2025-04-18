@@ -19,14 +19,14 @@ endif ()
 FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG master
+        GIT_TAG task-improvements
 )
 
 FetchContent_MakeAvailable(neon)
 
 FetchContent_Declare(
         mindset
-        GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mindset.git
+        GIT_REPOSITORY https://github.com/gaeqs/Mindset.git
         GIT_TAG master
 )
 

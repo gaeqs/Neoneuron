@@ -30,6 +30,7 @@ namespace neoneuron
         neon::Application _application;
         neon::CMRCFileSystem _fileSystem;
         std::shared_ptr<neon::SimpleFrameBuffer> _renderFrameBuffer;
+        std::shared_ptr<neon::SimpleFrameBuffer> _outFrameBuffer;
         std::shared_ptr<neon::Room> _room;
         std::chrono::high_resolution_clock::time_point _startTime;
         std::unique_ptr<Components> _components;
@@ -64,6 +65,8 @@ namespace neoneuron
 
         [[nodiscard]] const std::shared_ptr<neon::SimpleFrameBuffer>& getRenderFrameBuffer() const;
 
+        [[nodiscard]] const std::shared_ptr<neon::SimpleFrameBuffer>& getOutFrameBuffer() const;
+
         [[nodiscard]] const std::shared_ptr<neon::Room>& getRoom() const;
 
         [[nodiscard]] NeoneuronUI& getUI();
@@ -94,7 +97,17 @@ namespace neoneuron
 
         void refreshNeuronProperty(GID neuronId, const std::string& propertyName);
 
+        template<typename Representation>
+        Representation* addRepresentation()
+        {
+            auto ptr = std::make_unique<Representation>(this);
+            auto raw = ptr.get();
+            _representations.push_back(std::move(ptr));
+            return raw;
+        }
+
+        void removeRepresentation(AbstractNeuronRepresentation* representation);
     };
 } // namespace neoneuron
 
-#endif //NEONEURONRENDER_H
+#endif // NEONEURONRENDER_H

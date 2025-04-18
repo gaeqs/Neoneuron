@@ -4,6 +4,7 @@
 
 #include "RepresentationNode.h"
 
+#include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
 #include <neoneuron/structure/RepositoryView.h>
 
 namespace neoneuron
@@ -13,26 +14,29 @@ namespace neoneuron
         Node("Representation"),
         _application(application)
     {
-        defineInput<RepositoryView>("Data");
+        defineInput<RepositoryView>("Data", false);
+        _representation = _application->getRender().addRepresentation<ComplexNeuronRepresentation>();
+    }
+
+    RepresentationNode::~RepresentationNode()
+    {
+        _application->getRender().removeRepresentation(_representation);
     }
 
     void RepresentationNode::onInputChange(const std::string& name, const std::any& value)
     {
         auto* set = std::any_cast<const RepositoryView>(&value);
         if (set != nullptr) {
-            for (auto representation : _application->getRender().getRepresentations()) {
-                representation->refreshData(*set);
-            }
+            _representation->refreshData(*set);
         } else {
-            for (auto representation : _application->getRender().getRepresentations()) {
-                representation->clearData();
-            }
+            _representation->clearData();
         }
     }
 
     NodeFactory RepresentationNode::createFactory()
     {
-        return NodeFactory(
-            "Representation", [](ImBlueprint::Editor& editor, auto* app) { return editor.addNode<RepresentationNode>(app); });
+        return NodeFactory("Representation", [](ImBlueprint::Editor& editor, auto* app) {
+            return editor.addNode<RepresentationNode>(app);
+        });
     }
 } // namespace neoneuron

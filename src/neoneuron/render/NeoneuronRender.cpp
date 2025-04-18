@@ -34,6 +34,9 @@ namespace neoneuron
         auto fb = _application.getAssets().get<neon::FrameBuffer>("neoneuron:frame_buffer").value_or(nullptr);
         _renderFrameBuffer = std::dynamic_pointer_cast<neon::SimpleFrameBuffer>(fb);
         _renderFrameBuffer->setClearColor(0, rush::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+
+        auto outFb = _application.getAssets().get<neon::FrameBuffer>("neoneuron:picker_frame_buffer").value_or(nullptr);
+        _outFrameBuffer = std::dynamic_pointer_cast<neon::SimpleFrameBuffer>(outFb);
         return render;
     }
 
@@ -118,6 +121,11 @@ namespace neoneuron
     const std::shared_ptr<neon::SimpleFrameBuffer>& NeoneuronRender::getRenderFrameBuffer() const
     {
         return _renderFrameBuffer;
+    }
+
+    const std::shared_ptr<neon::SimpleFrameBuffer>& NeoneuronRender::getOutFrameBuffer() const
+    {
+        return _outFrameBuffer;
     }
 
     const std::shared_ptr<neon::Room>& NeoneuronRender::getRoom() const
@@ -227,5 +235,21 @@ namespace neoneuron
         for (auto& rep : _representations) {
             rep->refreshNeuronProperty(neuronId, propertyName);
         }
+    }
+
+    void NeoneuronRender::removeRepresentation(AbstractNeuronRepresentation* representation)
+    {
+        if (representation == nullptr) {
+            return;
+        }
+
+        auto it = std::ranges::find_if(_representations, [&](const std::unique_ptr<AbstractNeuronRepresentation>& it) {
+            return it.get() == representation;
+        });
+        if (it == _representations.end()) {
+            return;
+        }
+
+        _representations.erase(it);
     }
 } // namespace neoneuron

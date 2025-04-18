@@ -379,8 +379,12 @@ namespace neoneuron
             _render->getRoom()->unmarkUsingModel(_jointModel.get());
         }
         if (_somaModel != nullptr) {
-            _render->getRoom()->unmarkUsingModel(_jointModel.get());
+            _render->getRoom()->unmarkUsingModel(_somaModel.get());
         }
+
+
+        //std::vector materials = {_neuronMaterial, _jointMaterial, _somaMaterial};
+        //_render->getApplication().getTaskRunner().launchCoroutine(deleteCoroutine(std::move(materials)));
     }
 
     NeoneuronRender* ComplexNeuronRepresentation::getRender()

@@ -100,7 +100,7 @@ namespace neoneuron
         _gameObject = render->getRoom()->newGameObject();
         _gameObject->setName("UI");
         _gameObject->newComponent<neon::DockSpaceComponent>(true);
-        _viewport = _gameObject->newComponent<neon::ViewportComponent>();
+        _viewport = _gameObject->newComponent<neon::ViewportComponent>(_render->getOutFrameBuffer());
         _gameObject->newComponent<neon::LogComponent>();
         _gameObject->newComponent<NeoneuronTopBar>(render);
         _gameObject->newComponent<NeoneuronUINeuronList>(render);

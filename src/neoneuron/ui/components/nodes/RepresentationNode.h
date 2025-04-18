@@ -10,6 +10,7 @@
 
 #include <imblueprint/imblueprint.h>
 #include <neoneuron/application/NeoneuronApplication.h>
+#include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
 
 namespace neoneuron
 {
@@ -17,11 +18,12 @@ namespace neoneuron
     class RepresentationNode : public ImBlueprint::Node
     {
         NeoneuronApplication* _application;
+        ComplexNeuronRepresentation* _representation;
 
     public:
         explicit RepresentationNode(NeoneuronApplication* application);
 
-        ~RepresentationNode() override = default;
+        ~RepresentationNode() override;
 
         void onInputChange(const std::string& name, const std::any& value) override;
 
