@@ -14,8 +14,9 @@ namespace neoneuron
         Node("Representation"),
         _application(application)
     {
-        defineInput<RepositoryView>("Data", false);
+        defineInput<RepositoryView>("Data", true);
         _representation = _application->getRender().addRepresentation<ComplexNeuronRepresentation>();
+        defineOutput<AbstractNeuronRepresentation*>("Representation", _representation);
     }
 
     RepresentationNode::~RepresentationNode()
@@ -25,9 +26,15 @@ namespace neoneuron
 
     void RepresentationNode::onInputChange(const std::string& name, const std::any& value)
     {
-        auto* set = std::any_cast<const RepositoryView>(&value);
-        if (set != nullptr) {
-            _representation->refreshData(*set);
+        auto data = getMultipleInputs<RepositoryView>("Data");
+        if (!data.has_value()) {
+            _representation->clearData();
+            return;
+        }
+
+        auto combined = RepositoryView::combine(data.value());
+        if (combined.has_value()) {
+            _representation->refreshData(combined.value());
         } else {
             _representation->clearData();
         }

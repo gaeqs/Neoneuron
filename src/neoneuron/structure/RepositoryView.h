@@ -48,6 +48,8 @@ namespace neoneuron
 
 
         static RepositoryView ofFullRepository(Repository* repository);
+
+        static std::optional<RepositoryView> combine(const std::vector<RepositoryView>& views);
     };
 
 } // namespace neoneuron

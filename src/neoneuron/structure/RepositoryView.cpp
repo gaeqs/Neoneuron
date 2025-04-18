@@ -46,4 +46,29 @@ namespace neoneuron
         return {repository, std::move(neurons), std::move(synapses)};
     }
 
+    std::optional<RepositoryView> RepositoryView::combine(const std::vector<RepositoryView>& views)
+    {
+        if (views.empty()) {
+            return {};
+        }
+        if (views.size() == 1) {
+            return views[0];
+        }
+
+        Repository* repository = nullptr;
+        std::unordered_set<GID> neurons;
+        std::unordered_set<GID> synapses;
+
+        for (auto& view : views) {
+            if (repository == nullptr && view.getRepository() != nullptr) {
+                repository = view.getRepository();
+            }
+            neurons.insert(view.getNeurons().begin(), view.getNeurons().end());
+            synapses.insert(view.getSynapses().begin(), view.getSynapses().end());
+        }
+
+        return RepositoryView(repository, std::vector(neurons.begin(), neurons.end()),
+                              std::vector(synapses.begin(), synapses.end()));
+    }
+
 } // namespace neoneuron

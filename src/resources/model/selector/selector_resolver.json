@@ -1,7 +1,7 @@
 {
   "name": "neoneuron:selector_resolver",
-  "save": true,
-  "use_present": true,
+  "save": false,
+  "use_present": false,
   "maximum_instances": 1,
   "auto_flush": true,
   "custom_instance_sizes": [],
@@ -31,9 +31,9 @@
       "materials": [
         {
           "name": "neoneuron:selector_resolver",
-          "save": true,
-          "use_present": true,
-          "frame_buffer": "A:neoneuron:picker_frame_buffer",
+          "save": false,
+          "use_present": false,
+          "frame_buffer": "A:neoneuron:output",
           "shader": "/shader/selector/selector_resolver.json",
           "descriptions": {
             "vertex": {
