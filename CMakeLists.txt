@@ -1,9 +1,28 @@
+# Copyright (c) 2025. VG-Lab/URJC.
+#
+# Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
+#
+# This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+#
+# This library is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License version 3.0 as published
+# by the Free Software Foundation.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 cmake_minimum_required(VERSION 3.23)
 set(CMAKE_CXX_STANDARD 20)
 set(FETCHCONTENT_UPDATES_SUBMODULES OFF)
 include(FetchContent)
 
-project(Neoneuron)
+project(Neoneuron LANGUAGES CXX VERSION 0.0.1)
 
 if (UNIX)
     find_package(PkgConfig REQUIRED)
@@ -12,17 +31,21 @@ if (UNIX)
     list(APPEND LIBRARIES ${GTK_LIBRARIES})
 endif ()
 
+if (MSVC)
+    add_compile_definitions(NOMINMAX)
+endif ()
+
 FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG master
+        GIT_TAG task-improvements
 )
 
 FetchContent_MakeAvailable(neon)
 
 FetchContent_Declare(
         mindset
-        GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mindset.git
+        GIT_REPOSITORY https://github.com/gaeqs/Mindset.git
         GIT_TAG master
 )
 
@@ -37,6 +60,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(nativefiledialog)
 
 set(IMBLUEPRINT_IMGUI_TARGET imgui)
+
 FetchContent_Declare(
         imblueprint
         GIT_REPOSITORY https://github.com/gaeqs/ImBlueprint.git
@@ -44,6 +68,10 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(imblueprint)
+
+if (TARGET morphio_obj)
+    target_precompile_headers(morphio_obj PUBLIC <cstdint>)
+endif ()
 
 find_package(Vulkan REQUIRED)
 find_package(pugixml REQUIRED)

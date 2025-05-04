@@ -1,25 +1,33 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 22/10/2024.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #ifndef CAMERADATA_H
 #define CAMERADATA_H
 
-#include <neon/Neon.h>
 #include <hey/Hey.h>
-
-#include <neoneuron/render/component/camera/CameraController.h>
-#include <neoneuron/render/component/camera/Guide.h>
 
 namespace neoneuron
 {
-    class NeoneuronRender;
+    class Viewport;
 
     class CameraData
     {
-        neon::IdentifiableWrapper<neon::GameObject> _cameraGameObject;
-        neon::IdentifiableWrapper<CameraController> _cameraController;
-
         hey::ObservableValue<bool> _activeRotation = false;
         hey::ObservableValue<bool> _activePosition = false;
 
@@ -27,12 +35,6 @@ namespace neoneuron
         CameraData(const CameraData& other) = delete;
 
         CameraData() = default;
-
-        ~CameraData();
-
-        explicit CameraData(NeoneuronRender* room);
-
-        [[nodiscard]] neon::IdentifiableWrapper<CameraController> getCameraController() const;
 
         hey::ObservableValue<bool>& onActiveRotation();
 
@@ -44,4 +46,4 @@ namespace neoneuron
     };
 } // namespace neoneuron
 
-#endif //CAMERADATA_H
+#endif // CAMERADATA_H

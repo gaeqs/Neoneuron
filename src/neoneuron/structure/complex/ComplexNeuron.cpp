@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 8/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "ComplexNeuron.h"
 
@@ -184,7 +199,7 @@ namespace neoneuron
     }
 
     ComplexNeuron::ComplexNeuron(ComplexNeuron&& other) noexcept :
-        Identifiable(other.getUID()),
+        _gid(other._gid),
         _dataset(std::move(other._dataset)),
         _segments(std::move(other._segments)),
         _segmentsByUID(std::move(other._segmentsByUID)),
@@ -201,7 +216,7 @@ namespace neoneuron
         if (this == &other) {
             return *this;
         }
-        Identifiable::operator=(std::move(other));
+        _gid = other._gid;
         _dataset = std::move(other._dataset);
         _segments = std::move(other._segments);
         _segmentsByUID = std::move(other._segmentsByUID);
@@ -213,8 +228,8 @@ namespace neoneuron
         return *this;
     }
 
-    ComplexNeuron::ComplexNeuron(mindset::Dataset* dataset, mindset::Neuron* prototype) :
-        Identifiable(prototype->getUID()),
+    ComplexNeuron::ComplexNeuron(GID gid, mindset::Dataset* dataset, mindset::Neuron* prototype) :
+        _gid(gid),
         _dataset(dataset)
     {
         auto morphology = prototype->getMorphology();
@@ -223,6 +238,7 @@ namespace neoneuron
             return;
         }
 
+        auto lock = dataset->readLock();
         auto& props = dataset->getProperties();
         std::optional<mindset::UID> propType = props.getPropertyUID(mindset::PROPERTY_NEURITE_TYPE);
         std::optional<mindset::UID> propEnd = props.getPropertyUID(mindset::PROPERTY_POSITION);
@@ -232,7 +248,9 @@ namespace neoneuron
             neon::error() << "Cannot load neuron, properties are not found.";
             return;
         }
+        lock.unlock();
 
+        auto morphologyLock = morphology.value()->readLock();
         auto neurites = morphology.value()->getNeurites();
         _segments.reserve(neurites.size());
         for (auto segment : neurites) {
@@ -263,6 +281,7 @@ namespace neoneuron
 
             _segmentsByUID.emplace(s->getUID(), _segmentsByUID.size());
         }
+        morphologyLock.unlock();
 
         // Load parent data
         for (auto& segment : _segments) {
@@ -284,14 +303,19 @@ namespace neoneuron
         recalculateMetadata();
     }
 
+    GID ComplexNeuron::getGID() const
+    {
+        return _gid;
+    }
+
     mindset::Neuron* ComplexNeuron::getPrototypeNeuron()
     {
-        return _dataset->getNeuron(getUID()).value_or(nullptr);
+        return _dataset->getNeuron(_gid.internalId).value_or(nullptr);
     }
 
     const mindset::Neuron* ComplexNeuron::getPrototypeNeuron() const
     {
-        return _dataset->getNeuron(getUID()).value_or(nullptr);
+        return _dataset->getNeuron(_gid.internalId).value_or(nullptr);
     }
 
     mindset::Dataset* ComplexNeuron::getDataset()

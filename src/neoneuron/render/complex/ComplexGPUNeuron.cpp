@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 10/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "ComplexGPUNeuron.h"
 
@@ -64,29 +79,29 @@ namespace neoneuron
             maxSegment = std::max(maxSegment, segment.getUID());
         }
 
-        ComplexGPUNeuronGlobalData data{.neuronId = neuron->getUID(),
+        ComplexGPUNeuronGlobalData data{.datasetId = neuron->getGID().datasetId,
+                                        .neuronId = neuron->getGID().internalId,
                                         .lodMode = 8,
                                         .updateFrame = frame,
                                         .segmentsAmount = maxSegment,
-                                        .radius = neuron->getBoundingBox().radius.length() * 5,
+                                        .radius = neuron->getBoundingBox().radius.length(),
                                         .model = rush::Mat4f(1.0f),
                                         .normal = rush::Mat4f(1.0f)};
 
         auto* prototype = neuron->getPrototypeNeuron();
         auto* dataset = neuron->getDataset();
         if (prototype != nullptr && dataset != nullptr) {
-            auto prop = dataset->getProperties().getPropertyUID(mindset::PROPERTY_TRANSFORM);
-            if (prop.has_value()) {
+            if (auto prop = dataset->getProperties().getPropertyUID(mindset::PROPERTY_TRANSFORM); prop.has_value()) {
                 auto transform = prototype->getProperty<mindset::NeuronTransform>(prop.value());
                 if (transform.has_value()) {
                     data.model = transform->getModel();
                     data.normal = transform->getNormal();
                 }
+            }
 
-                if (auto lodProp = dataset->getProperties().getPropertyUID(PROPERTY_LOD); lodProp.has_value()) {
-                    if (auto lod = prototype->getProperty<uint32_t>(lodProp.value()); lod.has_value()) {
-                        data.lodMode = *lod;
-                    }
+            if (auto lodProp = dataset->getProperties().getPropertyUID(PROPERTY_LOD); lodProp.has_value()) {
+                if (auto lod = prototype->getProperty<uint32_t>(lodProp.value()); lod.has_value()) {
+                    data.lodMode = *lod;
                 }
             }
         }

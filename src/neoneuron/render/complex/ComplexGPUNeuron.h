@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 10/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #ifndef COMPLEXGPUNEURON_H
 #define COMPLEXGPUNEURON_H
@@ -12,12 +27,13 @@ namespace neoneuron
 {
     struct ComplexGPUNeuronGlobalData
     {
+        uint32_t datasetId;
         uint32_t neuronId;
         uint32_t lodMode; // 0-7 = forced, 8 = dynamic, 9 = static
         uint32_t updateFrame;
         uint32_t segmentsAmount;
         float radius;
-        uint32_t dummy[3];
+        uint32_t dummy[2];
         rush::Mat4f model;
         rush::Mat4f normal;
     };

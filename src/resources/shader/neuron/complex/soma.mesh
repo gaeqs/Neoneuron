@@ -26,7 +26,7 @@ layout (local_size_x = min(32, MAX_LONG_VERTICES), local_size_y = 1, local_size_
 layout (triangles) out;
 layout(max_vertices = GROUP_MAX_VERTICES, max_primitives = GROUP_MAX_PRIMITIVES) out;
 
-layout (set = 0, binding = 0) uniform Matrices {
+layout (set = 1, binding = 0) uniform Matrices {
     mat4 view;
     mat4 viewProjection;
     mat4 inverseProjection;
@@ -66,6 +66,7 @@ layout (set = 0, binding = 2) uniform Scene {
 };
 
 struct Neuron {
+    uint datasetId;
     uint neuronId;
     uint lodMode;// 0-7 = forced, 8 = dynamic, 9 = static
     uint updateFrame;
@@ -124,9 +125,10 @@ struct TaskData {
 taskPayloadSharedEXT TaskData td;
 
 layout(location = 0) out vec3 fragNormal[];
-layout(location = 1) flat out float fragNeuronId[];
-layout(location = 2) flat out float fragSectionId[];
-layout(location = 3) flat out float fragSelected[];
+layout(location = 1) flat out float fragDatasetId[];
+layout(location = 2) flat out float fragNeuronId[];
+layout(location = 3) flat out float fragSectionId[];
+layout(location = 4) flat out float fragSelected[];
 
 
 shared uint connectionVerticesIndices[MAX_CONNECTION_VERTICES];
@@ -283,6 +285,7 @@ void pushVertex(uint i, vec3 position, vec3 normal, uint type, Neuron neuron, ui
     vec4 globalPosition = neuron.model * vec4(position, 1.0f);
     gl_MeshVerticesEXT[i].gl_Position = viewProjection * globalPosition;
     fragNormal[i] = mat3(neuron.normal) * normal;
+    fragDatasetId[i] = uintBitsToFloat(neuron.datasetId);
     fragNeuronId[i] = uintBitsToFloat(neuron.neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
     fragSelected[i] = sel ? 1.0f : 0.0f;

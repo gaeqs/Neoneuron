@@ -8,7 +8,7 @@ layout(location = 2) in flat float fragLastUpdate;
 
 layout(location = 0) out vec4 color;
 
-layout (set = 0, binding = 0) uniform Matrices {
+layout (set = 1, binding = 0) uniform Matrices {
     mat4 view;
     mat4 viewProjection;
     mat4 inverseProjection;
@@ -48,6 +48,6 @@ void main() {
 
     vec4 result = mix(x, y, 1.0f - x.a);
     result = mix(result, z, 1.0f - result.a);
-    result.a *= 0.5f * timeAlpha();
+    result.a *= timeAlpha();
     color = result;
 }

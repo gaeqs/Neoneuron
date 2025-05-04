@@ -12,7 +12,7 @@ layout(location = 0) out vec3 position;
 layout(location = 1) out flat float fragActive;
 layout(location = 2) out flat float fragLastUpdate;
 
-layout (set = 0, binding = 0) uniform Matrices {
+layout (set = 1, binding = 0) uniform Matrices {
     mat4 view;
     mat4 viewProjection;
     mat4 inverseProjection;

@@ -1,12 +1,28 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 16/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "OrbitalCameraController.h"
 
 #include <neoneuron/render/NeoneuronRender.h>
 
 #include "CameraData.h"
+#include "Guide.h"
 
 namespace neoneuron
 {
@@ -23,7 +39,7 @@ namespace neoneuron
     {
         rush::Vec3f delta = {event.delta * rush::Vec2f(-_positionScale, _positionScale), 0.0f};
 
-        delta = getGameObject()->getRoom()->getCamera().getRotation() * delta;
+        delta = _interpolator->getCamera()->getRotation() * delta;
 
         _position.position += delta;
         _velocity = delta / getApplication()->getCurrentFrameInformation().currentDeltaTime;
@@ -101,10 +117,8 @@ namespace neoneuron
         return true;
     }
 
-    OrbitalCameraController::OrbitalCameraController(NeoneuronRender* render, CameraData* cameraData,
-                                                     std::unique_ptr<CameraInterpolator> interpolator) :
-        CameraController(cameraData),
-        _render(render),
+    OrbitalCameraController::OrbitalCameraController(std::unique_ptr<CameraInterpolator> interpolator) :
+        CameraController(),
         _interpolator(std::move(interpolator)),
         _position(rush::Vec3f(), rush::Vec2f(), 10.0f),
         _radiusVelocity(0),
@@ -116,13 +130,9 @@ namespace neoneuron
         sendPosition();
     }
 
-    OrbitalCameraController::~OrbitalCameraController()
+    neon::Camera* OrbitalCameraController::getCamera() const
     {
-        for (auto guide : _guides) {
-            if (guide.isValid()) {
-                guide->destroy();
-            }
-        }
+        return _interpolator->getCamera();
     }
 
     void OrbitalCameraController::focusOn(const rush::AABB<3, float>& aabb)
@@ -146,10 +156,20 @@ namespace neoneuron
         sendPosition();
     }
 
+    std::vector<neon::IdentifiableWrapper<neon::Component>> OrbitalCameraController::onViewportRegister(
+        Viewport* viewport)
+    {
+        std::vector<neon::IdentifiableWrapper<neon::Component>> result;
+        result.push_back(getGameObject()->newComponent<PlaneGuide>(viewport));
+        result.push_back(getGameObject()->newComponent<SphereGuide>(viewport, this));
+        result.push_back(getGameObject()->newComponent<PointGuide>(viewport, this));
+        return result;
+    }
+
     void OrbitalCameraController::onMouseButton(const neon::MouseButtonEvent& event)
     {
-        if (event.action == neon::KeyboardAction::PRESS && (!_render->getUI().getViewport()->isHovered() ||
-                                                            !event.isModifierActive(neon::KeyboardModifier::CONTROL))) {
+        if (event.action == neon::KeyboardAction::PRESS &&
+            (!isHovered() || !event.isModifierActive(neon::KeyboardModifier::CONTROL))) {
             return;
         }
         if (event.button == neon::MouseButton::BUTTON_SECONDARY) {
@@ -165,13 +185,8 @@ namespace neoneuron
             }
         }
 
-        if (_cameraData->onActivePosition().getValue() != _dragPosition) {
-            _cameraData->onActivePosition().setValue(_dragPosition);
-        }
-
-        if (_cameraData->onActiveRotation().getValue() != _dragRotation) {
-            _cameraData->onActiveRotation().setValue(_dragRotation);
-        }
+        sendActivePosition(_dragPosition);
+        sendActiveRotation(_dragRotation);
     }
 
     void OrbitalCameraController::onCursorMove(const neon::CursorMoveEvent& event)
@@ -186,7 +201,7 @@ namespace neoneuron
 
     void OrbitalCameraController::onScroll(const neon::ScrollEvent& event)
     {
-        if (!_render->getUI().getViewport()->isHovered()) {
+        if (!isHovered()) {
             return;
         }
 
@@ -195,9 +210,6 @@ namespace neoneuron
 
     void OrbitalCameraController::onStart()
     {
-        _guides.push_back(getGameObject()->newComponent<PlaneGuide>(_render));
-        _guides.push_back(getGameObject()->newComponent<SphereGuide>(_render, this));
-        _guides.push_back(getGameObject()->newComponent<PointGuide>(_render, this));
     }
 
     void OrbitalCameraController::onUpdate(float deltaTime)

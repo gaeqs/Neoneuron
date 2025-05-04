@@ -1,16 +1,35 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 9/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef COMPLEXNEURONSCENE_H
-#define COMPLEXNEURONSCENE_H
+#ifndef NEONEURON_COMPLEXNEURONSCENE_H
+#define NEONEURON_COMPLEXNEURONSCENE_H
+
 #include <memory>
+#include <unordered_map>
+
 #include <hey/Listener.h>
 
 #include <neon/Neon.h>
 #include <neoneuron/structure/complex/ComplexNeuron.h>
 #include <neoneuron/render/complex/ComplexGPUNeuron.h>
 #include <neoneuron/render/AbstractNeuronRepresentation.h>
+#include <neoneuron/render/ChangeProcessor.h>
 #include <neoneuron/structure/Selector.h>
 
 namespace neoneuron
@@ -26,6 +45,19 @@ namespace neoneuron
     {
         uint32_t sections;
         uint32_t joints;
+    };
+
+    struct ComplexNeuronRepresentations
+    {
+        ComplexNeuron neuron;
+        ComplexGPUNeuron gpu;
+    };
+
+    struct ComplexNeuronProcessData
+    {
+        GID gid;
+        mindset::Dataset* dataset;
+        mindset::Neuron* neuron;
     };
 
     class ComplexNeuronRepresentation : public AbstractNeuronRepresentation
@@ -47,6 +79,13 @@ namespace neoneuron
         static constexpr size_t STORAGE_PER_SECTION = sizeof(uint32_t);
         static constexpr size_t MAX_SAVE_VERTICES = 1000000;
 
+        struct Materials
+        {
+            std::shared_ptr<neon::Material> segment;
+            std::shared_ptr<neon::Material> joint;
+            std::shared_ptr<neon::Material> soma;
+        };
+
       private:
         NeoneuronRender* _render;
 
@@ -57,20 +96,20 @@ namespace neoneuron
         std::shared_ptr<neon::ShaderProgram> _neuronShader;
         std::shared_ptr<neon::ShaderProgram> _jointShader;
         std::shared_ptr<neon::ShaderProgram> _somaShader;
-        std::shared_ptr<neon::Material> _neuronMaterial;
-        std::shared_ptr<neon::Material> _jointMaterial;
-        std::shared_ptr<neon::Material> _somaMaterial;
-        std::shared_ptr<neon::Model> _neuronModel;
+
+        std::unordered_map<Viewport*, Materials> _viewports;
+
+        std::shared_ptr<neon::Model> _segmentModel;
         std::shared_ptr<neon::Model> _jointModel;
         std::shared_ptr<neon::Model> _somaModel;
 
-        hey::Listener<mindset::Neuron*> _neuronAddListener;
-        hey::Listener<mindset::UID> _neuronRemoveListener;
-        hey::Listener<void*> _clearListener;
-        hey::Listener<SelectionEvent> _selectionListener;
+        ChangeProcessor<ComplexNeuronProcessData, ComplexNeuron> _neuronProcessor;
 
-        std::unordered_map<mindset::UID, ComplexNeuron> _neurons;
-        std::unordered_map<mindset::UID, ComplexGPUNeuron> _gpuNeurons;
+        hey::Listener<SelectionEvent> _selectionListener;
+        hey::Listener<GID> _processorListener;
+
+        std::unordered_set<GID> _neuronsInDataset;
+        std::unordered_map<GID, ComplexNeuronRepresentations> _neurons;
         rush::AABB<3, float> _sceneBoundingBox;
 
         std::vector<uint32_t> _selection;
@@ -88,11 +127,11 @@ namespace neoneuron
 
         void loadSomaShader();
 
-        void loadNeuronMaterial();
+        std::shared_ptr<neon::Material> loadSegmentMaterial(const Viewport* viewport) const;
 
-        void loadJointMaterial();
+        std::shared_ptr<neon::Material> loadJointMaterial(const Viewport* viewport) const;
 
-        void loadSomaMaterial();
+        std::shared_ptr<neon::Material> loadSomaMaterial(const Viewport* viewport) const;
 
         void loadNeuronModel();
 
@@ -104,19 +143,19 @@ namespace neoneuron
 
         void recalculateBoundingBox();
 
-        void reassignMaterials() const;
+        void recreateMaterials();
 
-        void onNeuronAdded(mindset::Neuron* neuron);
-
-        void onNeuronRemoved(mindset::UID uid);
+        void postProcess();
 
         void addComplexNeuron(ComplexNeuron&& complex);
 
-        void onClear();
-
         void onSelectionEvent(SelectionEvent event);
 
+        void refreshSelectionData();
+
         void updateGPURepresentationData() const;
+
+        void removeMaterials(const Materials& materials);
 
       public:
         ComplexNeuronRepresentation(const ComplexNeuronRepresentation&) = delete;
@@ -129,8 +168,6 @@ namespace neoneuron
 
         [[nodiscard]] const NeoneuronRender* getRender() const override;
 
-        [[nodiscard]] const std::unordered_map<mindset::UID, ComplexNeuron>& getNeurons() const;
-
         [[nodiscard]] size_t getNeuronsAmount() const;
 
         [[nodiscard]] size_t getSectionsAmount() const;
@@ -139,13 +176,13 @@ namespace neoneuron
 
         [[nodiscard]] size_t getSomasAmount() const;
 
-        [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(mindset::UID uid);
+        [[nodiscard]] std::optional<ComplexNeuron*> findNeuron(GID gid);
 
-        [[nodiscard]] std::optional<const ComplexNeuron*> findNeuron(mindset::UID uid) const;
+        [[nodiscard]] std::optional<const ComplexNeuron*> findNeuron(GID gid) const;
 
-        [[nodiscard]] std::optional<ComplexGPUNeuron*> findGPUNeuron(mindset::UID uid);
+        [[nodiscard]] std::optional<ComplexGPUNeuron*> findGPUNeuron(GID gid);
 
-        [[nodiscard]] std::optional<const ComplexGPUNeuron*> findGPUNeuron(mindset::UID uid) const;
+        [[nodiscard]] std::optional<const ComplexGPUNeuron*> findGPUNeuron(GID gid) const;
 
         [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
 
@@ -163,7 +200,17 @@ namespace neoneuron
 
         const std::shared_ptr<neon::ShaderUniformBuffer>& getUBO() const;
 
-        void refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName) override;
+        void refreshNeuronProperty(GID neuronId, const std::string& propertyName) override;
+
+        void refreshData(const RepositoryView& view) override;
+
+        void clearData() override;
+
+        void addViewport(Viewport* viewport) override;
+
+        void removeViewport(Viewport* viewport) override;
+
+        void setViewports(const std::unordered_set<Viewport*>& viewport) override;
 
         [[nodiscard]] bool isWireframeMode() const;
 
@@ -173,4 +220,4 @@ namespace neoneuron
     };
 } // namespace neoneuron
 
-#endif //COMPLEXNEURONSCENE_H
+#endif // NEONEURON_COMPLEXNEURONSCENE_H

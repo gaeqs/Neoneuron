@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 8/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #ifndef COMPLEXNEURON_H
 #define COMPLEXNEURON_H
@@ -11,14 +26,16 @@
 #include <mindset/Neuron.h>
 
 #include <neoneuron/structure/complex/ComplexNeuronSegment.h>
+#include <neoneuron/structure/GID.h>
 
 #include "ComplexJoint.h"
 #include "ComplexSoma.h"
 
 namespace neoneuron
 {
-    class ComplexNeuron : public mindset::Identifiable
+    class ComplexNeuron
     {
+        GID _gid;
         mindset::Dataset* _dataset;
         std::vector<ComplexNeuronSegment> _segments;
         std::unordered_map<mindset::UID, size_t> _segmentsByUID;
@@ -45,7 +62,9 @@ namespace neoneuron
 
         ComplexNeuron& operator=(ComplexNeuron&& other) noexcept;
 
-        ComplexNeuron(mindset::Dataset* dataset, mindset::Neuron* prototype);
+        ComplexNeuron(GID gid, mindset::Dataset* dataset, mindset::Neuron* prototype);
+
+        [[nodiscard]] GID getGID() const;
 
         mindset::Neuron* getPrototypeNeuron();
 
@@ -81,4 +100,4 @@ namespace neoneuron
     };
 } // namespace neoneuron
 
-#endif //COMPLEXNEURON_H
+#endif // COMPLEXNEURON_H

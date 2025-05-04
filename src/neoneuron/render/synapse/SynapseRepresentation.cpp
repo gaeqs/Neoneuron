@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 31/03/25.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "SynapseRepresentation.h"
 
@@ -44,21 +59,23 @@ namespace neoneuron
         }
     }
 
-    void SynapseRepresentation::loadMaterial()
+    std::shared_ptr<neon::Material> SynapseRepresentation::loadMaterial(const Viewport* viewport) const
     {
         auto* app = &_render->getApplication();
-        neon::MaterialCreateInfo materialCreateInfo(_render->getRenderFrameBuffer(), _shader);
+        neon::MaterialCreateInfo materialCreateInfo(viewport->getInputFrameBuffer(), _shader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::BACK;
         materialCreateInfo.rasterizer.polygonMode = neon::PolygonMode::FILL;
+        materialCreateInfo.descriptions.uniformBuffer = viewport->getUniformBuffer();
         materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
-        _material = std::make_shared<neon::Material>(app, "neoneuron:synapse", materialCreateInfo);
+        return std::make_shared<neon::Material>(app, "neoneuron:synapse", materialCreateInfo);
     }
 
     void SynapseRepresentation::loadModel()
     {
         auto* app = &_render->getApplication();
 
-        auto drawable = std::make_shared<neon::MeshShaderDrawable>(app, "neoneuron:synapse", _material);
+        auto drawable = std::make_shared<neon::MeshShaderDrawable>(
+            app, "neoneuron:synapse", std::unordered_set<std::shared_ptr<neon::Material>>());
         drawable->setGroupsSupplier([](const neon::Model& model) {
             uint32_t amount = model.getInstanceData(0)->getInstanceAmount();
             uint32_t tasks = amount / 1024 + (amount % 1024 != 0);
@@ -80,27 +97,6 @@ namespace neoneuron
 
         _model = std::make_shared<neon::Model>(app, "neoneuron:synapse", modelCreateInfo);
         _render->getRoom()->markUsingModel(_model.get());
-    }
-
-    void SynapseRepresentation::onSynapseAdded(mindset::Synapse* synapse)
-    {
-        auto [it, ok] = _gpuSynapses.emplace(std::piecewise_construct, std::forward_as_tuple(synapse->getUID()),
-                                             std::forward_as_tuple(_createInfo, synapse));
-        if (ok) {
-            if (_gpuSynapses.size() == 1) {
-                recalculateBoundingBox();
-            } else {
-                addSynapseToBoundingBox(it->second);
-            }
-            updateGPURepresentationData();
-        }
-    }
-
-    void SynapseRepresentation::onSynapseRemoved(mindset::UID uid)
-    {
-        _gpuSynapses.erase(uid);
-        recalculateBoundingBox();
-        updateGPURepresentationData();
     }
 
     void SynapseRepresentation::onClear()
@@ -167,24 +163,10 @@ namespace neoneuron
     {
         loadUniformBuffers();
         loadShader();
-        loadMaterial();
         loadModel();
 
-        auto& dataset = render->getNeoneuronApplication()->getDataset();
-
         _createInfo =
-            GPUSynapseCreateInfo(&dataset, _model->getInstanceData(0),
-                                 dataset.getProperties().defineProperty(mindset::PROPERTY_SYNAPSE_PRE_POSITION),
-                                 dataset.getProperties().defineProperty(mindset::PROPERTY_SYNAPSE_POST_POSITION));
-
-        _synapseAddListener = [this](mindset::Synapse* synapse) { onSynapseAdded(synapse); };
-        _synapseRemoveListener = [this](mindset::UID uid) { onSynapseRemoved(uid); };
-        _clearListener = [this](void*) { onClear(); };
-
-        auto& circuit = render->getNeoneuronApplication()->getDataset().getCircuit();
-        circuit.getSynapseAddedEvent() += _synapseAddListener;
-        circuit.getSynapseRemovedEvent() += _synapseRemoveListener;
-        circuit.getClearEvent() += _clearListener;
+            GPUSynapseCreateInfo(&render->getNeoneuronApplication()->getRepository(), _model->getInstanceData(0));
     }
 
     SynapseRepresentation::~SynapseRepresentation()
@@ -209,7 +191,90 @@ namespace neoneuron
         return _sceneBoundingBox;
     }
 
-    void SynapseRepresentation::refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName)
+    void SynapseRepresentation::refreshNeuronProperty(GID neuronId, const std::string& propertyName)
     {
+    }
+
+    void SynapseRepresentation::refreshData(const RepositoryView& view)
+    {
+        auto& newGIDs = view.getSynapses();
+        std::unordered_set set(newGIDs.begin(), newGIDs.end());
+
+        // Remove
+        for (const auto& gid : _synapsesInDataset) {
+            if (!set.contains(gid)) {
+                _gpuSynapses.erase(gid);
+            }
+        }
+
+        // Add
+        for (const auto& gid : set) {
+            if (!_synapsesInDataset.contains(gid)) {
+                if (auto optional = view.getRepository()->getSynapseAndDataset(gid)) {
+                    auto [dataset, synapse] = *optional;
+                    _gpuSynapses.emplace(std::piecewise_construct, std::forward_as_tuple(gid),
+                                         std::forward_as_tuple(_createInfo, gid, synapse));
+                }
+            }
+        }
+
+        recalculateBoundingBox();
+        updateGPURepresentationData();
+        _synapsesInDataset = set;
+    }
+
+    void SynapseRepresentation::clearData()
+    {
+        _gpuSynapses.clear();
+        _synapsesInDataset.clear();
+    }
+
+    void SynapseRepresentation::addViewport(Viewport* viewport)
+    {
+        if (_viewports.contains(viewport)) {
+            return;
+        }
+        auto fb = viewport->getInputFrameBuffer();
+        auto material = loadMaterial(viewport);
+
+        for (auto& mesh : _model->getMeshes()) {
+            mesh->getMaterials().insert(material);
+        }
+
+        _viewports.emplace(viewport, std::move(material));
+    }
+
+    void SynapseRepresentation::removeViewport(Viewport* viewport)
+    {
+        auto it = _viewports.find(viewport);
+        if (it == _viewports.end()) {
+            return;
+        }
+
+        for (auto& mesh : _model->getMeshes()) {
+            mesh->getMaterials().erase(it->second);
+        }
+
+        _viewports.erase(it);
+    }
+
+    void SynapseRepresentation::setViewports(const std::unordered_set<Viewport*>& viewport)
+    {
+        // First, remove
+        for (auto it = _viewports.begin(); it != _viewports.end();) {
+            if (!viewport.contains(it->first)) {
+                for (auto& mesh : _model->getMeshes()) {
+                    mesh->getMaterials().erase(it->second);
+                }
+                it = _viewports.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        // Then, add
+        for (auto vp : viewport) {
+            addViewport(vp);
+        }
     }
 } // namespace neoneuron

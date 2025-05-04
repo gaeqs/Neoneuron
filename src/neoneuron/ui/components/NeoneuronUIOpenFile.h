@@ -1,18 +1,35 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 3/01/25.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #ifndef NEONEURONUIOPENFILE_H
 #define NEONEURONUIOPENFILE_H
 
+#include <mindset/mindset.h>
 #include <neon/Neon.h>
-#include <mindset/loader/Loader.h>
 #include <neoneuron/application/NeoneuronApplication.h>
 
 namespace neoneuron
 {
     class NeoneuronUiOpenFile : public neon::Component
     {
+        constexpr static int MAX_DATASET_NAME_LENGTH = 1024;
+
         enum class UIDProvider
         {
             FILE,
@@ -28,7 +45,16 @@ namespace neoneuron
         std::vector<mindset::LoaderFactory> _loaders;
         std::vector<std::string> _loaderNames;
         std::vector<const char*> _loaderCNames;
+
+        std::vector<std::pair<mindset::UID, std::string>> _datasetNames;
+        std::vector<const char*> _datasetCNames;
+
         int _selectedLoader;
+        int _selectedDataset;
+
+        char _newDatasetName[MAX_DATASET_NAME_LENGTH];
+
+        mindset::Environment _environment;
 
         UIDProvider _uidProvider;
 
@@ -36,11 +62,19 @@ namespace neoneuron
 
         [[nodiscard]] int fetchLoaderIndex(const std::string& name) const;
 
+        [[nodiscard]] std::shared_ptr<NamedDataset> fetchDataset() const;
+
         [[nodiscard]] std::unique_ptr<mindset::Loader> generateLoader() const;
+
+        void regenerateEnvironment();
 
         void loaderCombo();
 
         void uidProviderCombo();
+
+        void datasetEditor();
+
+        void environmentEditor();
 
         void loadButton() const;
 
@@ -52,4 +86,4 @@ namespace neoneuron
     };
 } // namespace neoneuron
 
-#endif //NEONEURONUIOPENFILE_H
+#endif // NEONEURONUIOPENFILE_H

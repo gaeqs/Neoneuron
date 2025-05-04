@@ -1,26 +1,40 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 13/11/2024.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #ifndef NEURONTEXTUREPICKER_H
 #define NEURONTEXTUREPICKER_H
 
-#include <unordered_set>
 #include <mindset/UID.h>
 #include <neon/render/texture/Texture.h>
 #include <neon/structure/Component.h>
-#include <neon/util/component/ViewportComponent.h>
-#include <neoneuron/Types.h>
+#include <neoneuron/structure/GID.h>
 
 namespace neoneuron
 {
-    class NeoneuronRender;
+    class NeoneuronApplication;
+    class Viewport;
 
     class NeuronTexturePicker : public neon::Component
     {
-        NeoneuronRender* _render;
+        NeoneuronApplication* _application;
+        Viewport* _viewport;
         std::shared_ptr<neon::Texture> _texture;
-        neon::IdentifiableWrapper<neon::ViewportComponent> _viewport;
 
         bool _inside = false;
         rush::Vec2i _pixelPosition;
@@ -28,13 +42,10 @@ namespace neoneuron
         bool _selecting = false;
         rush::Vec2i _origin;
 
-        std::vector<std::pair<mindset::UID, mindset::UID>> pickNeurons(const rush::Vec4i* data, size_t size);
+        std::vector<std::pair<GID, mindset::UID>> pickNeurons(const rush::Vec4i* data, size_t size);
 
       public:
-        explicit NeuronTexturePicker(NeoneuronRender* render,
-                                     neon::IdentifiableWrapper<neon::ViewportComponent> viewport);
-
-        void onStart() override;
+        explicit NeuronTexturePicker(NeoneuronApplication* application, Viewport* viewport);
 
         void onMouseButton(const neon::MouseButtonEvent& event) override;
 
@@ -44,4 +55,4 @@ namespace neoneuron
     };
 } // namespace neoneuron
 
-#endif //NEURONTEXTUREPICKER_H
+#endif // NEURONTEXTUREPICKER_H

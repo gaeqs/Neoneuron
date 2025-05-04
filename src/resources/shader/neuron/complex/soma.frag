@@ -1,14 +1,15 @@
 #version 460
 
 layout(location = 0) in vec3 fragNormal;
-layout(location = 1) flat in float fragNeuronId;
-layout(location = 2) flat in float fragSectionId;
-layout(location = 3) flat in float fragSelected;
+layout(location = 1) flat in float fragDatasetId;
+layout(location = 2) flat in float fragNeuronId;
+layout(location = 3) flat in float fragSectionId;
+layout(location = 4) flat in float fragSelected;
 
 layout(location = 0) out vec4 color;
 layout(location = 1) out vec3 ids;
 
-layout (set = 0, binding = 0) uniform Matrices {
+layout (set = 1, binding = 0) uniform Matrices {
     mat4 view;
     mat4 viewProjection;
     mat4 inverseProjection;
@@ -48,5 +49,5 @@ void main() {
 
     vec4 pre = fragSelected > 0.5f ? selectedColor : defaultColor;
     color = vec4(pre.xyz * intensity, pre.w);
-    ids = vec3(1, fragNeuronId, fragSectionId);
+    ids = vec3(uintBitsToFloat(floatBitsToUint(fragDatasetId) + 1), fragNeuronId, fragSectionId);
 }

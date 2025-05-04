@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 15/01/2025.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "ActionShuffle.h"
 
@@ -12,8 +27,9 @@
 
 namespace neoneuron
 {
-    void ActionShuffle::shuffle(mindset::UID prop, mindset::Neuron* neuron)
+    void ActionShuffle::shuffle(GID gid, NamedDataset* dataset, mindset::Neuron* neuron)
     {
+        auto prop = dataset->getDataset().getProperties().defineProperty(mindset::PROPERTY_TRANSFORM);
         std::uniform_real_distribution dis(-1.0f, 1.0f);
         std::uniform_real_distribution rDis(0.0f, 1.0f);
 
@@ -30,24 +46,28 @@ namespace neoneuron
         }
 
         neuron->setProperty(prop, transform);
-        _application->getRender().refreshNeuronProperty(neuron->getUID(), mindset::PROPERTY_TRANSFORM);
+        _application->getRender().refreshNeuronProperty(gid, mindset::PROPERTY_TRANSFORM);
     }
 
     void ActionShuffle::run()
     {
-        auto& dataset = _application->getDataset();
-        auto propId = dataset.getProperties().defineProperty(mindset::PROPERTY_TRANSFORM);
+        auto cast = _application->getRepository().getNeurons();
+
+        auto& repo = _application->getRepository();
 
         auto& neurons = _application->getSelector().getSelectedNeurons();
         if (neurons.empty()) {
             // Shuffle all neurons
-            for (auto neuron : dataset.getNeurons()) {
-                shuffle(propId, neuron.getRaw());
+            for (auto [uid, dataset] : repo.getDatasets()) {
+                for (auto neuron : dataset->getDataset().getNonContextualizedNeurons()) {
+                    shuffle(GID(uid, neuron->getUID()), dataset, neuron);
+                }
             }
         } else {
-            for (auto& uid : neurons) {
-                if (auto neuron = dataset.getNeuron(uid); neuron.has_value()) {
-                    shuffle(propId, neuron.value());
+            for (auto& gid : neurons) {
+                if (auto opt = repo.getNeuronAndDataset(gid)) {
+                    auto [dataset, neuron] = *opt;
+                    shuffle(gid, dataset, neuron);
                 }
             }
         }

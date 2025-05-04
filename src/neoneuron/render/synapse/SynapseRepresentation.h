@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 31/03/25.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #ifndef SYNAPSEREPRESENTATION_H
 #define SYNAPSEREPRESENTATION_H
@@ -36,7 +51,6 @@ namespace neoneuron
         std::shared_ptr<neon::ShaderUniformBuffer> _ubo;
 
         std::shared_ptr<neon::ShaderProgram> _shader;
-        std::shared_ptr<neon::Material> _material;
         std::shared_ptr<neon::Model> _model;
 
         /**
@@ -45,17 +59,16 @@ namespace neoneuron
          */
         GPUSynapseCreateInfo _createInfo;
 
-        hey::Listener<mindset::Synapse*> _synapseAddListener;
-        hey::Listener<mindset::UID> _synapseRemoveListener;
-        hey::Listener<void*> _clearListener;
+        std::unordered_map<Viewport*, std::shared_ptr<neon::Material>> _viewports;
 
-        std::unordered_map<mindset::UID, GPUSynapse> _gpuSynapses;
+        std::unordered_set<GID> _synapsesInDataset;
+        std::unordered_map<GID, GPUSynapse> _gpuSynapses;
 
         void loadUniformBuffers();
 
         void loadShader();
 
-        void loadMaterial();
+        std::shared_ptr<neon::Material> loadMaterial(const Viewport* viewport) const;
 
         void loadModel();
 
@@ -84,9 +97,18 @@ namespace neoneuron
 
         [[nodiscard]] rush::AABB<3, float> getSceneBoundingBox() const override;
 
-        void refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName) override;
+        void refreshNeuronProperty(GID gid, const std::string& propertyName) override;
+
+        void refreshData(const RepositoryView& view) override;
+
+        void clearData() override;
+
+        void addViewport(Viewport* viewport) override;
+
+        void removeViewport(Viewport* viewport) override;
+
+        void setViewports(const std::unordered_set<Viewport*>& viewport) override;
     };
 
 } // namespace neoneuron
-
-#endif //SYNAPSEREPRESENTATION_H
+#endif // SYNAPSEREPRESENTATION_H
