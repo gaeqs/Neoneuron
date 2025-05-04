@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 23/10/2024.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #ifndef GUIDE_H
 #define GUIDE_H
@@ -12,6 +27,7 @@ namespace neoneuron
 {
     class NeoneuronRender;
     class OrbitalCameraController;
+    class Viewport;
 
     class PlaneGuide : public neon::Component
     {
@@ -21,7 +37,7 @@ namespace neoneuron
             float lastUpdate;
         };
 
-        NeoneuronRender* _render;
+        Viewport* _viewport;
 
         std::shared_ptr<neon::Model> _planeModel;
         neon::InstanceData::Instance _planeInstance;
@@ -31,7 +47,7 @@ namespace neoneuron
         void updatePlaneState(bool active) const;
 
       public:
-        explicit PlaneGuide(NeoneuronRender* render);
+        explicit PlaneGuide(Viewport* viewport);
 
         ~PlaneGuide() override;
 
@@ -48,7 +64,7 @@ namespace neoneuron
             float radius;
         };
 
-        NeoneuronRender* _render;
+        Viewport* _viewport;
         neon::IdentifiableWrapper<OrbitalCameraController> _orbitalController;
 
         std::shared_ptr<neon::Model> _sphereModel;
@@ -61,7 +77,7 @@ namespace neoneuron
         void updateSphereState() const;
 
       public:
-        explicit SphereGuide(NeoneuronRender* render, neon::IdentifiableWrapper<OrbitalCameraController> controller);
+        SphereGuide(Viewport* viewport, neon::IdentifiableWrapper<OrbitalCameraController> controller);
 
         ~SphereGuide() override;
 
@@ -79,7 +95,7 @@ namespace neoneuron
             rush::Vec3f center;
         };
 
-        NeoneuronRender* _render;
+        Viewport* _viewport;
         neon::IdentifiableWrapper<OrbitalCameraController> _orbitalController;
 
         std::shared_ptr<neon::Model> _sphereModel;
@@ -95,7 +111,7 @@ namespace neoneuron
         void updatePointState();
 
       public:
-        explicit PointGuide(NeoneuronRender* render, neon::IdentifiableWrapper<OrbitalCameraController> controller);
+        PointGuide(Viewport* viewport, neon::IdentifiableWrapper<OrbitalCameraController> controller);
 
         ~PointGuide() override;
 
@@ -105,4 +121,4 @@ namespace neoneuron
     };
 } // namespace neoneuron
 
-#endif //GUIDE_H
+#endif // GUIDE_H

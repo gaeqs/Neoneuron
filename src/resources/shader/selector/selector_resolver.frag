@@ -3,7 +3,7 @@
 layout(location = 0) in vec2 texCoords;
 layout(location = 1) in vec2 fragPosition;
 
-layout (set = 0, binding = 0) uniform Matrices {
+layout (set = 2, binding = 0) uniform Matrices {
     mat4 view;
     mat4 viewProjection;
     mat4 inverseProjection;

@@ -22,52 +22,15 @@
   },
   "render_passes": [
     {
-      "name": "neoneuron:frame_buffer",
+      "name": "neoneuron:swap_chain_render_pass_strategy",
       "save": true,
-      "type": "simple",
-      "depth": true,
-      "samples": "COUNT_8",
-      "textures": [
-        {
-          "name": "neoneuron:frame_buffer_output",
-          "save": true,
-          "format": "R8G8B8A8",
-          "resolved": {
-            "name": "neoneuron:frame_buffer_output_resolved",
-            "save": true
-          }
-        },
-        {
-          "name": "neoneuron:frame_buffer_picker",
-          "save": true,
-          "format": "R32FG32FB32FA32F"
-        }
-      ]
-    },
-    {
-      "name": "neoneuron:picker_frame_buffer",
-      "save": true,
-      "type": "simple",
-      "depth": false,
-      "samples": "COUNT_1",
-      "textures": [
-        {
-          "name": "neoneuron:frame_buffer_output_final",
-          "save": true,
-          "format": "R8G8B8A8"
-        },
-        {
-          "name": "neoneuron:frame_buffer_picker_resolved",
-          "save": true,
-          "format": "R32FG32FB32FA32F"
-        }
-      ]
-    },
-    {
-      "name": "neoneuron:frame_buffer_swap_chain",
-      "save": true,
-      "type": "swap_chain",
-      "samples": "COUNT_1"
+      "priority": 0,
+      "frame_buffer": {
+        "name": "neoneuron:frame_buffer_swap_chain",
+        "save": true,
+        "type": "swap_chain",
+        "samples": "COUNT_1"
+      }
     }
   ]
 }

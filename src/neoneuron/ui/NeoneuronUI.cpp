@@ -1,14 +1,29 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 9/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "NeoneuronUI.h"
 
+#include "components/NeoneuronBottomBar.h"
 #include "components/NeoneuronUINodeEditor.h"
 
 #include <neon/util/component/DebugOverlayComponent.h>
 #include <neon/util/component/DockSpaceComponent.h>
-#include <neon/util/component/ViewportComponent.h>
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/ui/NeoneuronTopBar.h>
@@ -17,7 +32,6 @@
 
 #include <neoneuron/ui/components/NeoneuronUINeuronList.h>
 #include <neoneuron/ui/components/NeoneuronUIGlobalParameters.h>
-#include <neoneuron/ui/components/NeuronTexturePicker.h>
 #include <vulkan/util/component/VulkanInfoCompontent.h>
 
 namespace neoneuron
@@ -100,12 +114,11 @@ namespace neoneuron
         _gameObject = render->getRoom()->newGameObject();
         _gameObject->setName("UI");
         _gameObject->newComponent<neon::DockSpaceComponent>(true);
-        _viewport = _gameObject->newComponent<neon::ViewportComponent>();
         _gameObject->newComponent<neon::LogComponent>();
         _gameObject->newComponent<NeoneuronTopBar>(render);
+        _gameObject->newComponent<NeoneuronBottomBar>(render->getNeoneuronApplication());
         _gameObject->newComponent<NeoneuronUINeuronList>(render);
         _gameObject->newComponent<NeoneuronUIGlobalParameters>(render);
-        _gameObject->newComponent<NeuronTexturePicker>(render, _viewport);
         _gameObject->newComponent<neon::vulkan::VulkanInfoCompontent>();
         _gameObject->newComponent<NeoneuronUINodeEditor>(render->getNeoneuronApplication());
 
@@ -138,14 +151,8 @@ namespace neoneuron
     {
         _render = other._render;
         _gameObject = other._gameObject;
-        _viewport = other._viewport;
         _debugKeyListener = std::move(other._debugKeyListener);
         other._gameObject = nullptr;
         return *this;
-    }
-
-    neon::IdentifiableWrapper<neon::ViewportComponent> NeoneuronUI::getViewport() const
-    {
-        return _viewport;
     }
 } // namespace neoneuron

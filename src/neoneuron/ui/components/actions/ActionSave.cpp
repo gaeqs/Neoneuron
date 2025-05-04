@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 14/02/2025.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "ActionSave.h"
 
@@ -17,7 +32,7 @@ namespace neoneuron
         getTaskRunner().launchCoroutine(saveCoroutine(std::move(selection)));
     }
 
-    neon::Coroutine<> ActionSave::saveCoroutine(std::unordered_set<mindset::UID> uids)
+    neon::Coroutine<> ActionSave::saveCoroutine(std::unordered_set<GID> gids)
     {
         constexpr size_t VALUES_PER_SEGMENT = 64;
         constexpr size_t VALUES_PER_JOINT = 68;
@@ -36,15 +51,15 @@ namespace neoneuron
             co_return;
         }
 
-        auto& dataset = _application->getDataset();
-        auto typeProp = dataset.getProperties().getPropertyUID(mindset::PROPERTY_NEURITE_TYPE);
+        auto& repo = _application->getRepository();
 
-        for (mindset::UID uid : uids) {
-            auto optional = dataset.getNeuron(uid);
+        for (GID gid : gids) {
+            auto optional = repo.getNeuronAndDataset(gid);
             if (!optional.has_value()) {
                 continue;
             }
-            auto* neuron = optional.value();
+            auto [dataset, neuron] = *optional;
+            auto typeProp = dataset->getDataset().getProperties().getPropertyUID(mindset::PROPERTY_NEURITE_TYPE);
 
             if (!neuron->getMorphology().has_value()) {
                 continue;
@@ -60,7 +75,7 @@ namespace neoneuron
             auto& ubo = representation->getUBO();
             ubo->clearData(7);
             ubo->clearData(8);
-            representation->getRender()->getRenderData().savingNeuron = uid;
+            representation->getRender()->getRenderData().savingNeuron = gid.internalId;
             co_yield neon::WaitForNextFrame();
 
             representation->getRender()->getRenderData().savingNeuron = std::numeric_limits<uint32_t>::max();

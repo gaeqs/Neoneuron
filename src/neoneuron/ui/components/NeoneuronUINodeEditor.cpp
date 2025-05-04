@@ -1,35 +1,31 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 2/04/25.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "NeoneuronUINodeEditor.h"
 
+#include "nodes/CameraNode.h"
 #include "nodes/DatasetNode.h"
-
-namespace
-{
-
-    class TestNode : public ImBlueprint::Node
-    {
-      public:
-        TestNode() :
-            Node("Test node")
-        {
-            defineInput<int>("Hello!");
-            defineInput<int>("Hello1!");
-            defineInput<int>("Hello2!");
-            defineInput<int>("Hello3!");
-            defineInput<int>("Hello4!");
-            // defineOutput<int>("World");
-        }
-
-        void renderBody() override
-        {
-            ImGui::Dummy(ImVec2(50, 20));
-        }
-    };
-
-} // namespace
+#include "nodes/RepositoryNode.h"
+#include "nodes/RepresentationNode.h"
+#include "nodes/SelectionNode.h"
+#include "nodes/SynapseRepresentationNode.h"
+#include "nodes/ViewportNode.h"
 
 namespace neoneuron
 {
@@ -39,12 +35,16 @@ namespace neoneuron
     {
         _editor.showMinimap(true);
 
+        _factories.push_back(RepositoryNode::createFactory());
+        _factories.push_back(RepresentationNode::createFactory());
+        _factories.push_back(SynapseRepresentationNode::createFactory());
+        _factories.push_back(ViewportNode::createFactory());
+        _factories.push_back(CameraNode::createFactory());
         _factories.push_back(DatasetNode::createFactory());
+        _factories.push_back(SelectionNode::createFactory());
     }
 
-    NeoneuronUINodeEditor::~NeoneuronUINodeEditor()
-    {
-    }
+    NeoneuronUINodeEditor::~NeoneuronUINodeEditor() = default;
 
     void NeoneuronUINodeEditor::onUpdate(float deltaTime)
     {
@@ -76,18 +76,15 @@ namespace neoneuron
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("neoneuron:node")) {
                     IM_ASSERT(payload->DataSize == sizeof(size_t));
                     size_t index = *static_cast<size_t*>(payload->Data);
-                    neon::debug() << index;
                     if (_factories.size() > index) {
-                        neon::debug() << "Creating";
                         auto& factory = _factories[index];
                         auto* node = factory.create(_application, _editor);
-                        neon::debug() << node;
                         if (node != nullptr) {
                             _editor.setNodeScreenPosition(node, ImGui::GetMousePos());
                         }
                     }
-                    ImGui::EndDragDropTarget();
                 }
+                ImGui::EndDragDropTarget();
             }
 
             ImGui::EndChild();

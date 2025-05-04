@@ -1,7 +1,7 @@
 {
   "name": "neoneuron:plane_guide",
-  "save": true,
-  "use_present": true,
+  "save": false,
+  "use_present": false,
   "maximum_instances": 1,
   "auto_flush": true,
   "custom_instance_sizes": [
@@ -10,8 +10,8 @@
   "meshes": [
     {
       "name": "neoneuron:plane_guide",
-      "save": true,
-      "use_present": true,
+      "save": false,
+      "use_present": false,
       "vertices": [
         -100000.0,
         0.0,
@@ -37,9 +37,9 @@
       "materials": [
         {
           "name": "neoneuron:plane_guide",
-          "save": true,
-          "use_present": true,
-          "frame_buffer": "A:neoneuron:frame_buffer",
+          "save": false,
+          "use_present": false,
+          "frame_buffer": "A:neoneuron:input",
           "shader": "/shader/guide/plane_guide.json",
           "descriptions": {
             "vertex": {
@@ -61,7 +61,8 @@
                   "offset_in_bytes": 4
                 }
               ]
-            }
+            },
+            "uniform_buffer": "A:neoneuron:viewport_uniform_buffer"
           },
           "blending": {
             "attachments": [

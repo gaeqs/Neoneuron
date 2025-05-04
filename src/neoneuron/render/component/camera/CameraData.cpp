@@ -1,38 +1,28 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 22/10/2024.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "CameraData.h"
 
 #include <neoneuron/render/NeoneuronRender.h>
-#include <neoneuron/render/component/camera/OrbitalCameraController.h>
-#include <neoneuron/render/component/camera/InstantCameraInterpolator.h>
-
-#include <neoneuron/render/component/camera/Guide.h>
 
 namespace neoneuron
 {
-    CameraData::~CameraData()
-    {
-        if (_cameraGameObject.isValid()) {
-            _cameraGameObject->destroy();
-        }
-    }
-
-    CameraData::CameraData(NeoneuronRender* render)
-    {
-        auto* room = render->getRoom().get();
-        _cameraGameObject = room->newGameObject();
-        _cameraGameObject->setName("Camera");
-
-        _cameraController = _cameraGameObject->newComponent<OrbitalCameraController>(
-            render, this, std::make_unique<InstantCameraInterpolator>(&room->getCamera()));
-    }
-
-    neon::IdentifiableWrapper<CameraController> CameraData::getCameraController() const
-    {
-        return _cameraController;
-    }
 
     hey::ObservableValue<bool>& CameraData::onActiveRotation()
     {

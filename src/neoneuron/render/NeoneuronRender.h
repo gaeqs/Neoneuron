@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 8/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #ifndef NEONEURONRENDER_H
 #define NEONEURONRENDER_H
@@ -8,7 +23,6 @@
 #include <neon/Neon.h>
 
 #include <neoneuron/ui/NeoneuronUI.h>
-#include <neoneuron/render/component/camera/CameraData.h>
 #include <neoneuron/render/AbstractNeuronRepresentation.h>
 #include <neoneuron/render/NeoneuronRenderData.h>
 
@@ -21,7 +35,6 @@ namespace neoneuron
         struct Components
         {
             NeoneuronUI ui;
-            CameraData cameraData;
 
             Components(NeoneuronRender* render);
         };
@@ -29,20 +42,19 @@ namespace neoneuron
         NeoneuronApplication* _neoneuronApplication;
         neon::Application _application;
         neon::CMRCFileSystem _fileSystem;
-        std::shared_ptr<neon::SimpleFrameBuffer> _renderFrameBuffer;
         std::shared_ptr<neon::Room> _room;
         std::chrono::high_resolution_clock::time_point _startTime;
         std::unique_ptr<Components> _components;
         NeoneuronRenderData _renderData;
-        std::shared_ptr<neon::Model> _selectionResolver;
 
         std::vector<std::unique_ptr<AbstractNeuronRepresentation>> _representations;
+
+        neon::IdentifiableWrapper<neon::GameObject> _viewportGO;
+        std::vector<Viewport*> _viewports;
 
         std::shared_ptr<neon::Render> initRender();
 
         void initGameObjects();
-
-        void initSelectionResolver();
 
       public:
         NeoneuronRender(const NeoneuronRender& other) = delete;
@@ -62,17 +74,11 @@ namespace neoneuron
 
         const neon::CMRCFileSystem getFileSystem() const;
 
-        [[nodiscard]] const std::shared_ptr<neon::SimpleFrameBuffer>& getRenderFrameBuffer() const;
-
         [[nodiscard]] const std::shared_ptr<neon::Room>& getRoom() const;
 
         [[nodiscard]] NeoneuronUI& getUI();
 
         [[nodiscard]] const NeoneuronUI& getUI() const;
-
-        [[nodiscard]] CameraData& getCameraData();
-
-        [[nodiscard]] const CameraData& getCameraData() const;
 
         [[nodiscard]] NeoneuronRenderData& getRenderData();
 
@@ -82,8 +88,6 @@ namespace neoneuron
 
         [[nodiscard]] std::vector<const AbstractNeuronRepresentation*> getRepresentations() const;
 
-        void setSkybox(const std::shared_ptr<neon::Texture>& skybox) const;
-
         rush::AABB<3, float> getCombinedAABB() const;
 
         float getCurrentTime() const;
@@ -92,9 +96,23 @@ namespace neoneuron
 
         void focusScene() const;
 
-        void refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName);
+        void refreshNeuronProperty(GID neuronId, const std::string& propertyName);
 
+        template<typename Representation>
+        Representation* addRepresentation()
+        {
+            auto ptr = std::make_unique<Representation>(this);
+            auto raw = ptr.get();
+            _representations.push_back(std::move(ptr));
+            return raw;
+        }
+
+        void removeRepresentation(AbstractNeuronRepresentation* representation);
+
+        Viewport* addViewport();
+
+        void removeViewport(Viewport* viewport);
     };
 } // namespace neoneuron
 
-#endif //NEONEURONRENDER_H
+#endif // NEONEURONRENDER_H

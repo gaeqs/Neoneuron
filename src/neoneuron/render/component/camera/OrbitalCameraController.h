@@ -1,10 +1,26 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 16/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #ifndef ORBITALCAMERACONTROLLER_H
 #define ORBITALCAMERACONTROLLER_H
 
+#include <neoneuron/render/Viewport.h>
 #include <neoneuron/render/component/camera/CameraController.h>
 
 namespace neoneuron
@@ -20,7 +36,6 @@ namespace neoneuron
             float radius;
         };
 
-        NeoneuronRender* _render;
         std::unique_ptr<CameraInterpolator> _interpolator;
 
         Position _position;
@@ -35,8 +50,6 @@ namespace neoneuron
         bool _dragPosition;
         bool _dragRotation;
 
-        std::vector<neon::IdentifiableWrapper<Component>> _guides;
-
         void sendPosition() const;
 
         void dragPosition(const neon::CursorMoveEvent& event);
@@ -50,16 +63,19 @@ namespace neoneuron
         bool updateRadius(float deltaTime);
 
       public:
-        OrbitalCameraController(NeoneuronRender* render, CameraData* cameraData,
-                                std::unique_ptr<CameraInterpolator> interpolator);
+        OrbitalCameraController(std::unique_ptr<CameraInterpolator> interpolator);
 
-        ~OrbitalCameraController();
+        ~OrbitalCameraController() override = default;
+
+        neon::Camera* getCamera() const override;
 
         void focusOn(const rush::AABB<3, float>& aabb) override;
 
         void forcePosition(rush::Vec3f position) override;
 
         void setInterpolator(std::unique_ptr<CameraInterpolator> interpolator) override;
+
+        std::vector<neon::IdentifiableWrapper<Component>> onViewportRegister(Viewport* viewport) override;
 
         void onMouseButton(const neon::MouseButtonEvent& event) override;
 
@@ -81,4 +97,4 @@ namespace neoneuron
     };
 } // namespace neoneuron
 
-#endif //ORBITALCAMERACONTROLLER_H
+#endif // ORBITALCAMERACONTROLLER_H

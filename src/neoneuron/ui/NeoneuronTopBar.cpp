@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 11/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "NeoneuronTopBar.h"
 
@@ -112,21 +127,21 @@ namespace neoneuron
 
     void NeoneuronTopBar::viewMenu() const
     {
-        //auto* scene = _render->getNeuronScene().get();
-        //if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
-        //    bool drawSegments = complexScene->shouldDrawSegments();
-        //    bool drawJoints = complexScene->shouldDrawJoints();
-        //    bool drawSomas = complexScene->shouldDrawSomas();
-        //    if (ImGui::MenuItem("Draw segments", nullptr, &drawSegments)) {
-        //        complexScene->setDrawSegments(drawSegments);
-        //    }
-        //    if (ImGui::MenuItem("Draw joints", nullptr, &drawJoints)) {
-        //        complexScene->setDrawJoints(drawJoints);
-        //    }
-        //    if (ImGui::MenuItem("Draw somas", nullptr, &drawSomas)) {
-        //        complexScene->setDrawSomas(drawSomas);
-        //    }
-        //}
+        // auto* scene = _render->getNeuronScene().get();
+        // if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
+        //     bool drawSegments = complexScene->shouldDrawSegments();
+        //     bool drawJoints = complexScene->shouldDrawJoints();
+        //     bool drawSomas = complexScene->shouldDrawSomas();
+        //     if (ImGui::MenuItem("Draw segments", nullptr, &drawSegments)) {
+        //         complexScene->setDrawSegments(drawSegments);
+        //     }
+        //     if (ImGui::MenuItem("Draw joints", nullptr, &drawJoints)) {
+        //         complexScene->setDrawJoints(drawJoints);
+        //     }
+        //     if (ImGui::MenuItem("Draw somas", nullptr, &drawSomas)) {
+        //         complexScene->setDrawSomas(drawSomas);
+        //     }
+        // }
     }
 
     void NeoneuronTopBar::actionsMenu() const
@@ -178,7 +193,7 @@ namespace neoneuron
                     openFile();
                 }
                 if (ImGui::MenuItem("Close scene")) {
-                    _render->getNeoneuronApplication()->getDataset().clear();
+                    _render->getNeoneuronApplication()->getRepository().clear();
                 }
                 if (ImGui::MenuItem("Save scene")) {
                     saveFile(saveScene(_render).dump(4));
@@ -221,19 +236,5 @@ namespace neoneuron
         }
 
         demo();
-
-        ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
-        ImGuiWindowFlags window_flags =
-            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
-        float height = ImGui::GetFrameHeight();
-
-        if (ImGui::BeginViewportSideBar("##Status", viewport, ImGuiDir_Down, height, window_flags)) {
-            if (ImGui::BeginMenuBar()) {
-                ImGui::Text("Happy status bar");
-                ImGui::Text("Happy status bar");
-                ImGui::EndMenuBar();
-            }
-            ImGui::End();
-        }
     }
 } // namespace neoneuron

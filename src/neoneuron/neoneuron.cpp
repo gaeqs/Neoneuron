@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 8/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include <cmrc/cmrc.hpp>
 #include <imgui_impl_vulkan.h>
@@ -12,13 +27,6 @@
 #include "application/NeoneuronApplication.h"
 
 CMRC_DECLARE(resources);
-
-std::shared_ptr<neon::Texture> loadSkybox(neon::Room* room)
-{
-    neon::CMRCFileSystem fileSystem(cmrc::resources::get_filesystem());
-    neon::AssetLoaderContext context(room->getApplication(), nullptr, &fileSystem);
-    return loadAssetFromFile<neon::Texture>("texture/skybox/skybox.json", context);
-}
 
 int main()
 {
@@ -50,6 +58,7 @@ int main()
 
     info.featuresConfigurator = [](const auto& device, neon::vulkan::VKPhysicalDeviceFeatures& features) {
         neon::vulkan::VKApplicationCreateInfo::defaultFeaturesConfigurer(device, features);
+        features.basicFeatures.samplerAnisotropy = true;
         features.basicFeatures.independentBlend = true;
         features.basicFeatures.fillModeNonSolid = true;
         auto* mesh = features.findFeature<MeshFeature>(MESH_FEATURE).value();
@@ -62,7 +71,7 @@ int main()
 
     neoneuron::NeoneuronApplication app(info);
 
-    // app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
+    //app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
 
     bool result = app.getRender().renderLoop();
     app.saveSettings();

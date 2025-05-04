@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 4/12/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "NeoneuronApplication.h"
 #include "NeoneuronDefaults.h"
@@ -18,22 +33,23 @@ namespace neoneuron
         return optional->toJson().value_or(nlohmann::json());
     }
 
-    NeoneuronApplication::NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo) :
+    NeoneuronApplication::NeoneuronApplication(const neon::vulkan::VKApplicationCreateInfo& renderCreateInfo) :
         _settings(loadSettings()),
-        _selector(&_dataset),
-        _render(this, std::move(renderCreateInfo))
+        _selector(&_repository),
+        _render(this, renderCreateInfo),
+        _loaderCollection(this)
     {
         initDefaultProperties(_propertyStorage);
     }
 
-    mindset::Dataset& NeoneuronApplication::getDataset()
+    Repository& NeoneuronApplication::getRepository()
     {
-        return _dataset;
+        return _repository;
     }
 
-    const mindset::Dataset& NeoneuronApplication::getDataset() const
+    const Repository& NeoneuronApplication::getRepository() const
     {
-        return _dataset;
+        return _repository;
     }
 
     Selector& NeoneuronApplication::getSelector()
@@ -84,6 +100,16 @@ namespace neoneuron
     const mindset::LoaderRegistry& NeoneuronApplication::getLoaderRegistry() const
     {
         return _loaderStorage;
+    }
+
+    LoaderCollection& NeoneuronApplication::getLoaderCollection()
+    {
+        return _loaderCollection;
+    }
+
+    const LoaderCollection& NeoneuronApplication::getLoaderCollection() const
+    {
+        return _loaderCollection;
     }
 
     void NeoneuronApplication::registerSettingsListener(const hey::Listener<std::string>& listener) const

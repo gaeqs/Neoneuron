@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 23/10/2024.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "Guide.h"
 
@@ -15,11 +30,12 @@ namespace neoneuron
     void PlaneGuide::updatePlaneState(bool active) const
     {
         _planeModel->getInstanceData(0)->uploadData(
-            _planeInstance, 0, GuideInstancingData{active ? 1.0f : 0.0f, _render->getCurrentTime()});
+            _planeInstance, 0, GuideInstancingData{active ? 1.0f : 0.0f, _viewport->getRender()->getCurrentTime()});
     }
 
-    PlaneGuide::PlaneGuide(NeoneuronRender* render) :
-        _render(render),
+    PlaneGuide::PlaneGuide(Viewport* viewport) :
+        _viewport(viewport),
+        _planeInstance(),
         _positionListener([this](bool active) { updatePlaneState(active); })
     {
     }
@@ -33,16 +49,22 @@ namespace neoneuron
 
     void PlaneGuide::onStart()
     {
+        neon::AssetCollection localCollection;
+        localCollection.store(_viewport->getInputFrameBuffer(), neon::AssetStorageMode::WEAK);
+        localCollection.store(_viewport->getUniformDescriptor(), neon::AssetStorageMode::WEAK);
+        localCollection.store(_viewport->getUniformBuffer(), neon::AssetStorageMode::WEAK);
+
         neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
         neon::AssetLoaderContext context(getApplication());
         context.fileSystem = &fs;
+        context.localCollection = &localCollection;
 
         _planeModel = neon::loadAssetFromFile<neon::Model>("/model/guide/plane_guide.json", context);
         getRoom()->markUsingModel(_planeModel.get());
         _planeInstance = _planeModel->getInstanceData(0)->createInstance().getResult();
 
         // Init Hey!
-        _render->getCameraData().onActivePosition() += _positionListener;
+        _viewport->getCameraData().onActivePosition() += _positionListener;
 
         updatePlaneState(false);
     }
@@ -55,15 +77,17 @@ namespace neoneuron
                                                                          _orbitalController->getRadius()});
     }
 
-    SphereGuide::SphereGuide(NeoneuronRender* render, neon::IdentifiableWrapper<OrbitalCameraController> controller) :
-        _render(render),
-        _orbitalController(controller),
+    SphereGuide::SphereGuide(Viewport* viewport, neon::IdentifiableWrapper<OrbitalCameraController> controller) :
+        _viewport(viewport),
+        _orbitalController(std::move(controller)),
+        _sphereInstance(),
         _rotationListener([this](bool active) {
             _state = active;
-            _lastUpdate = _render->getCurrentTime();
+            _lastUpdate = _viewport->getRender()->getCurrentTime();
             updateSphereState();
         }),
-        _state(false)
+        _state(false),
+        _lastUpdate(0)
     {
     }
 
@@ -76,9 +100,15 @@ namespace neoneuron
 
     void SphereGuide::onStart()
     {
+        neon::AssetCollection localCollection;
+        localCollection.store(_viewport->getInputFrameBuffer(), neon::AssetStorageMode::WEAK);
+        localCollection.store(_viewport->getUniformDescriptor(), neon::AssetStorageMode::WEAK);
+        localCollection.store(_viewport->getUniformBuffer(), neon::AssetStorageMode::WEAK);
+
         neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
         neon::AssetLoaderContext context(getApplication());
         context.fileSystem = &fs;
+        context.localCollection = &localCollection;
 
         _sphereModel = neon::loadAssetFromFile<neon::Model>("/model/guide/sphere_guide.json", context);
 
@@ -87,7 +117,7 @@ namespace neoneuron
         _sphereInstance = _sphereModel->getInstanceData(0)->createInstance().getResult();
 
         // Init Hey!
-        _render->getCameraData().onActiveRotation() += _rotationListener;
+        _viewport->getCameraData().onActiveRotation() += _rotationListener;
 
         updateSphereState();
     }
@@ -102,7 +132,7 @@ namespace neoneuron
         bool newState = _positionState | _rotationState;
         if (newState != _state) {
             _state = newState;
-            _lastUpdate = _render->getCurrentTime();
+            _lastUpdate = _viewport->getRender()->getCurrentTime();
         }
 
         _sphereModel->getInstanceData(0)->uploadData(
@@ -110,9 +140,10 @@ namespace neoneuron
             GuideInstancingData{_state ? 1.0f : 0.0f, _lastUpdate, _orbitalController->getCenter()});
     }
 
-    PointGuide::PointGuide(NeoneuronRender* render, neon::IdentifiableWrapper<OrbitalCameraController> controller) :
-        _render(render),
-        _orbitalController(controller),
+    PointGuide::PointGuide(Viewport* viewport, neon::IdentifiableWrapper<OrbitalCameraController> controller) :
+        _viewport(viewport),
+        _orbitalController(std::move(controller)),
+        _sphereInstance(),
         _positionListener([this](bool active) {
             _positionState = active;
             updatePointState();
@@ -123,7 +154,8 @@ namespace neoneuron
         }),
         _positionState(false),
         _rotationState(false),
-        _state(false)
+        _state(false),
+        _lastUpdate(0)
     {
     }
 
@@ -136,9 +168,15 @@ namespace neoneuron
 
     void PointGuide::onStart()
     {
+        neon::AssetCollection localCollection;
+        localCollection.store(_viewport->getInputFrameBuffer(), neon::AssetStorageMode::WEAK);
+        localCollection.store(_viewport->getUniformDescriptor(), neon::AssetStorageMode::WEAK);
+        localCollection.store(_viewport->getUniformBuffer(), neon::AssetStorageMode::WEAK);
+
         neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
         neon::AssetLoaderContext context(getApplication());
         context.fileSystem = &fs;
+        context.localCollection = &localCollection;
 
         _sphereModel = neon::loadAssetFromFile<neon::Model>("/model/guide/point_guide.json", context);
 
@@ -147,8 +185,8 @@ namespace neoneuron
         _sphereInstance = _sphereModel->getInstanceData(0)->createInstance().getResult();
 
         // Init Hey!
-        _render->getCameraData().onActiveRotation() += _rotationListener;
-        _render->getCameraData().onActivePosition() += _positionListener;
+        _viewport->getCameraData().onActiveRotation() += _rotationListener;
+        _viewport->getCameraData().onActivePosition() += _positionListener;
 
         updatePointState();
     }

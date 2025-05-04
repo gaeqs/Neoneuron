@@ -1,16 +1,30 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 8/10/24.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "NeoneuronRender.h"
 
-#include "synapse/SynapseRepresentation.h"
+#include "component/camera/CameraController.h"
 
 #include <vector>
 #include <neon/util/DeferredUtils.h>
 
 #include <neoneuron/render/component/GlobalParametersUpdaterComponent.h>
-#include <neoneuron/render/component/camera/OrbitalCameraController.h>
 
 #include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
 
@@ -19,8 +33,7 @@ CMRC_DECLARE(resources);
 namespace neoneuron
 {
     NeoneuronRender::Components::Components(NeoneuronRender* render) :
-        ui(render),
-        cameraData(render)
+        ui(render)
     {
     }
 
@@ -31,9 +44,6 @@ namespace neoneuron
         if (render == nullptr) {
             neon::error() << "Render is null!";
         }
-        auto fb = _application.getAssets().get<neon::FrameBuffer>("neoneuron:frame_buffer").value_or(nullptr);
-        _renderFrameBuffer = std::dynamic_pointer_cast<neon::SimpleFrameBuffer>(fb);
-        _renderFrameBuffer->setClearColor(0, rush::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
         return render;
     }
 
@@ -42,24 +52,6 @@ namespace neoneuron
         auto parameterUpdaterGO = _room->newGameObject();
         parameterUpdaterGO->setName("Parameter updater");
         parameterUpdaterGO->newComponent<GlobalParametersUpdaterComponent>(*this);
-    }
-
-    void NeoneuronRender::initSelectionResolver()
-    {
-        neon::AssetLoaderContext context(&_application, nullptr, &_fileSystem);
-        _selectionResolver = neon::loadAssetFromFile<neon::Model>("model/selector/selector_resolver.json", context);
-        _selectionResolver->getInstanceData(0)->createInstance();
-        _room->markUsingModel(_selectionResolver.get());
-
-        auto colorOutput = _renderFrameBuffer->getOutputs()[0].resolvedTexture;
-        auto selectionOutput = _renderFrameBuffer->getOutputs()[1].texture;
-        auto& materials = _selectionResolver->getMeshes()[0]->getMaterials();
-        for (auto& material : materials) {
-            auto& ubo = material->getUniformBuffer();
-            ubo->setTexture(0, colorOutput);
-            ubo->setTexture(1, selectionOutput);
-            ubo->uploadData(3, 0);
-        }
     }
 
     NeoneuronRender::NeoneuronRender(NeoneuronApplication* neoneuron,
@@ -72,22 +64,18 @@ namespace neoneuron
         _application.setRender(initRender());
 
         _room = std::make_shared<neon::Room>(&_application);
-        _room->getCamera().setFrustum(_room->getCamera().getFrustum().withFar(10000.0f));
         _application.setRoom(_room);
         _startTime = std::chrono::high_resolution_clock::now();
 
         _components = std::make_unique<Components>(this);
 
-        initGameObjects();
-        initSelectionResolver();
+        _viewportGO = _room->newGameObject();
 
-        _representations.push_back(std::make_unique<ComplexNeuronRepresentation>(this));
-        _representations.push_back(std::make_unique<SynapseRepresentation>(this));
+        initGameObjects();
     }
 
     NeoneuronRender::~NeoneuronRender()
     {
-        _room->unmarkUsingModel(_selectionResolver.get());
     }
 
     NeoneuronApplication* NeoneuronRender::getNeoneuronApplication()
@@ -115,11 +103,6 @@ namespace neoneuron
         return _fileSystem;
     }
 
-    const std::shared_ptr<neon::SimpleFrameBuffer>& NeoneuronRender::getRenderFrameBuffer() const
-    {
-        return _renderFrameBuffer;
-    }
-
     const std::shared_ptr<neon::Room>& NeoneuronRender::getRoom() const
     {
         return _room;
@@ -133,16 +116,6 @@ namespace neoneuron
     const NeoneuronUI& NeoneuronRender::getUI() const
     {
         return _components->ui;
-    }
-
-    CameraData& NeoneuronRender::getCameraData()
-    {
-        return _components->cameraData;
-    }
-
-    const CameraData& NeoneuronRender::getCameraData() const
-    {
-        return _components->cameraData;
     }
 
     NeoneuronRenderData& NeoneuronRender::getRenderData()
@@ -164,6 +137,7 @@ namespace neoneuron
 
         return result;
     }
+
     std::vector<const AbstractNeuronRepresentation*> NeoneuronRender::getRepresentations() const
     {
         std::vector<const AbstractNeuronRepresentation*> result;
@@ -174,15 +148,6 @@ namespace neoneuron
         return result;
     }
 
-    void NeoneuronRender::setSkybox(const std::shared_ptr<neon::Texture>& skybox) const
-    {
-        auto& materials = _selectionResolver->getMeshes()[0]->getMaterials();
-        for (auto& material : materials) {
-            auto& ubo = material->getUniformBuffer();
-            ubo->setTexture(2, skybox);
-            ubo->uploadData(3, 1);
-        }
-    }
     rush::AABB<3, float> NeoneuronRender::getCombinedAABB() const
     {
         if (_representations.empty()) {
@@ -217,12 +182,54 @@ namespace neoneuron
 
     void NeoneuronRender::focusScene() const
     {
-        _components->cameraData.getCameraController()->focusOn(getCombinedAABB());
+        auto aabb = getCombinedAABB();
+        for (auto viewport : _viewports) {
+            viewport->getCameraController()->focusOn(aabb);
+        }
     }
-    void NeoneuronRender::refreshNeuronProperty(mindset::UID neuronId, const std::string& propertyName)
+
+    void NeoneuronRender::refreshNeuronProperty(GID neuronId, const std::string& propertyName)
     {
         for (auto& rep : _representations) {
             rep->refreshNeuronProperty(neuronId, propertyName);
         }
+    }
+
+    void NeoneuronRender::removeRepresentation(AbstractNeuronRepresentation* representation)
+    {
+        if (representation == nullptr) {
+            return;
+        }
+
+        auto it = std::ranges::find_if(_representations, [&](const std::unique_ptr<AbstractNeuronRepresentation>& it) {
+            return it.get() == representation;
+        });
+        if (it == _representations.end()) {
+            return;
+        }
+
+        _representations.erase(it);
+    }
+
+    Viewport* NeoneuronRender::addViewport()
+    {
+        auto ptr = _viewportGO->newComponent<Viewport>(this, 10);
+        _viewports.push_back(ptr.raw());
+        return ptr.raw();
+    }
+
+    void NeoneuronRender::removeViewport(Viewport* viewport)
+    {
+        if (viewport == nullptr) {
+            return;
+        }
+
+        auto it = std::ranges::find_if(_viewports, [&](const Viewport* it) { return it == viewport; });
+        if (it == _viewports.end()) {
+            return;
+        }
+
+        _viewports.erase(it);
+        viewport->destroy();
     }
 } // namespace neoneuron

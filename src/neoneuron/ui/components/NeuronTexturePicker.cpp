@@ -1,6 +1,21 @@
+// Copyright (c) 2025. VG-Lab/URJC.
 //
-// Created by gaeqs on 13/11/2024.
+// Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
 //
+// This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
+//
+// This library is free software; you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License version 3.0 as published
+// by the Free Software Foundation.
+//
+// This library is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this library; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include "NeuronTexturePicker.h"
 
@@ -15,33 +30,28 @@
 
 namespace neoneuron
 {
-    std::vector<std::pair<mindset::UID, mindset::UID>> NeuronTexturePicker::pickNeurons(const rush::Vec4i* data,
-                                                                                        size_t size)
+    std::vector<std::pair<GID, mindset::UID>> NeuronTexturePicker::pickNeurons(const rush::Vec4i* data, size_t size)
     {
-        std::vector<std::pair<mindset::UID, mindset::UID>> selection;
+        std::vector<std::pair<GID, mindset::UID>> selection;
 
         for (size_t i = 0; i < size; ++i) {
             rush::Vec4i current = data[i];
             if (current.x() > 0) {
+                mindset::UID datasetId = current.x() - 1;
                 mindset::UID neuronId = current.y();
                 mindset::UID neuriteId = current.z();
-                selection.push_back(std::make_pair(neuronId, neuriteId));
+                selection.push_back(std::make_pair(GID(datasetId, neuronId), neuriteId));
             }
         }
 
         return selection;
     }
 
-    NeuronTexturePicker::NeuronTexturePicker(NeoneuronRender* render,
-                                             neon::IdentifiableWrapper<neon::ViewportComponent> viewport) :
-        _render(render),
+    NeuronTexturePicker::NeuronTexturePicker(NeoneuronApplication* application, Viewport* viewport) :
+        _application(application),
         _viewport(viewport)
     {
-    }
-
-    void NeuronTexturePicker::onStart()
-    {
-        _texture = getAssets().get<neon::Texture>("neoneuron:frame_buffer_picker_resolved").value_or(nullptr);
+        _texture = _viewport->getPickerTexture();
         if (_texture == nullptr) {
             getLogger().error("Cannot find the texture neoneuron:frame_buffer_picker_resolved!");
         }
@@ -78,7 +88,7 @@ namespace neoneuron
             auto data = std::make_unique<rush::Vec4i[]>(amount);
             _texture->fetchData(data.get(), {min, 0}, size, 0, 1);
 
-            auto& selector = _render->getNeoneuronApplication()->getSelector();
+            auto& selector = _application->getSelector();
             selector.selectSegments(SelectionMode::OVERRIDE_ALL, pickNeurons(data.get(), amount));
 
             _selecting = false;
