@@ -30,8 +30,6 @@ if [[ "${1:-}" =~ ^(-h|--help)$ ]]; then
   usage
 fi
 
-echo "Configuring project..."
-cmake -S . -B ${BUILD_DIR} -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 echo "Building and installing..."
 cmake --build ${BUILD_DIR} --target install
 

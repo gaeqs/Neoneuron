@@ -26,6 +26,14 @@ jobs:
       - name: Make script executable
         run: chmod +x build-appimage.sh
 
+      - name: Configure CMake
+        run: |
+          cmake -S . -B cmake-build-release \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/cmake-build-release/appdir/usr \
+            -DCMRC_ENABLE_INSTALL=OFF
+
       - name: Build AppImage
         run: ./build-appimage.sh build
 
