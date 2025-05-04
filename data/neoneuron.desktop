@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Neoneuron
+Comment=Neoneuron
+Exec=neoneuron
+Icon=neoneuron
+Terminal=false
+Type=Application
+Categories=Utility;Graphics;
+StartupNotify=true

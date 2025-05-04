@@ -18,8 +18,15 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 cmake_minimum_required(VERSION 3.23)
+
+option(NEONEURON_APPIMAGE "Configure Neoneuron for AppImage creation" ON)
+
 set(CMAKE_CXX_STANDARD 20)
+set(SPIRV_WERROR OFF)
+set(IMBLUEPRINT_EXAMPLES OFF)
 set(FETCHCONTENT_UPDATES_SUBMODULES OFF)
+set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/appdir/usr")
+
 include(FetchContent)
 
 project(Neoneuron LANGUAGES CXX VERSION 0.0.1)
@@ -94,7 +101,27 @@ endif ()
 find_package(glfw3 CONFIG REQUIRED)
 list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
-list(APPEND LIBRARIES neon nfd hey pugixml mindset imblueprint)
+list(APPEND LIBRARIES neon nfd hey pugixml mindset imblueprint HighFive)
 
 include_directories(src)
 add_subdirectory(src)
+
+# Install
+install(TARGETS neoneuron
+        RUNTIME DESTINATION bin
+)
+
+install(FILES
+        ${CMAKE_SOURCE_DIR}/data/neoneuron.desktop
+        DESTINATION share/applications
+)
+
+install(FILES
+        ${CMAKE_SOURCE_DIR}/data/neoneuron.png
+        DESTINATION share/icons/hicolor/512x512/apps
+)
+
+install(FILES
+        ${CMAKE_SOURCE_DIR}/data/neoneuron1024.png
+        DESTINATION share/icons/hicolor/1024x1024/apps
+)
