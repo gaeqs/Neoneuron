@@ -11,8 +11,8 @@ mirror_to_github:
     - ssh-keyscan github.com >> ~/.ssh/known_hosts
     - chmod 600 ~/.ssh/known_hosts
   script:
-    - rm -rf .git
-    - git clone --mirror git@gitlab.com:g.rial/Neoneuron.git .
+    - git clone --mirror git@gitlab.com:g.rial/Neoneuron.git mirror
+    - cd mirror
     - git remote set-url --push origin git@github.com:gaeqs/Neoneuron.git
     - export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 \
       -o UserKnownHostsFile=$HOME/.ssh/known_hosts \
