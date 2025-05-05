@@ -13,9 +13,7 @@ mirror_to_github:
   script:
     - git remote remove github || true
     - git remote add github git@github.com:gaeqs/Neoneuron.git
-    - export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_ed25519 \
-      -o UserKnownHostsFile=$HOME/.ssh/known_hosts \
-      -o StrictHostKeyChecking=yes'
+    - export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes"
     - git push --mirror github
   only:
     - branches
