@@ -11,7 +11,8 @@ mirror_to_github:
     - ssh-keyscan github.com >> ~/.ssh/known_hosts
     - chmod 600 ~/.ssh/known_hosts
   script:
-    - git config remote.origin.fetch "+refs/heads/*:refs/heads/*"
+    - git config --unset-all remote.origin.fetch
+    - git config --add remote.origin.fetch "+refs/heads/*:refs/heads/*"
     - git config --add remote.origin.fetch "+refs/tags/*:refs/tags/*"
     - git fetch --prune origin
     - git remote set-url --push origin git@github.com:gaeqs/Neoneuron.git
