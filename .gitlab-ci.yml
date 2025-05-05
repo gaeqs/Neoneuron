@@ -4,17 +4,13 @@ stages:
 mirror_to_github:
   stage: mirror
   before_script:
-    - if [ -x "$(command -v apt-get)" ]; then
-      apt-get update -qq &&
-      apt-get install -y git openssh-client;
-      fi
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
     - ssh-keyscan github.com >> ~/.ssh/known_hosts
   script:
     - git remote remove github || true
-    - git remote add github git@github.com:gaeqs/Neoneuron.git
+    - git remote add github https://github.com/gaeqs/Neoneuron
     - git push --mirror github
   only:
     - branches
