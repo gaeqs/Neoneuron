@@ -11,11 +11,13 @@ mirror_to_github:
     - ssh-keyscan github.com >> ~/.ssh/known_hosts
     - chmod 600 ~/.ssh/known_hosts
   script:
-    - git remote remove github || true
-    - git remote add github git@github.com:gaeqs/Neoneuron.git
-    - export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes"
-    - git push github --all
-    - git push github --tags
+    - rm -rf .git
+    - git clone --mirror git@gitlab.com:g.rial/Neoneuron.git .
+    - git remote set-url --push origin git@github.com:gaeqs/Neoneuron.git
+    - export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 \
+      -o UserKnownHostsFile=$HOME/.ssh/known_hosts \
+      -o StrictHostKeyChecking=yes"
+    - git push --mirror origin
   only:
     - branches
     - tags
