@@ -7,7 +7,14 @@ mirror_to_github:
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
-    - ssh-keyscan github.com >> ~/.ssh/known_hosts
+    - |
+      cat >> ~/.ssh/config <<EOF
+      Host github.com
+        HostName github.com
+        IdentityFile ~/.ssh/id_ed25519
+        StrictHostKeyChecking no
+        User git
+      EOF
   script:
     - git remote remove github || true
     - git remote add github git@github.com:gaeqs/Neoneuron.git
