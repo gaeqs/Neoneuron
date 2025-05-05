@@ -1,0 +1,17 @@
+stages:
+  - mirror
+
+mirror_to_github:
+  stage: mirror
+  before_script:
+    - apk add --no-cache git openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan github.com >> ~/.ssh/known_hosts
+  script:
+    - git remote add github git@github.com:gaeqs/Neoneuron.git
+    - git push --mirror github
+  only:
+    - branches
+    - tags
