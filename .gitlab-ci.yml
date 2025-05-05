@@ -17,6 +17,6 @@ mirror_to_github:
     - git push --mirror github
   only:
     - branches
-    - tagsç
+    - tags
   tags:
     - ubuntu
