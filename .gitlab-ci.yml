@@ -7,17 +7,15 @@ mirror_to_github:
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
-    - |
-      cat >> ~/.ssh/config <<EOF
-      Host github.com
-        HostName github.com
-        IdentityFile ~/.ssh/id_ed25519
-        StrictHostKeyChecking no
-        User git
-      EOF
+    - rm -f ~/.ssh/known_hosts
+    - ssh-keyscan github.com >> ~/.ssh/known_hosts
+    - chmod 600 ~/.ssh/known_hosts
   script:
     - git remote remove github || true
     - git remote add github git@github.com:gaeqs/Neoneuron.git
+    - export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_ed25519 \
+      -o UserKnownHostsFile=$HOME/.ssh/known_hosts \
+      -o StrictHostKeyChecking=yes'
     - git push --mirror github
   only:
     - branches
