@@ -31,7 +31,7 @@ if [[ "${1:-}" =~ ^(-h|--help)$ ]]; then
 fi
 
 echo "Building and installing..."
-cmake --build ${BUILD_DIR} --target install
+cmake --build ${BUILD_DIR} --target install -j$(nproc)
 
 # Copy desktop entry and icon into AppDir root
 cp "$DESKTOP_FILE" "$APPDIR/${APP}.desktop"
