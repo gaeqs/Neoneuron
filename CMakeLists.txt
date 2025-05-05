@@ -17,15 +17,20 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.15)
 
 option(NEONEURON_APPIMAGE "Configure Neoneuron for AppImage creation" ON)
+
+set(CMAKE_BUILD_WITH_INSTALL_RPATH  TRUE)
+set(CMAKE_INSTALL_RPATH            "$ORIGIN/../lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 set(CMAKE_CXX_STANDARD 20)
 set(SPIRV_WERROR OFF)
 set(IMBLUEPRINT_EXAMPLES OFF)
 set(FETCHCONTENT_UPDATES_SUBMODULES OFF)
-set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/appdir/usr")
+set(MINDSET_TESTS OFF)
+set(BRION_BUILD_PYTHON_BINDINGS OFF)
 
 include(FetchContent)
 

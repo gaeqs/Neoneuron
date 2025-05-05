@@ -1,50 +1,53 @@
-#!/bin/bash
-#
-# Copyright (c) 2025. VG-Lab/URJC.
-#
-# Authors: Gael Rial Costas <gael.rial.costas@urjc.es>
-#
-# This file is part of Neoneuron <gitlab.gmrv.es/g.rial/neoneuron>
-#
-# This library is free software; you can redistribute it and/or modify it under
-# the terms of the GNU Lesser General Public License version 3.0 as published
-# by the Free Software Foundation.
-#
-# This library is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
-# details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with this library; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-#
+#!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
-OUT_DIR=out
-BUILD_DIR=/home/gaeqs/CLionProjects/neoneuron/cmake-build-release
-APPDIR=$BUILD_DIR/appdir
-APP=neoneuron
-LINUXDEPLOY=linuxdeploy-x86_64.AppImage
+# Default parameters
+BUILD_DIR="${1:-cmake-build-release}"
+APPDIR="$BUILD_DIR/appdir"
+APP="neoneuron"
+APP_NAME="Neoneuron"
+LINUXDEPLOY="linuxdeploy-x86_64.AppImage"
+DESKTOP_FILE="$APPDIR/usr/share/applications/${APP}.desktop"
+ICON_FILE="$APPDIR/usr/share/icons/hicolor/512x512/apps/${APP}.png"
+OUTPUT_DIR="out"
 
-DESKTOP=$APPDIR/usr/share/applications/neoneuron.desktop
-ICON=$APPDIR/usr/share/icons/hicolor/512x512/apps/neoneuron.png
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [build_directory]
 
-cp $APPDIR/usr/share/applications/neoneuron.desktop $APPDIR/neoneuron.desktop
-cp $APPDIR/usr/share/icons/hicolor/512x512/apps/neoneuron.png $APPDIR/neoneuron.png
+Build the $APP AppImage using linuxdeploy.
 
-mkdir -p $OUT_DIR
-cd $OUT_DIR
+Positional arguments:
+  build_directory   Directory where the project was built (default: cmake-build-release)
+EOF
+  exit 1
+}
 
-LINUXDEPLOY=linuxdeploy-x86_64.AppImage
-
-if [ ! -f "$LINUXDEPLOY" ]; then
-    echo "⬇️  Downloading linuxdeploy..."
-    wget -q --show-progress https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/$LINUXDEPLOY
-    chmod +x "$LINUXDEPLOY"
-else
-    echo "✅ linuxdeploy found"
+# Show help if requested
+if [[ "${1:-}" =~ ^(-h|--help)$ ]]; then
+  usage
 fi
 
-NO_STRIP=1 ./$LINUXDEPLOY --appdir $APPDIR --desktop-file $DESKTOP --icon-file $ICON --output appimage
+echo "Building and installing..."
+cmake --build ${BUILD_DIR} --target install -j$(nproc)
+
+# Copy desktop entry and icon into AppDir root
+cp "$DESKTOP_FILE" "$APPDIR/${APP}.desktop"
+cp "$ICON_FILE"   "$APPDIR/${APP}.png"
+
+# Download linuxdeploy if missing
+if [[ ! -f "$LINUXDEPLOY" ]]; then
+  echo "⬇ Downloading linuxdeploy..."
+  wget -q --show-progress "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/$LINUXDEPLOY"
+  chmod +x "$LINUXDEPLOY"
+else
+  echo "✅ linuxdeploy found"
+fi
+
+# Build the AppImage
+./"$LINUXDEPLOY" \
+  --appdir "$APPDIR" \
+  --desktop-file "$APPDIR/${APP}.desktop" \
+  --icon-file    "$APPDIR/${APP}.png" \
+  --output appimage
