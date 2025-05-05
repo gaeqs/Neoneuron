@@ -4,7 +4,10 @@ stages:
 mirror_to_github:
   stage: mirror
   before_script:
-    - apk add --no-cache git openssh-client
+    - if [ -x "$(command -v apt-get)" ]; then
+      sudo apt-get update -qq &&
+      sudo apt-get install -y git openssh-client;
+      fi
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
@@ -14,4 +17,6 @@ mirror_to_github:
     - git push --mirror github
   only:
     - branches
-    - tags
+    - tagsç
+  tags:
+    - ubuntu
