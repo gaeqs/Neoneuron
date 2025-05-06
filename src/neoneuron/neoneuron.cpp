@@ -37,7 +37,7 @@ int main()
 
     neon::vulkan::VKApplicationCreateInfo info;
     info.name = "Neoneuron";
-
+    info.windowSize = {1280, 720};
     info.extraFeatures.emplace_back(MeshFeature{MESH_FEATURE});
 
     info.deviceFilter = [](const neon::vulkan::VKPhysicalDevice& device) {

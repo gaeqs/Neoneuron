@@ -29,6 +29,8 @@
 #include <neon/version.h>
 #include <neoneuron/version.h>
 
+#include <GLFW/glfw3.h>
+
 #if defined(_WIN32)
     #include <Windows.h>
 #elif defined(__APPLE__)

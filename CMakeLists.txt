@@ -37,7 +37,7 @@ set(BRION_BUILD_PYTHON_BINDINGS OFF)
 
 include(FetchContent)
 
-project(Neoneuron LANGUAGES CXX VERSION 0.0.1)
+project(Neoneuron LANGUAGES CXX VERSION 0.0.2)
 
 if (UNIX)
     find_package(PkgConfig REQUIRED)
