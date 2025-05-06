@@ -50,7 +50,7 @@ endif ()
 FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG task-improvements
+        GIT_TAG master
 )
 
 FetchContent_MakeAvailable(neon)
