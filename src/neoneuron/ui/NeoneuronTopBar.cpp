@@ -34,6 +34,7 @@
 #include "components/NeoneuronUIOpenFile.h"
 #include "components/actions/ActionSave.h"
 #include "components/actions/ActionShuffle.h"
+#include "components/NeoneuronUIAbout.h"
 #include "settings/NeoneuronUiSettings.h"
 #include "style/Fonts.h"
 
@@ -219,6 +220,15 @@ namespace neoneuron
             if (ImGui::BeginMenu("Actions")) {
                 fonts::imGuiPushFont(fonts::SS3_18);
                 actionsMenu();
+                ImGui::PopFont();
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Help")) {
+                fonts::imGuiPushFont(fonts::SS3_18);
+                if (ImGui::MenuItem("About")) {
+                    _render->getRoom()->newGameObject()->newComponent<NeoneuronUIAbout>(
+                        _render->getNeoneuronApplication());
+                }
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }

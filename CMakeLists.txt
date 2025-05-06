@@ -21,9 +21,12 @@ cmake_minimum_required(VERSION 3.15)
 
 option(NEONEURON_APPIMAGE "Configure Neoneuron for AppImage creation" ON)
 
+set(NEONEURON_GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
+
 set(CMAKE_BUILD_WITH_INSTALL_RPATH  TRUE)
 set(CMAKE_INSTALL_RPATH            "$ORIGIN/../lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 
 set(CMAKE_CXX_STANDARD 20)
 set(SPIRV_WERROR OFF)
@@ -107,6 +110,26 @@ find_package(glfw3 CONFIG REQUIRED)
 list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
 list(APPEND LIBRARIES neon nfd hey pugixml mindset imblueprint HighFive)
+
+# Create version.h
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
+    execute_process(
+            COMMAND git rev-parse --short HEAD
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_COMMIT
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+    )
+else ()
+    set(GIT_COMMIT "unknown")
+endif ()
+
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.h.in
+        ${NEONEURON_GENERATED_DIR}/neoneuron/version.h
+)
+
 
 include_directories(src)
 add_subdirectory(src)

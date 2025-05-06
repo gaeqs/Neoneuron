@@ -25,7 +25,13 @@ cmrc_add_resource_library(
         NAMESPACE resources
         WHENCE resources
 
+        resources/LICENSE.txt
+
         resources/font/SourceSans3.ttf
+
+        resources/icon/neoneuron.png
+        resources/icon/vglab.png
+        resources/icon/urjc.png
 
         resources/model/guide/plane_guide.json
         resources/model/guide/sphere_guide.json
@@ -77,3 +83,8 @@ cmrc_add_resource_library(
 
 add_executable(neoneuron ${SOURCES})
 target_link_libraries(neoneuron ${LIBRARIES} ${CMAKE_DL_LIBS} neoneuron::resources)
+
+target_include_directories(neoneuron PUBLIC
+        $<BUILD_INTERFACE:${NEONEURON_GENERATED_DIR}>
+        $<INSTALL_INTERFACE:include>
+)
