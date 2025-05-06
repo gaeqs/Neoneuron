@@ -45,6 +45,7 @@ namespace neoneuron
 {
     std::string NeoneuronUIAbout::getPlatform() const
     {
+#ifdef GLFW_ANY_PLATFORM
         switch (glfwGetPlatform()) {
             case GLFW_PLATFORM_X11:
                 return "X11";
@@ -57,6 +58,9 @@ namespace neoneuron
             default:
                 return "None";
         }
+#else
+        return "Cannot fetch, GLFW < 3.4";
+#endif
     }
 
     std::string NeoneuronUIAbout::getOSName() const
