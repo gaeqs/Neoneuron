@@ -127,7 +127,11 @@ namespace neoneuron
         ImGui::Text("Libraries:");
         ImGui::BulletText("Neon %s, build %s", NEON_VERSION, NEON_GIT_COMMIT);
         ImGui::BulletText("Mindset %s, build %s", MINDSET_VERSION, MINDSET_GIT_COMMIT);
+#ifdef BRION_REV_STRING
         ImGui::BulletText("Brion %s", BRION_REV_STRING);
+#else
+        ImGui::BulletText("Brion not found");
+#endif
         ImGui::BulletText("ImGui %s", IMGUI_VERSION);
         ImGui::BulletText("ImPlot %s", IMPLOT_VERSION);
         ImGui::BulletText("Vulkan %d.%d.%d", VK_VERSION_MAJOR(_vulkanAPIVersion), VK_VERSION_MINOR(_vulkanAPIVersion),
@@ -151,7 +155,7 @@ namespace neoneuron
 
     void NeoneuronUIAbout::loadIcons(NeoneuronApplication* application)
     {
-        constexpr const char* ICONS[] = {"icon/neoneuron.png", "icon/vglab.png", "icon/urjc.png"};
+        constexpr const char* ICONS[] = {"icon/256x256/neoneuron.png", "icon/vglab.png", "icon/urjc.png"};
         auto* app = &application->getRender().getApplication();
         neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
         _icons.reserve(std::size(ICONS));
