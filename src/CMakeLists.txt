@@ -81,6 +81,9 @@ cmrc_add_resource_library(
         resources/texture/skybox/top.png
         resources/texture/skybox/skybox.json
 
+        resources/texture/white_skybox/white.png
+        resources/texture/white_skybox/skybox.json
+
         resources/swc/data.swc
         resources/swc/test.swc
         resources/render.json

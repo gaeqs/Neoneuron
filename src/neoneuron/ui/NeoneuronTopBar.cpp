@@ -101,10 +101,11 @@ namespace neoneuron
 
     void NeoneuronTopBar::toolsMenu() const
     {
-        static const auto GLOBAL_PARAMS = NeoneuronApplication::SETTINGS_TOOL_GLOBAL_PARAMETERS;
-        static const auto DEBUG = NeoneuronApplication::SETTINGS_TOOL_DEBUG;
-        static const auto DEMO = NeoneuronApplication::SETTINGS_TOOL_DEMO;
-        auto& s = _render->getNeoneuronApplication()->getSettings();
+        static const auto GLOBAL_PARAMS = NeoneuronFiles::SETTINGS_TOOL_GLOBAL_PARAMETERS;
+        static const auto DEBUG = NeoneuronFiles::SETTINGS_TOOL_DEBUG;
+        static const auto DEMO = NeoneuronFiles::SETTINGS_TOOL_DEMO;
+        auto& files = _render->getNeoneuronApplication()->getFiles();
+        auto& s = files.getSettings();
 
         bool globalParameters = s.value(GLOBAL_PARAMS, false);
         bool debug = s.value(DEBUG, false);
@@ -112,17 +113,17 @@ namespace neoneuron
 
         if (ImGui::MenuItem("Global parameters", nullptr, &globalParameters)) {
             s[GLOBAL_PARAMS] = globalParameters;
-            _render->getNeoneuronApplication()->signalSettingsChange(GLOBAL_PARAMS);
+            files.signalSettingsChange(GLOBAL_PARAMS);
         }
 
         if (ImGui::MenuItem("Debug", nullptr, &debug)) {
             s[DEBUG] = debug;
-            _render->getNeoneuronApplication()->signalSettingsChange(DEBUG);
+            files.signalSettingsChange(DEBUG);
         }
 
         if (ImGui::MenuItem("ImGUI Demo", nullptr, &demo)) {
             s[DEMO] = demo;
-            _render->getNeoneuronApplication()->signalSettingsChange(DEMO);
+            files.signalSettingsChange(DEMO);
         }
     }
 
@@ -161,15 +162,15 @@ namespace neoneuron
 
     void NeoneuronTopBar::demo() const
     {
-        auto& s = _render->getNeoneuronApplication()->getSettings();
-        bool opened = s.value(NeoneuronApplication::SETTINGS_TOOL_DEMO, false);
+        auto& files = _render->getNeoneuronApplication()->getFiles();
+        bool opened = files.getSettings().value(NeoneuronFiles::SETTINGS_TOOL_DEMO, false);
         bool keepOpen = true;
         if (opened) {
             ImGui::ShowDemoWindow(&keepOpen);
         }
         if (opened && !keepOpen) {
-            s[NeoneuronApplication::SETTINGS_TOOL_DEMO] = false;
-            _render->getNeoneuronApplication()->signalSettingsChange(NeoneuronApplication::SETTINGS_TOOL_DEMO);
+            files.getSettings()[NeoneuronFiles::SETTINGS_TOOL_DEMO] = false;
+            files.signalSettingsChange(NeoneuronFiles::SETTINGS_TOOL_DEMO);
         }
     }
 

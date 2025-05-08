@@ -41,7 +41,8 @@ namespace neoneuron::settings
 
     void settingsTheme(NeoneuronApplication* app)
     {
-        static int styleIdx = app->getSettings().value(NeoneuronApplication::SETTINGS_THEME, 0);
+        auto& files = app->getFiles();
+        static int styleIdx = files.getSettings().value(NeoneuronFiles::SETTINGS_THEME, 0);
         static int current = styleIdx;
         ImGui::Combo("Theme", &styleIdx, "Dark Theme\0Light Theme\0");
 
@@ -58,14 +59,16 @@ namespace neoneuron::settings
             }
 
             current = styleIdx;
-            app->getSettings()[NeoneuronApplication::SETTINGS_THEME] = styleIdx;
-            app->signalSettingsChange(NeoneuronApplication::SETTINGS_THEME);
+            files.getSettings()[NeoneuronFiles::SETTINGS_THEME] = styleIdx;
+            files.signalSettingsChange(NeoneuronFiles::SETTINGS_THEME);
         }
     }
 
     void settingsFontSize(NeoneuronApplication* app)
     {
-        static int fontIdx = app->getSettings().value(NeoneuronApplication::SETTINGS_FONT_SIZE, 1);
+        auto& files = app->getFiles();
+
+        static int fontIdx = files.getSettings().value(NeoneuronFiles::SETTINGS_FONT_SIZE, 1);
         static int current = fontIdx;
         ImGui::Combo("Font size", &fontIdx, "Small\0Normal\0Large\0Extra large\0Giant\0");
 
@@ -95,8 +98,8 @@ namespace neoneuron::settings
             }
 
             current = fontIdx;
-            app->getSettings()[NeoneuronApplication::SETTINGS_FONT_SIZE] = fontIdx;
-            app->signalSettingsChange(NeoneuronApplication::SETTINGS_FONT_SIZE);
+            files.getSettings()[NeoneuronFiles::SETTINGS_FONT_SIZE] = fontIdx;
+            files.signalSettingsChange(NeoneuronFiles::SETTINGS_FONT_SIZE);
         }
     }
 

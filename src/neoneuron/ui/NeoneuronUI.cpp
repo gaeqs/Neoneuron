@@ -38,8 +38,8 @@ namespace neoneuron
 {
     void NeoneuronUI::initStyle(NeoneuronRender* render)
     {
-        auto& s = render->getNeoneuronApplication()->getSettings();
-        switch (s.value(NeoneuronApplication::SETTINGS_THEME, 0)) {
+        auto& s = render->getNeoneuronApplication()->getFiles().getSettings();
+        switch (s.value(NeoneuronFiles::SETTINGS_THEME, 0)) {
             case 0:
                 StyleColorsDark();
                 break;
@@ -51,7 +51,7 @@ namespace neoneuron
         }
 
         const char* font = fonts::SS3_18;
-        switch (s.value(NeoneuronApplication::SETTINGS_FONT_SIZE, 1)) {
+        switch (s.value(NeoneuronFiles::SETTINGS_FONT_SIZE, 1)) {
             case 0:
                 font = fonts::SS3_16;
                 break;
@@ -79,14 +79,14 @@ namespace neoneuron
     void NeoneuronUI::initDebugToggle()
     {
         _debugKeyListener = [this](std::string data) {
-            if (data != NeoneuronApplication::SETTINGS_TOOL_DEBUG) {
+            if (data != NeoneuronFiles::SETTINGS_TOOL_DEBUG) {
                 return;
             }
             if (!_gameObject.isValid()) {
                 return;
             }
-            bool value = _render->getNeoneuronApplication()->getSettings().value(
-                NeoneuronApplication::SETTINGS_TOOL_DEBUG, false);
+            bool value = _render->getNeoneuronApplication()->getFiles().getSettings().value(
+                NeoneuronFiles::SETTINGS_TOOL_DEBUG, false);
             auto component = _gameObject->findComponent<neon::DebugOverlayComponent>();
             if (component.isValid() == value) {
                 return;
@@ -98,11 +98,9 @@ namespace neoneuron
             }
         };
 
-        _render->getNeoneuronApplication()->registerSettingsListener(_debugKeyListener);
-
-        bool value =
-            _render->getNeoneuronApplication()->getSettings().value(NeoneuronApplication::SETTINGS_TOOL_DEBUG, false);
-        if (value) {
+        auto& files = _render->getNeoneuronApplication()->getFiles();
+        files.registerSettingsListener(_debugKeyListener);
+        if (files.getSettings().value(NeoneuronFiles::SETTINGS_TOOL_DEBUG, false)) {
             _gameObject->newComponent<neon::DebugOverlayComponent>(false, 100);
         }
     }
@@ -143,7 +141,7 @@ namespace neoneuron
     {
         if (_gameObject.isValid()) {
             _gameObject->destroy();
-            _render->getNeoneuronApplication()->unregisterSettingsListener(_debugKeyListener);
+            _render->getNeoneuronApplication()->getFiles().unregisterSettingsListener(_debugKeyListener);
         }
     }
 

@@ -31,8 +31,8 @@ namespace neoneuron
 
     void NeoneuronUIGlobalParameters::onPreDraw()
     {
-        static const auto KEY = NeoneuronApplication::SETTINGS_TOOL_GLOBAL_PARAMETERS;
-        auto& s = _render->getNeoneuronApplication()->getSettings();
+        static const auto KEY = NeoneuronFiles::SETTINGS_TOOL_GLOBAL_PARAMETERS;
+        auto& s = _render->getNeoneuronApplication()->getFiles().getSettings();
         bool opened = s.value(KEY, false);
         bool keepOpen = true;
 
@@ -102,7 +102,7 @@ namespace neoneuron
 
         if (opened && !keepOpen) {
             s[KEY] = false;
-            _render->getNeoneuronApplication()->signalSettingsChange(KEY);
+            _render->getNeoneuronApplication()->getFiles().signalSettingsChange(KEY);
         }
     }
 } // namespace neoneuron

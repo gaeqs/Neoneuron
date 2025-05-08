@@ -20,9 +20,10 @@
 #ifndef NEONEURONAPPLICATION_H
 #define NEONEURONAPPLICATION_H
 
-#include "neoneuron/loader/LoaderCollection.h"
-
 #include <mindset/loader/LoaderRegistry.h>
+
+#include <neoneuron/filesystem/NeoneuronFiles.h>
+#include <neoneuron/loader/LoaderCollection.h>
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/structure/Repository.h>
 #include <neoneuron/structure/Selector.h>
@@ -38,19 +39,7 @@ namespace neoneuron
      */
     class NeoneuronApplication
     {
-      public:
-        inline static const std::string CONFIG_FILE = "neoneuron.json";
-        static inline const std::string SETTINGS_THEME = "theme";
-        static inline const std::string SETTINGS_FONT_SIZE = "font_size";
-
-        static inline const std::string SETTINGS_TOOL_GLOBAL_PARAMETERS = "tool_global_parameters";
-        static inline const std::string SETTINGS_TOOL_DEBUG = "tool_debug";
-        static inline const std::string SETTINGS_TOOL_DEMO = "tool_demo";
-
-      private:
-        nlohmann::json _settings;
-        hey::Observable<std::string> _settingsNodeChange;
-
+        NeoneuronFiles _files;
         Repository _repository;
         Selector _selector;
         NeoneuronRender _render;
@@ -58,12 +47,26 @@ namespace neoneuron
         mindset::LoaderRegistry _loaderStorage;
         LoaderCollection _loaderCollection;
 
-        static nlohmann::json loadSettings();
-
       public:
         NeoneuronApplication(const NeoneuronApplication&) = delete;
 
         explicit NeoneuronApplication(const neon::vulkan::VKApplicationCreateInfo& renderCreateInfo);
+
+        /**
+         *
+         * Returns the class that manages the files of the application.
+         *
+         * @result The file manager of the application.
+         */
+        [[nodiscard]] NeoneuronFiles& getFiles();
+
+        /**
+         *
+         * Returns the class that manages the files of the application.
+         *
+         * @result The file manager of the application.
+         */
+        [[nodiscard]] const NeoneuronFiles& getFiles() const;
 
         /**
          * The repository where all the neuronal information is stored.
@@ -96,16 +99,6 @@ namespace neoneuron
          * This class manages the render part of the application.
          */
         [[nodiscard]] const NeoneuronRender& getRender() const;
-
-        /**
-         * A JSON file used to store the global settings of Neoneuron.
-         */
-        [[nodiscard]] nlohmann::json& getSettings();
-
-        /**
-         * A JSON file used to store the global settings of Neoneuron.
-         */
-        [[nodiscard]] const nlohmann::json& getSettings() const;
 
         /**
          * Storage used to store all properties' definitions.
@@ -146,27 +139,6 @@ namespace neoneuron
          * currently loading datasets.
          */
         const LoaderCollection& getLoaderCollection() const;
-
-        /**
-         * Registers a new listener that will be called when a parameter inside the settings' json is changed.
-         * The listener will only receive the key of the changed parameter.
-         */
-        void registerSettingsListener(const hey::Listener<std::string>& listener) const;
-
-        /**
-         * Unregisters a listener registered using "registerSettingsListener()".
-         */
-        void unregisterSettingsListener(const hey::Listener<std::string>& listener) const;
-
-        /**
-         * Signals a parameter change inside the settings' json.
-         */
-        void signalSettingsChange(std::string node) const;
-
-        /**
-         * Saves the settings' json into a file.
-         */
-        void saveSettings() const;
     };
 } // namespace neoneuron
 

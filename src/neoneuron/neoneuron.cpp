@@ -80,6 +80,6 @@ int main()
     //app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
 
     bool result = app.getRender().renderLoop();
-    app.saveSettings();
+    app.getFiles().saveSettings();
     return result ? 0 : 1;
 }

@@ -29,7 +29,7 @@ namespace
     {
         neon::CMRCFileSystem fileSystem(cmrc::resources::get_filesystem());
         neon::AssetLoaderContext context(room->getApplication(), nullptr, &fileSystem);
-        return loadAssetFromFile<neon::Texture>("texture/skybox/skybox.json", context);
+        return loadAssetFromFile<neon::Texture>("texture/white_skybox/skybox.json", context);
     }
 } // namespace
 
