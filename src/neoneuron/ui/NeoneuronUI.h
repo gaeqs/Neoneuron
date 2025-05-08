@@ -22,7 +22,6 @@
 
 #include <hey/Listener.h>
 #include <neon/Neon.h>
-#include <neon/util/component/ViewportComponent.h>
 
 namespace neoneuron
 {

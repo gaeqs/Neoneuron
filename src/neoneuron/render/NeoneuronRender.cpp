@@ -19,13 +19,13 @@
 
 #include "NeoneuronRender.h"
 
-#include "component/camera/CameraController.h"
-
 #include <vector>
+
 #include <neon/util/DeferredUtils.h>
 
+#include <neoneuron/render/component/camera/CameraController.h>
 #include <neoneuron/render/component/GlobalParametersUpdaterComponent.h>
-
+#include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
 
 CMRC_DECLARE(resources);
@@ -61,6 +61,7 @@ namespace neoneuron
         _fileSystem(cmrc::resources::get_filesystem())
     {
         _application.init();
+        neoneuron->getFiles().loadImGuiIniFile();
         _application.setRender(initRender());
 
         _room = std::make_shared<neon::Room>(&_application);

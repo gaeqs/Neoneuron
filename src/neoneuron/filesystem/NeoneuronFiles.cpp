@@ -23,9 +23,12 @@
 
 #include "NeoneuronFiles.h"
 
+#include <fstream>
 #include <neon/util/FileUtils.h>
 
 #include <neon/Neon.h>
+
+CMRC_DECLARE(resources);
 
 namespace neoneuron
 {
@@ -50,6 +53,10 @@ namespace neoneuron
 
         _configFolder = result.getResult();
         _settings = loadSettings();
+    }
+
+    NeoneuronFiles::~NeoneuronFiles()
+    {
     }
 
     std::filesystem::path NeoneuronFiles::getConfigFolder() const
@@ -90,6 +97,38 @@ namespace neoneuron
         }
         std::string data = _settings.dump(4);
         out.write(data.c_str(), data.size());
+    }
+
+    void NeoneuronFiles::loadImGuiIniFile() const
+    {
+        std::filesystem::path path = _configFolder / IMGUI_FILE;
+        bool exists = std::filesystem::exists(path);
+        bool isDirectory = std::filesystem::is_directory(path);
+        if (!exists || isDirectory) {
+            neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
+            auto file = fs.readFile("imgui.ini");
+            if (!file.has_value()) {
+                neon::error() << "Cannot find embedded imgui.ini!";
+                return;
+            }
+
+            neon::info() << "Load imgui settings from memory.";
+            ImGui::LoadIniSettingsFromMemory(file->getData(), file->getSize());
+            return;
+        }
+
+        neon::info() << "Load imgui settings from " << path;
+        ImGui::LoadIniSettingsFromDisk(path.string().c_str());
+    }
+
+    void NeoneuronFiles::saveImGuiIniFile() const
+    {
+        std::filesystem::path path = _configFolder / IMGUI_FILE;
+        if (std::filesystem::is_directory(path)) {
+            neon::warning() << "ImGui init file (" << path << ") is a directory. Cannot save ini file.";
+            return;
+        }
+        ImGui::SaveIniSettingsToDisk(path.string().c_str());
     }
 
 } // namespace neoneuron

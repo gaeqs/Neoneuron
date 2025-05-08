@@ -34,6 +34,7 @@ namespace neoneuron
       public:
         inline static const std::string CONFIG_DIRECTORY = "Neoneuron";
         inline static const std::string CONFIG_FILE = "neoneuron.json";
+        inline static const std::string IMGUI_FILE = "imgui.ini";
         static inline const std::string SETTINGS_THEME = "theme";
         static inline const std::string SETTINGS_FONT_SIZE = "font_size";
 
@@ -50,6 +51,8 @@ namespace neoneuron
 
       public:
         NeoneuronFiles();
+
+        ~NeoneuronFiles();
 
         /**
          * Retrieves the path to the configuration folder.
@@ -88,6 +91,10 @@ namespace neoneuron
          * Saves the settings' JSON into a file.
          */
         void saveSettings() const;
+
+        void loadImGuiIniFile() const;
+
+        void saveImGuiIniFile() const;
     };
 } // namespace neoneuron
 

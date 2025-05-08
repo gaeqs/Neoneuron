@@ -25,6 +25,7 @@ cmrc_add_resource_library(
         NAMESPACE resources
         WHENCE resources
 
+        resources/imgui.ini
         resources/LICENSE.txt
 
         resources/font/SourceSans3.ttf

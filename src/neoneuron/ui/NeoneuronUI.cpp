@@ -117,7 +117,6 @@ namespace neoneuron
         _gameObject->newComponent<NeoneuronBottomBar>(render->getNeoneuronApplication());
         _gameObject->newComponent<NeoneuronUINeuronList>(render);
         _gameObject->newComponent<NeoneuronUIGlobalParameters>(render);
-        _gameObject->newComponent<neon::vulkan::VulkanInfoCompontent>();
         _gameObject->newComponent<NeoneuronUINodeEditor>(render->getNeoneuronApplication());
 
         initDebugToggle();
