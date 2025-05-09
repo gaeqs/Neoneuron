@@ -9,7 +9,6 @@ mirror_to_github:
     - git config --add remote.origin.fetch "+refs/tags/*:refs/tags/*"
     - git fetch --prune origin
     - git remote set-url --push origin git@github.com:gaeqs/Neoneuron.git
-    - export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes"
     - git push --mirror origin
   only:
     - branches
