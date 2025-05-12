@@ -2,5 +2,37 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/hey-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/highfive-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/highfive-src/deps/catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/imblueprint-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/imnodes-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/imnodes-src/vcpkg" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/mindset-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/nativefiledialog-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/neon-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/neon-src/lib/glslang" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/neon-src/lib/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/neon-src/lib/implot" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/neon-src/lib/libzippp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/neon-src/lib/rush" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/neon-src/lib/spirv_headers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/neon-src/lib/spirv_tools" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/hey-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/highfive-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/highfive-src/deps/catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/imblueprint-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/imnodes-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/imnodes-src/vcpkg" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/mindset-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/nativefiledialog-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/glslang" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/implot" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/libzippp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/rush" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/spirv_headers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/spirv_tools" vcs="Git" />
   </component>
 </project>

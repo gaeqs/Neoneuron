@@ -37,6 +37,8 @@ namespace neoneuron
 
         void initDebugToggle();
 
+        void initLogToggle();
+
       public:
         NeoneuronUI() = default;
 

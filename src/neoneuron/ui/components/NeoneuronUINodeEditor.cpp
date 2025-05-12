@@ -30,6 +30,33 @@
 namespace neoneuron
 {
 
+    void NeoneuronUINodeEditor::loadDefault()
+    {
+        auto repo = _editor.addNode<RepositoryNode>(_application);
+        auto viewport = _editor.addNode<ViewportNode>(_application);
+        auto representation = _editor.addNode<RepresentationNode>(_application);
+
+        _editor.setNodePosition(repo, {150, 50});
+        _editor.setNodePosition(viewport, {150, 150});
+        _editor.setNodePosition(representation, {500, 100});
+
+        for (auto& [name, output] : repo->getOutputs()) {
+            for (auto& [iName, input] : representation->getInputs()) {
+                if (name == iName) {
+                    output->addLink(input.get());
+                }
+            }
+        }
+
+        for (auto& [name, output] : viewport->getOutputs()) {
+            for (auto& [iName, input] : representation->getInputs()) {
+                if (name == iName) {
+                    output->addLink(input.get());
+                }
+            }
+        }
+    }
+
     NeoneuronUINodeEditor::NeoneuronUINodeEditor(NeoneuronApplication* application) :
         _application(application)
     {
@@ -45,6 +72,11 @@ namespace neoneuron
     }
 
     NeoneuronUINodeEditor::~NeoneuronUINodeEditor() = default;
+
+    void NeoneuronUINodeEditor::onStart()
+    {
+        loadDefault();
+    }
 
     void NeoneuronUINodeEditor::onUpdate(float deltaTime)
     {
