@@ -53,7 +53,7 @@ endif ()
 FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG master
+        GIT_TAG files
 )
 
 FetchContent_MakeAvailable(neon)
@@ -65,14 +65,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(mindset)
-
-FetchContent_Declare(
-        nativefiledialog
-        GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
-        GIT_TAG a1a401062819beb8c3da84518ab1fe7de88632db
-)
-
-FetchContent_MakeAvailable(nativefiledialog)
 
 set(IMBLUEPRINT_IMGUI_TARGET imgui)
 
@@ -109,7 +101,7 @@ endif ()
 find_package(glfw3 CONFIG REQUIRED)
 list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
-list(APPEND LIBRARIES neon nfd hey pugixml mindset imblueprint HighFive)
+list(APPEND LIBRARIES neon hey pugixml mindset imblueprint HighFive)
 
 # Create version.h
 

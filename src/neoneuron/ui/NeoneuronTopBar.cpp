@@ -24,8 +24,6 @@
 #endif
 
 #include <imgui_internal.h>
-#include <nfd.hpp>
-#include <nfd_glfw3.h>
 #include <neoneuron/loader/SceneLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
@@ -35,6 +33,7 @@
 #include "components/actions/ActionSave.h"
 #include "components/actions/ActionShuffle.h"
 #include "components/NeoneuronUIAbout.h"
+#include "neon/util/dialog/Dialogs.h"
 #include "settings/NeoneuronUiSettings.h"
 #include "style/Fonts.h"
 
@@ -42,24 +41,11 @@ namespace neoneuron
 {
     void NeoneuronTopBar::openFile() const
     {
-        auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
+        neon::OpenFileDialogInfo info;
+        info.application = getApplication();
+        auto result = neon::openFileDialog(info);
 
-        nfdwindowhandle_t handle;
-        NFD_GetNativeWindowFromGLFWWindow(app->getWindow(), &handle);
-
-        NFD::UniquePath outPath = NULL;
-        nfdresult_t result = NFD::OpenDialog(outPath, nullptr, 0, nullptr, handle);
-        std::string file;
-        if (result == NFD_OKAY) {
-            file = std::string(outPath.get());
-        } else if (result == NFD_CANCEL) {
-            return;
-        } else {
-            getLogger().error(neon::MessageBuilder().print("Error while choosing file: ").print(NFD_GetError()));
-            return;
-        }
-
-        std::filesystem::path path(file);
+        std::filesystem::path path = result[0];
         auto fileSystem = std::make_unique<neon::DirectoryFileSystem>(path.parent_path());
         auto optional = fileSystem->readFile(path.filename());
         if (!optional.has_value()) {
@@ -71,32 +57,14 @@ namespace neoneuron
 
     void NeoneuronTopBar::saveFile(const std::string& data) const
     {
-        auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
-
-        nfdwindowhandle_t handle;
-        NFD_GetNativeWindowFromGLFWWindow(app->getWindow(), &handle);
-
-        nfdu8filteritem_t filters = {"JSON", "json"};
-        NFD::UniquePath outPath = NULL;
-        nfdresult_t result = NFD::SaveDialog(outPath, &filters, 0, nullptr, "scene.json", handle);
-        std::string file;
-        if (result == NFD_OKAY) {
-            file = std::string(outPath.get());
-        } else if (result == NFD_CANCEL) {
-            return;
-        } else {
-            getLogger().error(neon::MessageBuilder().print("Error while choosing file: ").print(NFD_GetError()));
-            return;
+        neon::SaveFileDialogInfo info;
+        info.application = getApplication();
+        info.defaultExtension = "json";
+        if (auto result = neon::saveFileDialog(info)) {
+            if (std::ofstream out(result.value().string()); out) {
+                out << data;
+            }
         }
-
-        std::filesystem::path path(file);
-
-        std::ofstream out(path);
-        if (!out) {
-            return;
-        }
-        out << data;
-        out.close();
     }
 
     void NeoneuronTopBar::toolsMenu() const

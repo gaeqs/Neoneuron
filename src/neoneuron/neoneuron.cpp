@@ -18,9 +18,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 #include <cmrc/cmrc.hpp>
-#include <imgui_impl_vulkan.h>
 #include <neon/logging/Logger.h>
-#include <nfd.hpp>
 
 #include <neoneuron/render/NeoneuronRender.h>
 
@@ -30,7 +28,6 @@ CMRC_DECLARE(resources);
 
 int main()
 {
-    NFD::Init();
 
     using MeshFeature = VkPhysicalDeviceMeshShaderFeaturesEXT;
     constexpr VkStructureType MESH_FEATURE = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT;

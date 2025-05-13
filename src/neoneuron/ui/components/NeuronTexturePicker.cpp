@@ -24,8 +24,6 @@
 #include <neon/io/MouseButtonEvent.h>
 #include <neoneuron/render/NeoneuronRender.h>
 
-#include "nfd_glfw3.h"
-
 #include <neoneuron/application/NeoneuronApplication.h>
 
 namespace neoneuron
