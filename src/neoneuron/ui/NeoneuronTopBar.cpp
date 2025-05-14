@@ -23,7 +23,6 @@
     #define GLFW_EXPOSE_NATIVE_WIN32
 #endif
 
-#include <imgui_internal.h>
 #include <neoneuron/loader/SceneLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
@@ -39,21 +38,6 @@
 
 namespace neoneuron
 {
-    void NeoneuronTopBar::openFile() const
-    {
-        neon::OpenFileDialogInfo info;
-        info.application = getApplication();
-        auto result = neon::openFileDialog(info);
-
-        std::filesystem::path path = result[0];
-        auto fileSystem = std::make_unique<neon::DirectoryFileSystem>(path.parent_path());
-        auto optional = fileSystem->readFile(path.filename());
-        if (!optional.has_value()) {
-            return;
-        }
-        _render->getRoom()->newGameObject()->newComponent<NeoneuronUiOpenFile>(
-            _render->getNeoneuronApplication(), std::move(fileSystem), path, std::move(optional.value()));
-    }
 
     void NeoneuronTopBar::saveFile(const std::string& data) const
     {
@@ -160,7 +144,7 @@ namespace neoneuron
             if (ImGui::BeginMenu("File")) {
                 fonts::imGuiPushFont(fonts::SS3_18);
                 if (ImGui::MenuItem("Open file", "Ctrl+O")) {
-                    openFile();
+                    NeoneuronUiOpenFile::openDialog(_render->getNeoneuronApplication());
                 }
                 if (ImGui::MenuItem("Close scene")) {
                     _render->getNeoneuronApplication()->getRepository().clear();

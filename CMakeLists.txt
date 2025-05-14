@@ -39,13 +39,6 @@ include(FetchContent)
 
 project(Neoneuron LANGUAGES CXX VERSION 0.0.2)
 
-if (UNIX)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GTK REQUIRED gtkmm-3.0)
-    include_directories(${GTK_INCLUDE_DIRS})
-    list(APPEND LIBRARIES ${GTK_LIBRARIES})
-endif ()
-
 if (MSVC)
     add_compile_definitions(NOMINMAX)
 endif ()

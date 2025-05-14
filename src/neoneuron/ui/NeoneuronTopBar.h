@@ -30,8 +30,6 @@ namespace neoneuron
     {
         NeoneuronRender* _render;
 
-        void openFile() const;
-
         void saveFile(const std::string& data) const;
 
         void toolsMenu() const;

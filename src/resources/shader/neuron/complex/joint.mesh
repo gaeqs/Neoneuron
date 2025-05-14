@@ -339,7 +339,13 @@ void joint2(Joint joint) {
     uint rotationIndex = uint(ceil((joint.rotationIndex + rotationIndexOffset) * parentVPC / 16.0f));
     uint childrenRotationIndex = uint(ceil((joint.rotationIndex + rotationIndexOffset + childrenRotationIndexOffset) * parentVPC / 16.0f));
 
+    uint grandParentType = grandParent.metadata & 255u;
+
     float parentRadius = mix(grandParent.endAndRadius.w, parent.endAndRadius.w, 1.0f - endClip);
+    if(grandParentType == 1) {
+        // If grandparent is soma, use the parent radius.
+        parentRadius = parent.endAndRadius.w;
+    }
 
     vec3 startDirectionUnorm = parent.endAndRadius.xyz - grandParent.endAndRadius.xyz;
     vec3 startDirection = normalize(startDirectionUnorm);

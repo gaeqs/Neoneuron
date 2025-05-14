@@ -44,9 +44,15 @@ layout (set = 0, binding = 1) uniform GlobalData {
     vec4 selectedColor;
 };
 
+vec4 shading(vec3 color_, vec3 normal_, vec3 L_) {
+    vec3 N = normalize(normal_);
+    float dif = clamp(dot(N, L_), 0.0, 1.0);
+    return vec4(color_ * dif, 1.0) + vec4(color_ * 0.3, 1.0);
+}
+
 void main() {
     vec4 viewNormal = view * vec4(normalize(fragNormal), 0.0f);
-    float intensity = viewNormal.z * 0.8f + 0.2f;
+    float intensity = clamp(viewNormal.z, 0.0f, 1.0f) * 0.7f + 0.3f;
 
     uint type = floatBitsToUint(fragType);
     vec4 pre = fragSelected > 0.5f ? selectedColor : defaultColor;
