@@ -29,6 +29,7 @@ cmrc_add_resource_library(
         resources/LICENSE.txt
 
         resources/font/SourceSans3.ttf
+        resources/font/MaterialSymbols.ttf
 
         resources/icon/16x16/neoneuron.png
         resources/icon/32x32/neoneuron.png

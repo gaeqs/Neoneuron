@@ -19,6 +19,7 @@
 
 #include "NeoneuronUINodeEditor.h"
 
+#include "neoneuron/ui/style/MaterialSymbols.h"
 #include "nodes/CameraNode.h"
 #include "nodes/DatasetNode.h"
 #include "nodes/RepositoryNode.h"
@@ -84,7 +85,7 @@ namespace neoneuron
 
     void NeoneuronUINodeEditor::onPreDraw()
     {
-        if (ImGui::Begin("Scene editor")) {
+        if (ImGui::Begin(ICON_MS_SCENE "Scene editor")) {
             float sidebarWidth = 200.0f;
 
             ImGui::BeginChild("Sidebar", ImVec2(sidebarWidth, 0), ImGuiChildFlags_Border);

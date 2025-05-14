@@ -35,6 +35,7 @@
 #include "neon/util/dialog/Dialogs.h"
 #include "settings/NeoneuronUiSettings.h"
 #include "style/Fonts.h"
+#include "style/MaterialSymbols.h"
 
 namespace neoneuron
 {
@@ -63,17 +64,17 @@ namespace neoneuron
         bool debug = s.value(DEBUG, false);
         bool demo = s.value(DEMO, false);
 
-        if (ImGui::MenuItem("Global parameters", nullptr, &globalParameters)) {
+        if (ImGui::MenuItem(ICON_MS_GLOBE "Global parameters", nullptr, &globalParameters)) {
             s[GLOBAL_PARAMS] = globalParameters;
             files.signalSettingsChange(GLOBAL_PARAMS);
         }
 
-        if (ImGui::MenuItem("Debug", nullptr, &debug)) {
+        if (ImGui::MenuItem(ICON_MS_INFO "Debug", nullptr, &debug)) {
             s[DEBUG] = debug;
             files.signalSettingsChange(DEBUG);
         }
 
-        if (ImGui::MenuItem("ImGUI Demo", nullptr, &demo)) {
+        if (ImGui::MenuItem(ICON_MS_IMAGESEARCH_ROLLER "ImGUI Demo", nullptr, &demo)) {
             s[DEMO] = demo;
             files.signalSettingsChange(DEMO);
         }
@@ -101,13 +102,13 @@ namespace neoneuron
     void NeoneuronTopBar::actionsMenu() const
     {
         auto app = _render->getNeoneuronApplication();
-        if (ImGui::MenuItem("Focus scene")) {
+        if (ImGui::MenuItem(ICON_MS_RECENTER "Focus scene")) {
             _render->focusScene();
         }
-        if (ImGui::MenuItem("Shuffle")) {
+        if (ImGui::MenuItem(ICON_MS_SHUFFLE "Shuffle")) {
             _render->getRoom()->newGameObject()->newComponent<ActionShuffle>(app);
         }
-        if (ImGui::MenuItem("Save neuron model")) {
+        if (ImGui::MenuItem(ICON_MS_DOWNLOAD "Save neuron model")) {
             _render->getRoom()->newGameObject()->newComponent<ActionSave>(app);
         }
     }
@@ -138,47 +139,46 @@ namespace neoneuron
     void NeoneuronTopBar::onPreDraw()
     {
         bool openSettings = false;
-
         fonts::imGuiPushFont(fonts::SS3_20);
         if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu("File")) {
+            if (ImGui::BeginMenu(ICON_MS_FILES "File")) {
                 fonts::imGuiPushFont(fonts::SS3_18);
-                if (ImGui::MenuItem("Open file", "Ctrl+O")) {
+                if (ImGui::MenuItem(ICON_MS_FILE_OPEN "Open file", "Ctrl+O")) {
                     NeoneuronUiOpenFile::openDialog(_render->getNeoneuronApplication());
                 }
-                if (ImGui::MenuItem("Close scene")) {
+                if (ImGui::MenuItem(ICON_MS_CLOSE "Close scene")) {
                     _render->getNeoneuronApplication()->getRepository().clear();
                 }
-                if (ImGui::MenuItem("Save scene")) {
+                if (ImGui::MenuItem(ICON_MS_SAVE "Save scene")) {
                     saveFile(saveScene(_render).dump(4));
                 }
-                if (ImGui::MenuItem("Settings", "Ctrl+S")) {
+                if (ImGui::MenuItem(ICON_MS_SETTINGS "Settings", "Ctrl+S")) {
                     openSettings = true;
                 }
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("View")) {
+            if (ImGui::BeginMenu(ICON_MS_VISIBILITY "View")) {
                 fonts::imGuiPushFont(fonts::SS3_18);
                 viewMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("Tools")) {
+            if (ImGui::BeginMenu(ICON_MS_BUILD "Tools")) {
                 fonts::imGuiPushFont(fonts::SS3_18);
                 toolsMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("Actions")) {
+            if (ImGui::BeginMenu(ICON_MS_PLAY_ARROW "Actions")) {
                 fonts::imGuiPushFont(fonts::SS3_18);
                 actionsMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("Help")) {
+            if (ImGui::BeginMenu(ICON_MS_HELP "Help")) {
                 fonts::imGuiPushFont(fonts::SS3_18);
-                if (ImGui::MenuItem("About")) {
+                if (ImGui::MenuItem(ICON_MS_INFO "About")) {
                     _render->getRoom()->newGameObject()->newComponent<NeoneuronUIAbout>(
                         _render->getNeoneuronApplication());
                 }

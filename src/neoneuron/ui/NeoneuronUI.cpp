@@ -21,6 +21,7 @@
 
 #include "components/NeoneuronBottomBar.h"
 #include "components/NeoneuronUINodeEditor.h"
+#include "style/MaterialSymbols.h"
 
 #include <neon/util/component/DebugOverlayComponent.h>
 #include <neon/util/component/DockSpaceComponent.h>
@@ -122,6 +123,12 @@ namespace neoneuron
         initDebugToggle();
 
         auto& fs = render->getFileSystem();
+
+        auto icons = fs.readFile("/font/MaterialSymbols.ttf");
+        if (icons.has_value()) {
+            fonts::addMergeFont("material", std::move(icons.value()), {ICON_MIN_MS, ICON_MAX_MS}, {0, 3});
+        }
+
         auto file = fs.readFile("/font/SourceSans3.ttf");
         if (file.has_value()) {
             fonts::loadFont(fonts::SS3_16, file.value(), 16.0f);
@@ -130,7 +137,6 @@ namespace neoneuron
             fonts::loadFont(fonts::SS3_24, file.value(), 24.0f);
             fonts::loadFont(fonts::SS3_32, file.value(), 32.0f);
         }
-
         fonts::recreateFonts();
 
         initStyle(render);
