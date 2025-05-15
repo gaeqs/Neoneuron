@@ -17,31 +17,37 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef NEONEURONUINEURONLIST_H
-#define NEONEURONUINEURONLIST_H
+//
+// Created by gaeqs on 15/05/25.
+//
 
-#include <neoneuron/ui/components/ToolWindow.h>
+#ifndef NEONEURON_TOOLWINDOW_H
+#define NEONEURON_TOOLWINDOW_H
+
+#include <string>
+#include <neon/structure/Component.h>
+#include <neoneuron/application/NeoneuronApplication.h>
 
 namespace neoneuron
 {
-    class NeoneuronUINeuronList : public ToolWindow
+    class ToolWindow : public neon::Component
     {
-        bool neuronSection(GID gid, mindset::Dataset* dataset, const mindset::Neuron* neuron, size_t id,
-                           bool selected) const;
+        NeoneuronApplication* _application;
+        std::string _configNode;
+        std::string _windowName;
 
-        void neuronList();
+      protected:
+        void setWindowName(std::string windowName);
 
-        void neuronInformation() const;
-
-        void neuronNewProperty(GID gid, mindset::Dataset* dataset, mindset::Neuron* neuron) const;
-
-    protected:
-
-        void drawWindowContents() override;
+        virtual void drawWindowContents() = 0;
 
       public:
-        explicit NeoneuronUINeuronList(NeoneuronApplication* application);
+        ToolWindow(NeoneuronApplication* application, std::string configNode, std::string windowName);
+
+        NeoneuronApplication* getNeoneuronApplication() const;
+
+        void onPreDraw() override;
     };
 } // namespace neoneuron
 
-#endif // NEONEURONUINEURONLIST_H
+#endif // NEONEURON_TOOLWINDOW_H

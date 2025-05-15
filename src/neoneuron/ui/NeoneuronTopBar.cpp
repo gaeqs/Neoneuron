@@ -54,15 +54,22 @@ namespace neoneuron
 
     void NeoneuronTopBar::toolsMenu() const
     {
+        static const auto NEURON_LIST = NeoneuronFiles::SETTINGS_TOOL_NEURON_LIST;
         static const auto GLOBAL_PARAMS = NeoneuronFiles::SETTINGS_TOOL_GLOBAL_PARAMETERS;
         static const auto DEBUG = NeoneuronFiles::SETTINGS_TOOL_DEBUG;
         static const auto DEMO = NeoneuronFiles::SETTINGS_TOOL_DEMO;
         auto& files = _render->getNeoneuronApplication()->getFiles();
         auto& s = files.getSettings();
 
+        bool neuronList = s.value(NEURON_LIST, false);
         bool globalParameters = s.value(GLOBAL_PARAMS, false);
         bool debug = s.value(DEBUG, false);
         bool demo = s.value(DEMO, false);
+
+        if (ImGui::MenuItem(ICON_MS_NEUROLOGY "Neurons", nullptr, &neuronList)) {
+            s[NEURON_LIST] = neuronList;
+            files.signalSettingsChange(NEURON_LIST);
+        }
 
         if (ImGui::MenuItem(ICON_MS_GLOBE "Global parameters", nullptr, &globalParameters)) {
             s[GLOBAL_PARAMS] = globalParameters;
