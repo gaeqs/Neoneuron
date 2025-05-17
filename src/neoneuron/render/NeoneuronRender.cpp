@@ -202,7 +202,7 @@ namespace neoneuron
             return;
         }
 
-        auto it = std::ranges::find_if(_representations, [&](const std::unique_ptr<AbstractNeuronRepresentation>& it) {
+        auto it = std::ranges::find_if(_representations, [&](const std::shared_ptr<AbstractNeuronRepresentation>& it) {
             return it.get() == representation;
         });
         if (it == _representations.end()) {

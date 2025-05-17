@@ -47,7 +47,7 @@ namespace neoneuron
         std::unique_ptr<Components> _components;
         NeoneuronRenderData _renderData;
 
-        std::vector<std::unique_ptr<AbstractNeuronRepresentation>> _representations;
+        std::vector<std::shared_ptr<AbstractNeuronRepresentation>> _representations;
 
         neon::IdentifiableWrapper<neon::GameObject> _viewportGO;
         std::vector<Viewport*> _viewports;
@@ -99,12 +99,11 @@ namespace neoneuron
         void refreshNeuronProperty(GID neuronId, const std::string& propertyName);
 
         template<typename Representation>
-        Representation* addRepresentation()
+        std::weak_ptr<Representation> addRepresentation()
         {
-            auto ptr = std::make_unique<Representation>(this);
-            auto raw = ptr.get();
-            _representations.push_back(std::move(ptr));
-            return raw;
+            auto ptr = std::make_shared<Representation>(this);
+            _representations.push_back(ptr);
+            return ptr;
         }
 
         void removeRepresentation(AbstractNeuronRepresentation* representation);

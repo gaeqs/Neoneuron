@@ -32,41 +32,47 @@ namespace neoneuron
         defineInput<RepositoryView>("Data", true);
         defineInput<Viewport*>("Viewport", true);
         _representation = _application->getRender().addRepresentation<SynapseRepresentation>();
-        defineOutput<AbstractNeuronRepresentation*>("Representation", _representation);
+        defineOutput<std::weak_ptr<AbstractNeuronRepresentation>>("Representation", _representation);
     }
 
     SynapseRepresentationNode::~SynapseRepresentationNode()
     {
         sendOutput("Representation", std::any());
-        _application->getRender().removeRepresentation(_representation);
+        if (auto ptr = _representation.lock()) {
+            _application->getRender().removeRepresentation(ptr.get());
+        }
     }
 
     void SynapseRepresentationNode::onInputChange(const std::string& name, const std::any& value)
     {
+        auto ptr = _representation.lock();
+        if (!ptr) {
+            return;
+        }
         if (name == "Data") {
             auto data = getMultipleInputs<RepositoryView>("Data");
             if (!data.has_value()) {
-                _representation->clearData();
+                ptr->clearData();
                 return;
             }
 
             auto combined = RepositoryView::combine(data.value());
             if (combined.has_value()) {
-                _representation->refreshData(combined.value());
+                ptr->refreshData(combined.value());
             } else {
-                _representation->clearData();
+                ptr->clearData();
             }
         } else if (name == "Viewport") {
             auto viewports = getMultipleInputs<Viewport*>("Viewport");
             if (!viewports.has_value()) {
-                _representation->setViewports({});
+                ptr->setViewports({});
                 return;
             }
 
             auto& vec = viewports.value();
 
             std::unordered_set set(vec.begin(), vec.end());
-            _representation->setViewports(set);
+            ptr->setViewports(set);
         }
     }
 

@@ -32,49 +32,60 @@ namespace neoneuron
         defineInput<RepositoryView>("Data", true);
         defineInput<Viewport*>("Viewport", true);
         _representation = _application->getRender().addRepresentation<ComplexNeuronRepresentation>();
-        defineOutput<AbstractNeuronRepresentation*>("Representation", _representation);
+        defineOutput<std::weak_ptr<AbstractNeuronRepresentation>>("Representation", _representation);
     }
 
     RepresentationNode::~RepresentationNode()
     {
         sendOutput("Representation", std::any());
-        _application->getRender().removeRepresentation(_representation);
+        if (auto ptr = _representation.lock()) {
+            _application->getRender().removeRepresentation(ptr.get());
+        }
     }
 
     void RepresentationNode::renderBody()
     {
-        bool wireframe = _representation->isWireframeMode();
+        auto ptr = _representation.lock();
+        if (!ptr) {
+            return;
+        }
+        bool wireframe = ptr->isWireframeMode();
         if (ImGui::Checkbox("Wireframe", &wireframe)) {
-            _representation->setWireframeMode(wireframe);
+            ptr->setWireframeMode(wireframe);
         }
     }
 
     void RepresentationNode::onInputChange(const std::string& name, const std::any& value)
     {
+        auto ptr = _representation.lock();
+        if (!ptr) {
+            return;
+        }
+
         if (name == "Data") {
             auto data = getMultipleInputs<RepositoryView>("Data");
             if (!data.has_value()) {
-                _representation->clearData();
+                ptr->clearData();
                 return;
             }
 
             auto combined = RepositoryView::combine(data.value());
             if (combined.has_value()) {
-                _representation->refreshData(combined.value());
+                ptr->refreshData(combined.value());
             } else {
-                _representation->clearData();
+                ptr->clearData();
             }
         } else if (name == "Viewport") {
             auto viewports = getMultipleInputs<Viewport*>("Viewport");
             if (!viewports.has_value()) {
-                _representation->setViewports({});
+                ptr->setViewports({});
                 return;
             }
 
             auto& vec = viewports.value();
 
             std::unordered_set set(vec.begin(), vec.end());
-            _representation->setViewports(set);
+            ptr->setViewports(set);
         }
     }
 

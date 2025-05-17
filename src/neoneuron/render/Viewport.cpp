@@ -83,7 +83,7 @@ namespace neoneuron
     {
         frameBuffer->setRecreationCondition([&](auto* fb) {
             auto vp = rush::Vec2i(_windowSize.x, _windowSize.y);
-            if (vp.x() == 0 || vp.y() == 0) {
+            if (vp.x() <= 0 || vp.y() <= 0) {
                 return false;
             }
 
@@ -156,7 +156,9 @@ namespace neoneuron
 
     Viewport::~Viewport()
     {
-        _internalCameraController->destroy();
+        if (_internalCameraController.isValid()) {
+            _internalCameraController->destroy();
+        }
         _render->getRoom()->unmarkUsingModel(_selectionResolver.get());
 
         auto neonRender = _render->getApplication().getRender();
