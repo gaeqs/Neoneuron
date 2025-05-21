@@ -25,6 +25,14 @@
 namespace neoneuron
 {
 
+    void RepresentationNode::drawProgressBar(ComplexNeuronRepresentation* ptr)
+    {
+        auto used = static_cast<float>(ptr->getUsedInstanceMemory()) / 1024.0f / 1024.0f;
+        auto allocated = static_cast<float>(ptr->getAllocatedInstanceMemory()) / 1024.0f / 1024.0f;
+        std::string text = std::format("{:.2f}/{:.2f} MiB", used, allocated);
+        ImGui::ProgressBar(ptr->getUsedInstanceMemoryPercentage(), ImVec2(200, 0), text.c_str());
+    }
+
     RepresentationNode::RepresentationNode(NeoneuronApplication* application) :
         Node("Representation"),
         _application(application)
@@ -49,6 +57,9 @@ namespace neoneuron
         if (!ptr) {
             return;
         }
+
+        drawProgressBar(ptr.get());
+
         bool wireframe = ptr->isWireframeMode();
         if (ImGui::Checkbox("Wireframe", &wireframe)) {
             ptr->setWireframeMode(wireframe);

@@ -277,4 +277,39 @@ namespace neoneuron
             addViewport(vp);
         }
     }
+
+    size_t SynapseRepresentation::getTotalAllocatedMemory() const
+    {
+        size_t size = 0;
+        for (auto& binding : _uboDescriptor->getBindings()) {
+            if (binding.type == neon::UniformBindingType::STORAGE_BUFFER ||
+                binding.type == neon::UniformBindingType::UNIFORM_BUFFER) {
+                size += binding.size;
+            }
+        }
+        return size;
+    }
+
+    size_t SynapseRepresentation::getAllocatedInstanceMemory() const
+    {
+        size_t size = 0;
+        for (auto& data : _model->getInstanceDatas()) {
+            size += data->getBytesRequiredPerInstance() * data->getMaximumInstances();
+        }
+        return size;
+    }
+
+    size_t SynapseRepresentation::getUsedInstanceMemory() const
+    {
+        size_t size = 0;
+        for (auto& data : _model->getInstanceDatas()) {
+            size += data->getBytesRequiredPerInstance() * data->getInstanceAmount();
+        }
+        return size;
+    }
+
+    float SynapseRepresentation::getUsedInstanceMemoryPercentage() const
+    {
+        return static_cast<float>(getUsedInstanceMemory()) / static_cast<float>(getAllocatedInstanceMemory());
+    }
 } // namespace neoneuron

@@ -34,6 +34,8 @@ namespace neoneuron
         NeoneuronApplication* _application;
         std::weak_ptr<ComplexNeuronRepresentation> _representation;
 
+        static void drawProgressBar(ComplexNeuronRepresentation* ptr);
+
       public:
         explicit RepresentationNode(NeoneuronApplication* application);
 

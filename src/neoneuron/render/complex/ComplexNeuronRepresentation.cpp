@@ -693,6 +693,53 @@ namespace neoneuron
         }
     }
 
+    size_t ComplexNeuronRepresentation::getTotalAllocatedMemory() const
+    {
+        size_t size = 0;
+        for (auto& binding : _uboDescriptor->getBindings()) {
+            if (binding.type == neon::UniformBindingType::STORAGE_BUFFER ||
+                binding.type == neon::UniformBindingType::UNIFORM_BUFFER) {
+                size += binding.size;
+            }
+        }
+        return size;
+    }
+
+    size_t ComplexNeuronRepresentation::getAllocatedInstanceMemory() const
+    {
+        size_t size = 0;
+        for (auto& data : _segmentModel->getInstanceDatas()) {
+            size += data->getBytesRequiredPerInstance() * data->getMaximumInstances();
+        }
+        for (auto& data : _jointModel->getInstanceDatas()) {
+            size += data->getBytesRequiredPerInstance() * data->getMaximumInstances();
+        }
+        for (auto& data : _somaModel->getInstanceDatas()) {
+            size += data->getBytesRequiredPerInstance() * data->getMaximumInstances();
+        }
+        return size;
+    }
+
+    size_t ComplexNeuronRepresentation::getUsedInstanceMemory() const
+    {
+        size_t size = 0;
+        for (auto& data : _segmentModel->getInstanceDatas()) {
+            size += data->getBytesRequiredPerInstance() * data->getInstanceAmount();
+        }
+        for (auto& data : _jointModel->getInstanceDatas()) {
+            size += data->getBytesRequiredPerInstance() * data->getInstanceAmount();
+        }
+        for (auto& data : _somaModel->getInstanceDatas()) {
+            size += data->getBytesRequiredPerInstance() * data->getInstanceAmount();
+        }
+        return size;
+    }
+
+    float ComplexNeuronRepresentation::getUsedInstanceMemoryPercentage() const
+    {
+        return static_cast<float>(getUsedInstanceMemory()) / static_cast<float>(getAllocatedInstanceMemory());
+    }
+
     bool ComplexNeuronRepresentation::isWireframeMode() const
     {
         return _wireframe;

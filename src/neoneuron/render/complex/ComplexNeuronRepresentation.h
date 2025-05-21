@@ -212,6 +212,14 @@ namespace neoneuron
 
         void setViewports(const std::unordered_set<Viewport*>& viewport) override;
 
+        [[nodiscard]] size_t getTotalAllocatedMemory() const override;
+
+        [[nodiscard]] size_t getAllocatedInstanceMemory() const override;
+
+        [[nodiscard]] size_t getUsedInstanceMemory() const override;
+
+        [[nodiscard]] float getUsedInstanceMemoryPercentage() const override;
+
         [[nodiscard]] bool isWireframeMode() const;
 
         void setWireframeMode(bool wireframe);
