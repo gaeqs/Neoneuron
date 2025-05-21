@@ -46,7 +46,7 @@ endif ()
 FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG files
+        GIT_TAG master
 )
 
 FetchContent_MakeAvailable(neon)
