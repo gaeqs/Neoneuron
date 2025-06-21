@@ -73,8 +73,8 @@ namespace neoneuron
         auto& materials = _selectionResolver->getMeshes()[0]->getMaterials();
         for (auto& material : materials) {
             auto& ubo = material->getUniformBuffer();
-            ubo->setTexture(0, colorOutput);
-            ubo->setTexture(1, selectionOutput);
+            ubo->setTexture(0, neon::SampledTexture::create(application, colorOutput));
+            ubo->setTexture(1, neon::SampledTexture::create(application, selectionOutput));
             ubo->uploadData(3, 0);
         }
     }
@@ -86,14 +86,12 @@ namespace neoneuron
             if (vp.x() <= 0 || vp.y() <= 0) {
                 return false;
             }
-
-            return vp.x() != fb->getWidth() || vp.y() != fb->getHeight();
+            return vp.cast<uint32_t>() != fb->getDimensions();
         });
 
         frameBuffer->setRecreationParameters([&](auto* app) {
-            auto vp = rush::Vec2i(_windowSize.x, _windowSize.y);
-            return std::make_pair(std::max(static_cast<uint32_t>(vp.x()), 1u),
-                                  std::max(static_cast<uint32_t>(vp.y()), 1u));
+            auto vp = rush::max(rush::Vec2i(_windowSize.x, _windowSize.y), 1);
+            return vp.cast<uint32_t>();
         });
     }
 
@@ -124,19 +122,15 @@ namespace neoneuron
         textures[0].name = "neoneuron:color";
         textures[0].resolveName = "neoneuron:resolved_color";
         textures[1].name = "neoneuron:picker";
-        textures[0].samples = neon::SamplesPerTexel::COUNT_8;
-        textures[1].samples = neon::SamplesPerTexel::COUNT_8;
 
-        _inputFrameBuffer = std::make_shared<neon::SimpleFrameBuffer>(
-            application, "neoneuron:input", textures, true, "neoneuron:depth", neon::SamplesPerTexel::COUNT_8);
+        _inputFrameBuffer =
+            std::make_shared<neon::SimpleFrameBuffer>(application, "neoneuron:input", neon::SamplesPerTexel::COUNT_8,
+                                                      textures, neon::FrameBufferDepthCreateInfo("neoneuron:depth"));
 
         _inputFrameBuffer->setClearColor(0, rush::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
 
-        textures[0].samples = neon::SamplesPerTexel::COUNT_1;
-        textures[1].samples = neon::SamplesPerTexel::COUNT_1;
-
-        _outputFrameBuffer = std::make_shared<neon::SimpleFrameBuffer>(application, "neoneuron:output", textures, false,
-                                                                       "neoneuron:depth");
+        _outputFrameBuffer = std::make_shared<neon::SimpleFrameBuffer>(application, "neoneuron:output",
+                                                                       neon::SamplesPerTexel::COUNT_1, textures);
 
         assignRecreationConditions(_inputFrameBuffer.get());
         assignRecreationConditions(_outputFrameBuffer.get());
@@ -149,6 +143,9 @@ namespace neoneuron
 
         neonRender->addRenderPass(_inputStrategy);
         neonRender->addRenderPass(_outputStrategy);
+
+        _outputColorTexture =
+            neon::SampledTexture::create(application, _outputFrameBuffer->getOutputs()[0].resolvedTexture);
 
         loadUniforms();
         loadSelectionResolver();
@@ -240,12 +237,12 @@ namespace neoneuron
         return _uniformBuffer;
     }
 
-    std::shared_ptr<neon::Texture> Viewport::getPickerTexture() const
+    std::shared_ptr<neon::MutableAsset<neon::TextureView>> Viewport::getPickerTexture() const
     {
         return _outputFrameBuffer->getOutputs()[1].resolvedTexture;
     }
 
-    void Viewport::setSkybox(const std::shared_ptr<neon::Texture>& skybox) const
+    void Viewport::setSkybox(const std::shared_ptr<neon::SampledTexture>& skybox) const
     {
         auto& materials = _selectionResolver->getMeshes()[0]->getMaterials();
         if (skybox == nullptr) {
@@ -304,7 +301,7 @@ namespace neoneuron
         if (ImGui::Begin(_name.c_str())) {
             _windowSize = ImGui::GetContentRegionAvail();
             _windowOrigin = ImGui::GetCursorScreenPos();
-            ImGui::Image(_outputFrameBuffer->getImGuiDescriptor(0), _windowSize);
+            ImGui::Image(_outputColorTexture->getImGuiDescriptor(), _windowSize);
             _hovered = ImGui::IsItemHovered();
         }
         ImGui::End();

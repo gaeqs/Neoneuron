@@ -55,7 +55,7 @@ namespace neoneuron::fonts
 
         std::memcpy(font_cfg.Name, name.data(), std::min(static_cast<size_t>(40), name.size()));
 
-        void* data = const_cast<char*>(file.getData());
+        void* data = const_cast<std::byte*>(file.getData());
         auto* font = io.Fonts->AddFontFromMemoryTTF(data, static_cast<int>(file.getSize()), sizeInPixels, &font_cfg);
         _fonts[name] = font;
 
@@ -64,7 +64,7 @@ namespace neoneuron::fonts
 
         for (auto& merged : _mergedFonts) {
             std::string finalName = name + " - " + merged.name;
-            void* mergedData = const_cast<char*>(merged.file.getData());
+            void* mergedData = const_cast<std::byte*>(merged.file.getData());
 
             std::memcpy(font_cfg.Name, finalName.data(), std::min(static_cast<size_t>(40), finalName.size()));
             font_cfg.GlyphOffset = ImVec2(merged.offset.x(), merged.offset.y());

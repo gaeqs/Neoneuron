@@ -71,6 +71,9 @@ namespace neoneuron
         static constexpr size_t SOMA_BINDING = 4;
         static constexpr size_t SELECTION_BINDING = 5;
         static constexpr size_t SOMA_GPU_DATA_BINDING = 6;
+        static constexpr size_t SECTION_GPU_DATA_BINDING = 7;
+        static constexpr size_t SAVING_VERTICES_DATA_BINDING = 8;
+        static constexpr size_t SAVING_INDICES_DATA_BINDING = 9;
 
         static constexpr size_t SEGMENT_INSTANCES = 10000000;
         static constexpr size_t JOINT_INSTANCES = 1000000;

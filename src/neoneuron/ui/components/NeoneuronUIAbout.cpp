@@ -164,10 +164,12 @@ namespace neoneuron
                 auto& f = file.value();
                 IconEntry entry;
                 std::string id = std::format("neoneuron:icon_{}", icons);
-                entry.icon = neon::Texture::createTextureFromFile(app, id, f.getData(), f.getSize());
-                auto sampler = entry.icon->getImplementation().getSampler();
-                auto view = entry.icon->getImplementation().getImageView();
-                entry.descriptor = ImGui_ImplVulkan_AddTexture(sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                auto texture = neon::Texture::createTextureFromFile(app, id, f.getData(), f.getSize());
+                entry.icon = neon::SampledTexture::create(app, texture);
+                auto [view, sampler, layout] = entry.icon->getNativeHandlers();
+                entry.descriptor =
+                    ImGui_ImplVulkan_AddTexture(static_cast<VkSampler>(sampler), static_cast<VkImageView>(view),
+                                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
                 entry.textureId = reinterpret_cast<ImTextureID>(entry.descriptor);
                 _icons.push_back(std::move(entry));
             }
@@ -188,7 +190,7 @@ namespace neoneuron
         neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
         auto licenseFile = fs.readFile("LICENSE.txt");
         if (licenseFile.has_value()) {
-            _license = licenseFile.value().getData();
+            _license = std::string(reinterpret_cast<const char*>(licenseFile.value().getData()));
         }
     }
 

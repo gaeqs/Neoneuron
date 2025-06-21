@@ -32,6 +32,7 @@
 #include "components/actions/ActionSave.h"
 #include "components/actions/ActionShuffle.h"
 #include "components/NeoneuronUIAbout.h"
+#include "components/actions/ActionDuplicate.h"
 #include "neon/util/dialog/Dialogs.h"
 #include "settings/NeoneuronUiSettings.h"
 #include "style/Fonts.h"
@@ -114,6 +115,9 @@ namespace neoneuron
         }
         if (ImGui::MenuItem(ICON_MS_SHUFFLE "Shuffle")) {
             _render->getRoom()->newGameObject()->newComponent<ActionShuffle>(app);
+        }
+        if (ImGui::MenuItem(ICON_MS_TAB_DUPLICATE "Duplicate")) {
+            _render->getRoom()->newGameObject()->newComponent<ActionDuplicate>(app);
         }
         if (ImGui::MenuItem(ICON_MS_DOWNLOAD "Save neuron model")) {
             _render->getRoom()->newGameObject()->newComponent<ActionSave>(app);

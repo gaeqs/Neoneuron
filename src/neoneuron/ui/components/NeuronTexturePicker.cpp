@@ -84,7 +84,9 @@ namespace neoneuron
             uint32_t amount = size[0] * size[1];
 
             auto data = std::make_unique<rush::Vec4i[]>(amount);
-            _texture->fetchData(data.get(), {min, 0}, size, 0, 1);
+            if (auto read =_texture->get()->getTexture()->asReadable()) {
+                read.value()->readData(data.get(), {min.cast<uint32_t>(), 0}, size, 0, 1);
+            }
 
             auto& selector = _application->getSelector();
             selector.selectSegments(SelectionMode::OVERRIDE_ALL, pickNeurons(data.get(), amount));

@@ -57,7 +57,6 @@
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/imnodes-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/imnodes-src/vcpkg" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/mindset-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/nativefiledialog-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/glslang" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/imgui" vcs="Git" />

@@ -101,7 +101,10 @@ bool capsuleInFrustum(vec3 from, vec3 to, float radius) {
 }
 
 bool shouldUpdate(Neuron neuron, uint currentLocalLod) {
-    if (neuron.lodMode == 8) {
+    if (neuron.neuronId == savingNeuron) {
+        return true;
+    }
+    else if (neuron.lodMode == 8) {
         // Dynamic mode
         return (neuron.neuronId & 63u) == (frame & 63u) || neuron.updateFrame == frame;
     } else {
@@ -114,7 +117,9 @@ bool shouldUpdate(Neuron neuron, uint currentLocalLod) {
 }
 
 uint computeLOD(Neuron neuron, Section segment) {
-    if (neuron.lodMode == 8) {
+    if (neuron.neuronId == savingNeuron) {
+        return 7;
+    } else if (neuron.lodMode == 8) {
         float sceneRadius = neuron.radius;
         vec3 viewPosition = vec3(view * neuron.model * vec4(segment.endAndRadius.xyz, 1.0f));
         float distance = length(viewPosition);
@@ -182,7 +187,7 @@ void main() {
     Section nextToParent = sections[nextToParentIndex];
     Section parent = sections[nextToParent.parent];
 
-    bool render = valid && segmentLod <= localLod && cullSection(neuron, segment, parent);
+    bool render = valid && segmentLod <= localLod && (savingNeuron == neuron.neuronId || cullSection(neuron, segment, parent));
     uvec4 vote = subgroupBallot(render);
     uint amount = subgroupBallotBitCount(vote);
 

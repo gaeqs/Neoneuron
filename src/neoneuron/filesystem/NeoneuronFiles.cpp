@@ -112,8 +112,10 @@ namespace neoneuron
                 return;
             }
 
+            const std::byte* data = file->getData();
+            const char* chars = reinterpret_cast<const char*>(data);
             neon::info() << "Load imgui settings from memory.";
-            ImGui::LoadIniSettingsFromMemory(file->getData(), file->getSize());
+            ImGui::LoadIniSettingsFromMemory(chars, file->getSize());
             return;
         }
 

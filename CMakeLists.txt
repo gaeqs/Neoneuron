@@ -44,16 +44,25 @@ if (MSVC)
 endif ()
 
 FetchContent_Declare(
+        rush
+        GIT_REPOSITORY https://github.com/gaeqs/Rush.git
+        GIT_TAG mesh
+)
+
+FetchContent_MakeAvailable(rush)
+
+
+FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG master
+        GIT_TAG user-experience
 )
 
 FetchContent_MakeAvailable(neon)
 
 FetchContent_Declare(
         mindset
-        GIT_REPOSITORY https://github.com/gaeqs/Mindset.git
+        GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mindset.git
         GIT_TAG master
 )
 

@@ -37,7 +37,7 @@ namespace neoneuron
 
         struct IconEntry
         {
-            std::shared_ptr<neon::Texture> icon;
+            std::shared_ptr<neon::SampledTexture> icon;
             VkDescriptorSet descriptor;
             ImTextureID textureId;
         };

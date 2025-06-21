@@ -128,10 +128,7 @@ namespace neoneuron
                 parentIndex = *_segmentInstances[i].id;
             }
 
-            auto joint = neuron->findJoint(segment.getUID());
-
             uint32_t metadata = static_cast<uint32_t>(segment.getType()) & 0b11111111;
-            ;
             metadata += (segment.getChildrenAmount() & 0b111) << 8;
             metadata += (segment.getLod() & 0b111) << 11;
             metadata += 7 << 14;
@@ -313,6 +310,13 @@ namespace neoneuron
             return {};
         }
         return id->second;
+    }
+
+    size_t ComplexGPUNeuron::getAllocatedMemorySize() const
+    {
+        return _segmentInstances.size() * sizeof(ComplexGPUNeuronSegment) +
+               _jointInstances.size() * sizeof(ComplexGPUNeuronJoint) +
+               _somaInstances.size() * sizeof(ComplexGPUNeuronSoma) + sizeof(ComplexGPUNeuronGlobalData);
     }
 
     ComplexGPUNeuron& ComplexGPUNeuron::operator=(ComplexGPUNeuron&& other) noexcept

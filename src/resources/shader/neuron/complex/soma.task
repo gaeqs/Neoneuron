@@ -394,7 +394,7 @@ void main() {
     float radius2;
     generateSomaBoundingBoxSphere(soma, center, radius2);
 
-    if (sphereInFrustum(neuron, center, radius2)) {
+    if (savingNeuron == neuron.neuronId || sphereInFrustum(neuron, center, radius2)) {
         generateSomaGPUData();
         if (gl_LocalInvocationID.x == 0) {
             td.somaIndex = gl_WorkGroupID.x;

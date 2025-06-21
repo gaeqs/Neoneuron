@@ -31,6 +31,7 @@ namespace neoneuron
         auto allocated = static_cast<float>(ptr->getAllocatedInstanceMemory()) / 1024.0f / 1024.0f;
         std::string text = std::format("{:.2f}/{:.2f} MiB", used, allocated);
         ImGui::ProgressBar(ptr->getUsedInstanceMemoryPercentage(), ImVec2(200, 0), text.c_str());
+        ImGui::Text("Bytes: %d", ptr->getUsedInstanceMemory());
     }
 
     RepresentationNode::RepresentationNode(NeoneuronApplication* application) :
