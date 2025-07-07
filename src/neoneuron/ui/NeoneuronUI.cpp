@@ -21,6 +21,7 @@
 
 #include "components/NeoneuronBottomBar.h"
 #include "components/NeoneuronUINodeEditor.h"
+#include "components/NeoneuronUIPerformanceRecorder.h"
 #include "style/MaterialSymbols.h"
 
 #include <neon/util/component/DebugOverlayComponent.h>
@@ -120,6 +121,7 @@ namespace neoneuron
         _gameObject->newComponent<NeoneuronUINeuronList>(app);
         _gameObject->newComponent<NeoneuronUIGlobalParameters>(app);
         _gameObject->newComponent<NeoneuronUINodeEditor>(app);
+        _gameObject->newComponent<NeoneuronUIPerformanceRecorder>(app);
 
         initDebugToggle();
 

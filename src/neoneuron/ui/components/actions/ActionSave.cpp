@@ -19,8 +19,6 @@
 
 #include "ActionSave.h"
 
-#include "../../../../../cmake-build-release/_deps/neon-src/src/neon/util/FileUtils.h"
-
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/NeoneuronRender.h>
 #include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
@@ -71,19 +69,39 @@ namespace neoneuron
 
         auto& repo = _application->getRepository();
 
+        std::ofstream stats(folder / "stats.csv", std::ios::out | std::ios::app);
+
         for (GID gid : gids) {
             auto optional = repo.getNeuronAndDataset(gid);
             if (!optional.has_value()) {
                 continue;
             }
             auto [dataset, neuron] = *optional;
-            auto typeProp = dataset->getDataset().getProperties().getPropertyUID(mindset::PROPERTY_NEURITE_TYPE);
 
             if (!neuron->getMorphology().has_value()) {
                 continue;
             }
 
             auto morph = neuron->getMorphology().value();
+
+            std::string outputName;
+            if (auto pathProp = dataset->getDataset().getProperties().getPropertyUID(mindset::PROPERTY_PATH)) {
+                if (auto pathString = morph->getProperty<std::string>(*pathProp)) {
+                    std::filesystem::path path = *pathString;
+                    outputName = path.filename();
+                }
+            }
+            if (outputName.empty()) {
+                outputName = std::format("{}_{}", gid.datasetId, gid.internalId);
+            }
+
+            neon::debug() << "Saving " << outputName;
+
+            auto outputPath = folder / (outputName + ".obj");
+            if (std::filesystem::exists(outputPath)) {
+                neon::debug() << "- Skip";
+                continue;
+            }
 
             mindset::UID maxSegment = 0;
             for (auto segment : morph->getNeuritesUIDs()) {
@@ -162,44 +180,37 @@ namespace neoneuron
                 }
             }
 
-            neon::debug() << mesh.vertices.size();
-
-            for (size_t i = 1; i <= mesh.vertices.size(); i += 3) {
+            for (size_t i = 0; i < mesh.vertices.size(); i += 3) {
                 mesh.indices.push_back(i);
                 mesh.indices.push_back(i + 1);
                 mesh.indices.push_back(i + 2);
             }
 
-            std::cout << "Welding..." << std::endl;
-            std::cout << "Welded vertices: " << mesh.weld() << std::endl;
-            std::cout << "Removingf unused vertices..." << std::endl;
-            std::cout << "Removed unused vertices: " << mesh.removeUnusedVertices() << std::endl;
+            neon::debug() << "- Welding...";
+            neon::debug() << "- Welded vertices: " << mesh.weld();
+            neon::debug() << "- Removing unused vertices...";
+            neon::debug() << "- Removed unused vertices: " << mesh.removeUnusedVertices();
+            neon::debug() << "- Writing stats";
 
-            std::string outputName;
-            if (auto pathProp = dataset->getDataset().getProperties().getPropertyUID(mindset::PROPERTY_PATH)) {
-                if (auto pathString = morph->getProperty<std::string>(*pathProp)) {
-                    std::filesystem::path path = *pathString;
-                    outputName = path.filename();
-                    outputName += ".obj";
-                }
-            }
-            if (outputName.empty()) {
-                outputName = std::format("{}_{}.obj", gid.datasetId, gid.internalId);
-            }
+            stats << outputName << ","
+                  << mesh.vertices.size() * sizeof(rush::Vec3f) + mesh.indices.size() * sizeof(unsigned int)
+                  << std::endl;
 
-            std::ofstream out(folder / outputName);
+            std::ofstream out(outputPath);
             for (auto& value : mesh.vertices) {
                 out << "v " << value.position.x() << " " << value.position.y() << " " << value.position.z()
                     << std::endl;
             }
 
-            for (size_t i = 1; i <= mesh.indices.size(); i += 3) {
-                out << "f " << mesh.indices[i] << " " << mesh.indices[i + 1] << " " << mesh.indices[i + 2] << std::endl;
+            for (size_t i = 0; i < mesh.indices.size(); i += 3) {
+                out << "f " << mesh.indices[i] + 1 << " " << mesh.indices[i + 1] + 1 << " " << mesh.indices[i + 2] + 1
+                    << std::endl;
             }
 
-            neon::debug() << "CREATED";
             out.close();
         }
+
+        stats.close();
     }
 
     ActionSave::ActionSave(NeoneuronApplication* application) :

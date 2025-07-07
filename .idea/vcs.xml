@@ -34,6 +34,7 @@
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/neon-src/lib/spirv_headers" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/neon-src/lib/spirv_tools" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/portable_file_dialog-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/rush-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MVDTool" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/MVDTool/deps/libsonata" vcs="Git" />
@@ -66,5 +67,6 @@
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/spirv_headers" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/neon-src/lib/spirv_tools" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/portable_file_dialog-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/rush-src" vcs="Git" />
   </component>
 </project>

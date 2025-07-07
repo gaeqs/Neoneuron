@@ -42,6 +42,7 @@ namespace neoneuron
         static inline const std::string SETTINGS_TOOL_DEBUG = "tool_debug";
         static inline const std::string SETTINGS_TOOL_DEMO = "tool_demo";
         static inline const std::string SETTINGS_TOOL_NEURON_LIST = "tool_neuron_list";
+        static inline const std::string SETTINGS_TOOL_PERFORMANCE = "tool_performance";
 
         nlohmann::json loadSettings() const;
 

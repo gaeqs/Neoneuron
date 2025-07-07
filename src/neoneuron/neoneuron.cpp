@@ -34,7 +34,6 @@ int main()
 
     neon::vulkan::VKApplicationCreateInfo info;
     info.name = "Neoneuron";
-    info.windowSize = {1280, 720};
     info.extraFeatures.emplace_back(MeshFeature{MESH_FEATURE});
     info.icon.push_back(neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/16x16/neoneuron.png")));
     info.icon.push_back(neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/32x32/neoneuron.png")));

@@ -58,6 +58,7 @@ namespace neoneuron
         static const auto NEURON_LIST = NeoneuronFiles::SETTINGS_TOOL_NEURON_LIST;
         static const auto GLOBAL_PARAMS = NeoneuronFiles::SETTINGS_TOOL_GLOBAL_PARAMETERS;
         static const auto DEBUG = NeoneuronFiles::SETTINGS_TOOL_DEBUG;
+        static const auto PERFORMANCE = NeoneuronFiles::SETTINGS_TOOL_PERFORMANCE;
         static const auto DEMO = NeoneuronFiles::SETTINGS_TOOL_DEMO;
         auto& files = _render->getNeoneuronApplication()->getFiles();
         auto& s = files.getSettings();
@@ -65,6 +66,7 @@ namespace neoneuron
         bool neuronList = s.value(NEURON_LIST, false);
         bool globalParameters = s.value(GLOBAL_PARAMS, false);
         bool debug = s.value(DEBUG, false);
+        bool performance = s.value(PERFORMANCE, false);
         bool demo = s.value(DEMO, false);
 
         if (ImGui::MenuItem(ICON_MS_NEUROLOGY "Neurons", nullptr, &neuronList)) {
@@ -80,6 +82,11 @@ namespace neoneuron
         if (ImGui::MenuItem(ICON_MS_INFO "Debug", nullptr, &debug)) {
             s[DEBUG] = debug;
             files.signalSettingsChange(DEBUG);
+        }
+
+        if (ImGui::MenuItem(ICON_MS_PERFORMANCE_MAX "Performance Recorder", nullptr, &performance)) {
+            s[PERFORMANCE] = debug;
+            files.signalSettingsChange(PERFORMANCE);
         }
 
         if (ImGui::MenuItem(ICON_MS_IMAGESEARCH_ROLLER "ImGUI Demo", nullptr, &demo)) {
