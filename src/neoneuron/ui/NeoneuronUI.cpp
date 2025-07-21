@@ -52,30 +52,7 @@ namespace neoneuron
                 break;
         }
 
-        const char* font = fonts::SS3_18;
-        switch (s.value(NeoneuronFiles::SETTINGS_FONT_SIZE, 1)) {
-            case 0:
-                font = fonts::SS3_16;
-                break;
-            case 1:
-                font = fonts::SS3_18;
-                break;
-            case 2:
-                font = fonts::SS3_20;
-                break;
-            case 3:
-                font = fonts::SS3_24;
-                break;
-            case 4:
-                font = fonts::SS3_32;
-                break;
-            default:
-                break;
-        }
-
-        if (auto opt = fonts::getFont(font); opt.has_value()) {
-            ImGui::GetIO().FontDefault = opt.value();
-        }
+        ImGui::GetStyle().FontScaleMain = s.value(NeoneuronFiles::SETTINGS_FONT_SCALE, 1.0f);
     }
 
     void NeoneuronUI::initDebugToggle()
@@ -134,13 +111,8 @@ namespace neoneuron
 
         auto file = fs.readFile("/font/SourceSans3.ttf");
         if (file.has_value()) {
-            fonts::loadFont(fonts::SS3_16, file.value(), 16.0f);
-            fonts::loadFont(fonts::SS3_18, file.value(), 18.0f);
-            fonts::loadFont(fonts::SS3_20, file.value(), 20.0f);
-            fonts::loadFont(fonts::SS3_24, file.value(), 24.0f);
-            fonts::loadFont(fonts::SS3_32, file.value(), 32.0f);
+            fonts::loadFont(fonts::SS3, file.value());
         }
-        fonts::recreateFonts();
 
         initStyle(render);
     }

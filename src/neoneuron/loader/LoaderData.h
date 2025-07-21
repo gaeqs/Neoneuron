@@ -33,6 +33,7 @@ namespace neoneuron
         std::shared_ptr<NamedDataset> dataset;
         std::shared_ptr<neon::Task<void>> task;
         hey::Listener<mindset::LoaderStatus> statusListener;
+        std::shared_ptr<mindset::LoaderStatus> latestStatus;
     };
 } // namespace neoneuron
 

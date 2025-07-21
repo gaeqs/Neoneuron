@@ -157,10 +157,10 @@ namespace neoneuron
     void NeoneuronTopBar::onPreDraw()
     {
         bool openSettings = false;
-        fonts::imGuiPushFont(fonts::SS3_20);
+        ImGui::PushFont(nullptr, 20.0f);
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu(ICON_MS_FILES "File")) {
-                fonts::imGuiPushFont(fonts::SS3_18);
+                ImGui::PushFont(nullptr, 18.0f);
                 if (ImGui::MenuItem(ICON_MS_FILE_OPEN "Open file", "Ctrl+O")) {
                     NeoneuronUiOpenFile::openDialog(_render->getNeoneuronApplication());
                 }
@@ -177,25 +177,25 @@ namespace neoneuron
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu(ICON_MS_VISIBILITY "View")) {
-                fonts::imGuiPushFont(fonts::SS3_18);
+                ImGui::PushFont(nullptr, 18.0f);
                 viewMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu(ICON_MS_BUILD "Tools")) {
-                fonts::imGuiPushFont(fonts::SS3_18);
+                ImGui::PushFont(nullptr, 18.0f);
                 toolsMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu(ICON_MS_PLAY_ARROW "Actions")) {
-                fonts::imGuiPushFont(fonts::SS3_18);
+                ImGui::PushFont(nullptr, 18.0f);
                 actionsMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu(ICON_MS_HELP "Help")) {
-                fonts::imGuiPushFont(fonts::SS3_18);
+                ImGui::PushFont(nullptr, 18.0f);
                 if (ImGui::MenuItem(ICON_MS_INFO "About")) {
                     _render->getRoom()->newGameObject()->newComponent<NeoneuronUIAbout>(
                         _render->getNeoneuronApplication());

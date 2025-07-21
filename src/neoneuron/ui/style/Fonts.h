@@ -28,23 +28,18 @@
 
 namespace neoneuron::fonts
 {
-    constexpr const char* SS3_16 = "ss3_16";
-    constexpr const char* SS3_18 = "ss3_18";
-    constexpr const char* SS3_20 = "ss3_20";
-    constexpr const char* SS3_24 = "ss3_24";
-    constexpr const char* SS3_32 = "ss3_32";
+    constexpr const char* SS3 = "ss3";
 
     /**
      * Loads a new font for ImGui to use.
-     * These fonts are NOT dynamic (yet! The next ImGui update will include dynamic fonts);
-     * the size of the font cannot be changed.
+     * These fonts are dynamic; the size of the font can be changed on runtime.
      *
      * @param name The name of the font.
      * @param file The file where the font is stored.
      * @param sizeInPixels The size the loaded font will have.
      * @return Whether the font has been loaded.
      */
-    bool loadFont(const std::string& name, const neon::File& file, float sizeInPixels);
+    bool loadFont(const std::string& name, const neon::File& file);
 
     /**
      * Uses the given font as an extra glyph source for the icons that will be loaded next.
@@ -61,9 +56,6 @@ namespace neoneuron::fonts
 
     std::optional<ImFont*> getFont(const std::string& name);
 
-    void recreateFonts();
-
-    void imGuiPushFont(const std::string& name);
 } // namespace neoneuron::fonts
 
 #endif // NEONEURON_FONTS_H

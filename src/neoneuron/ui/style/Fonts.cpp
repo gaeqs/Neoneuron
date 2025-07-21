@@ -41,7 +41,7 @@ namespace
 
 namespace neoneuron::fonts
 {
-    bool loadFont(const std::string& name, const neon::File& file, float sizeInPixels)
+    bool loadFont(const std::string& name, const neon::File& file)
     {
         if (!file.isValid()) {
             return false;
@@ -56,11 +56,10 @@ namespace neoneuron::fonts
         std::memcpy(font_cfg.Name, name.data(), std::min(static_cast<size_t>(40), name.size()));
 
         void* data = const_cast<std::byte*>(file.getData());
-        auto* font = io.Fonts->AddFontFromMemoryTTF(data, static_cast<int>(file.getSize()), sizeInPixels, &font_cfg);
+        auto* font = io.Fonts->AddFontFromMemoryTTF(data, static_cast<int>(file.getSize()), 0.0f, &font_cfg);
         _fonts[name] = font;
 
         font_cfg.MergeMode = true;
-        font_cfg.GlyphMinAdvanceX = sizeInPixels;
 
         for (auto& merged : _mergedFonts) {
             std::string finalName = name + " - " + merged.name;
@@ -69,8 +68,7 @@ namespace neoneuron::fonts
             std::memcpy(font_cfg.Name, finalName.data(), std::min(static_cast<size_t>(40), finalName.size()));
             font_cfg.GlyphOffset = ImVec2(merged.offset.x(), merged.offset.y());
 
-
-            io.Fonts->AddFontFromMemoryTTF(mergedData, static_cast<int>(merged.file.getSize()), sizeInPixels, &font_cfg,
+            io.Fonts->AddFontFromMemoryTTF(mergedData, static_cast<int>(merged.file.getSize()), 0.0f, &font_cfg,
                                            merged.range->data());
         }
 
@@ -99,19 +97,5 @@ namespace neoneuron::fonts
             return {};
         }
         return it->second;
-    }
-
-    void recreateFonts()
-    {
-        ImGui_ImplVulkan_CreateFontsTexture();
-    }
-
-    void imGuiPushFont(const std::string& name)
-    {
-        if (auto it = _fonts.find(name); it == _fonts.end()) {
-            ImGui::PushFont(nullptr);
-        } else {
-            ImGui::PushFont(it->second);
-        }
     }
 } // namespace neoneuron::fonts

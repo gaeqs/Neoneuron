@@ -62,7 +62,7 @@ FetchContent_MakeAvailable(neon)
 
 FetchContent_Declare(
         mindset
-        GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mindset.git
+        GIT_REPOSITORY https://github.com/gaeqs/Mindset.git
         GIT_TAG master
 )
 

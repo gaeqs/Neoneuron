@@ -30,6 +30,10 @@ namespace neoneuron
     {
         NeoneuronApplication* _application;
 
+        void multiLoaderStatusBar() const;
+
+        void singleLoaderStatusBar() const;
+
         void loadingStatus() const;
 
       public:

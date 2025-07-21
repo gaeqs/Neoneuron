@@ -103,21 +103,21 @@ namespace neoneuron
 
     void NeoneuronUIAbout::showTitle() const
     {
-        fonts::imGuiPushFont(fonts::SS3_32);
+        ImGui::PushFont(nullptr, 32.0f);
         ImGui::Text("Neoneuron %s", NEONEURON_VERSION);
         ImGui::PopFont();
     }
 
     void NeoneuronUIAbout::showVersionInfo() const
     {
-        fonts::imGuiPushFont(fonts::SS3_24);
+        ImGui::PushFont(nullptr, 24.0f);
         ImGui::Text("Build %s, built on %s", NEONEURON_GIT_COMMIT, NEONEURON_BUILD_DATE);
         ImGui::PopFont();
     }
 
     void NeoneuronUIAbout::showAcknowledges() const
     {
-        fonts::imGuiPushFont(fonts::SS3_20);
+        ImGui::PushFont(nullptr, 20.0f);
         ImGui::Text("Gael Rial Costas - VG-Lab/URJC © 2025-%d", NEONEURON_BUILD_YEAR);
         ImGui::PopFont();
     }

@@ -28,15 +28,9 @@ namespace neoneuron::settings
 {
     void settingsSection(const std::string& name)
     {
-        auto font = fonts::getFont(fonts::SS3_32);
-
-        if (font.has_value()) {
-            ImGui::PushFont(font.value());
-        }
+        ImGui::PushFont(nullptr, 32.0f);
         ImGui::Text(name.c_str());
-        if (font.has_value()) {
-            ImGui::PopFont();
-        }
+        ImGui::PopFont();
     }
 
     void settingsTheme(NeoneuronApplication* app)
@@ -68,38 +62,12 @@ namespace neoneuron::settings
     {
         auto& files = app->getFiles();
 
-        static int fontIdx = files.getSettings().value(NeoneuronFiles::SETTINGS_FONT_SIZE, 1);
-        static int current = fontIdx;
-        ImGui::Combo("Font size", &fontIdx, "Small\0Normal\0Large\0Extra large\0Giant\0");
+        static float scale = files.getSettings().value(NeoneuronFiles::SETTINGS_FONT_SCALE, 1.0f);
 
-        if (fontIdx != current) {
-            const char* font = fonts::SS3_18;
-            switch (fontIdx) {
-                case 0:
-                    font = fonts::SS3_16;
-                    break;
-                case 1:
-                    font = fonts::SS3_18;
-                    break;
-                case 2:
-                    font = fonts::SS3_20;
-                    break;
-                case 3:
-                    font = fonts::SS3_24;
-                    break;
-                case 4:
-                    font = fonts::SS3_32;
-                    break;
-                default:
-                    break;
-            }
-            if (auto opt = fonts::getFont(font); opt.has_value()) {
-                ImGui::GetIO().FontDefault = opt.value();
-            }
-
-            current = fontIdx;
-            files.getSettings()[NeoneuronFiles::SETTINGS_FONT_SIZE] = fontIdx;
-            files.signalSettingsChange(NeoneuronFiles::SETTINGS_FONT_SIZE);
+        if (ImGui::SliderFloat("Font scale", &scale, 0.5f, 5.0f, "%.2f")) {
+            ImGui::GetStyle().FontScaleMain = scale;
+            files.getSettings()[NeoneuronFiles::SETTINGS_FONT_SCALE] = scale;
+            files.signalSettingsChange(NeoneuronFiles::SETTINGS_FONT_SCALE);
         }
     }
 

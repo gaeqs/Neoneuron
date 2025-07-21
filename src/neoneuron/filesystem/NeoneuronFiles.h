@@ -36,7 +36,7 @@ namespace neoneuron
         inline static const std::string CONFIG_FILE = "neoneuron.json";
         inline static const std::string IMGUI_FILE = "imgui.ini";
         static inline const std::string SETTINGS_THEME = "theme";
-        static inline const std::string SETTINGS_FONT_SIZE = "font_size";
+        static inline const std::string SETTINGS_FONT_SCALE = "font_scale";
 
         static inline const std::string SETTINGS_TOOL_GLOBAL_PARAMETERS = "tool_global_parameters";
         static inline const std::string SETTINGS_TOOL_DEBUG = "tool_debug";

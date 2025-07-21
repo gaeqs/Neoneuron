@@ -26,14 +26,40 @@
 namespace neoneuron
 {
 
-    void NeoneuronBottomBar::loadingStatus() const
+    void NeoneuronBottomBar::multiLoaderStatusBar() const
     {
         float height = ImGui::GetFrameHeight() * 0.7f;
+        auto text = std::format("Loading {} datasets...", _application->getLoaderCollection().getLoadingAmount());
+        ImGui::ProgressBar(-1.0f * static_cast<float>(ImGui::GetTime()), ImVec2(300.0f, height), text.c_str());
+    }
 
+    void NeoneuronBottomBar::singleLoaderStatusBar() const
+    {
+        float height = ImGui::GetFrameHeight() * 0.7f;
         auto& loaders = _application->getLoaderCollection();
-        if (loaders.getLoadingAmount() > 0) {
-            ImGui::ProgressBar(-1.0f * static_cast<float>(ImGui::GetTime()), ImVec2(500.0f, height),
-                               "Loading dataset...");
+        auto& status = (*loaders.getLoaders().begin())->latestStatus;
+        std::string text = "Loading unknown data...";
+        float fraction = -1.0f * static_cast<float>(ImGui::GetTime());
+        if (status != nullptr) {
+            text = std::format("Loading dataset: {} ({}/{})", status->currentTask, status->stagesCompleted,
+                               status->stages);
+            fraction = static_cast<float>(status->stagesCompleted) / status->stages;
+        }
+        ImGui::ProgressBar(fraction, ImVec2(300.0f, height), text.c_str());
+    }
+
+    void NeoneuronBottomBar::loadingStatus() const
+    {
+        auto& loaders = _application->getLoaderCollection();
+
+        switch (loaders.getLoadingAmount()) {
+            case 0:
+                return;
+            case 1:
+                singleLoaderStatusBar();
+                return;
+            default:
+                multiLoaderStatusBar();
         }
     }
 
@@ -52,6 +78,7 @@ namespace neoneuron
         if (ImGui::BeginViewportSideBar("##Status", viewport, ImGuiDir_Down, height, window_flags)) {
             if (ImGui::BeginMenuBar()) {
                 ImGui::SetCursorPosY(height * 0.15f);
+
                 loadingStatus();
                 ImGui::EndMenuBar();
             }

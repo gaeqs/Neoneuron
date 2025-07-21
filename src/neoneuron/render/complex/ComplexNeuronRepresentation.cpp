@@ -40,22 +40,7 @@ namespace
 
     neoneuron::ComplexNeuron process(neoneuron::ComplexNeuronProcessData&& data)
     {
-        std::optional<std::string> name;
-        if (auto morph = data.neuron->getMorphology()) {
-            name =
-                mindset::Contextualized(morph.value(), data.dataset).getProperty<std::string>(mindset::PROPERTY_PATH);
-        }
-
-        neon::Chronometer chrono;
-        auto neuron = neoneuron::ComplexNeuron(data.gid, data.dataset, data.neuron);
-        auto nano = chrono.elapsedNanoseconds();
-        if (name) {
-            std::stringstream ss;
-            ss << *name << "," << nano << std::endl;
-            std::cout << ss.str();
-        }
-
-        return std::move(neuron);
+        return neoneuron::ComplexNeuron(data.gid, data.dataset, data.neuron);
     }
 } // namespace
 
