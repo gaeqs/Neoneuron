@@ -91,10 +91,13 @@ namespace neoneuron
         ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
         _gameObject = render->getRoom()->newGameObject();
         _gameObject->setName("UI");
-        _gameObject->newComponent<neon::DockSpaceComponent>(true);
+
+        auto dockSpace = _gameObject->newComponent<neon::DockSpaceComponent>();
+
+
         _gameObject->newComponent<neon::LogComponent>();
         _gameObject->newComponent<NeoneuronTopBar>(render);
-        _gameObject->newComponent<NeoneuronBottomBar>(app);
+        _gameObject->newComponent<NeoneuronBottomBar>(app, dockSpace);
         _gameObject->newComponent<NeoneuronUINeuronList>(app);
         _gameObject->newComponent<NeoneuronUIGlobalParameters>(app);
         _gameObject->newComponent<NeoneuronUINodeEditor>(app);

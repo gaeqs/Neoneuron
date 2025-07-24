@@ -37,7 +37,7 @@ set(BRION_BUILD_PYTHON_BINDINGS OFF)
 
 include(FetchContent)
 
-project(Neoneuron LANGUAGES CXX VERSION 0.0.2)
+project(Neoneuron LANGUAGES CXX VERSION 0.1)
 
 if (MSVC)
     add_compile_definitions(NOMINMAX)
