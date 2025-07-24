@@ -22,6 +22,7 @@
 #include "NeoneuronRender.h"
 #include "Uniforms.h"
 #include "neoneuron/ui/components/nodes/CameraNode.h"
+#include "neoneuron/ui/style/MaterialSymbols.h"
 
 namespace
 {
@@ -93,6 +94,18 @@ namespace neoneuron
             auto vp = rush::max(rush::Vec2i(_windowSize.x, _windowSize.y), 1);
             return vp.cast<uint32_t>();
         });
+    }
+
+    void Viewport::renderSidebar()
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        if (ImGui::Button(ICON_MS_RECENTER)) {
+            focusScene();
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Focus scene");
+        }
+        ImGui::PopStyleColor();
     }
 
     Viewport::Viewport(NeoneuronRender* render, int priority, const std::string& name) :
@@ -274,6 +287,28 @@ namespace neoneuron
         return _windowOrigin;
     }
 
+    void Viewport::focusScene() const
+    {
+        bool first = true;
+        rush::AABB<3, float> aabb;
+        for (auto viewport : _render->getRepresentations()) {
+            if (viewport->hasViewport(this)) {
+                if (first) {
+                    aabb = viewport->getSceneBoundingBox();
+                    first = false;
+                } else {
+                    auto repAABB = viewport->getSceneBoundingBox();
+                    auto min = rush::min(aabb.center - aabb.radius, repAABB.center - repAABB.radius);
+                    auto max = rush::max(aabb.center + aabb.radius, repAABB.center + repAABB.radius);
+                    aabb = rush::AABB<3, float>::fromEdges(min, max);
+                }
+            }
+        }
+        if (!first) {
+            getCameraController()->focusOn(aabb);
+        }
+    }
+
     void Viewport::onStart()
     {
         _internalCameraController = CameraNode::createDefaultCameraController(getGameObject(), _internalCamera.get());
@@ -299,6 +334,7 @@ namespace neoneuron
 
         ImGui::SetNextWindowSizeConstraints(ImVec2(200, 200), ImVec2(100000, 100000));
         if (ImGui::Begin(_name.c_str())) {
+            renderSidebar();
             _windowSize = ImGui::GetContentRegionAvail();
             _windowOrigin = ImGui::GetCursorScreenPos();
             ImGui::Image(_outputColorTexture->getImGuiDescriptor(), _windowSize);

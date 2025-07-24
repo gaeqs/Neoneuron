@@ -71,6 +71,8 @@ namespace neoneuron
 
         void assignRecreationConditions(neon::SimpleFrameBuffer* frameBuffer) const;
 
+        void renderSidebar();
+
       public:
         Viewport(const Viewport& other) = delete;
 
@@ -107,6 +109,8 @@ namespace neoneuron
         [[nodiscard]] ImVec2 getWindowSize() const;
 
         [[nodiscard]] ImVec2 getWindowOrigin() const;
+
+        void focusScene() const;
 
         void onStart() override;
 

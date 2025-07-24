@@ -197,7 +197,7 @@ namespace neoneuron
 
     void SynapseRepresentation::refreshData(const RepositoryView& view)
     {
-        auto& newGIDs = view.getSynapses();
+        auto& newGIDs = view.getSynapsesGIDs();
         std::unordered_set set(newGIDs.begin(), newGIDs.end());
 
         // Remove
@@ -229,7 +229,7 @@ namespace neoneuron
         _synapsesInDataset.clear();
     }
 
-    void SynapseRepresentation::addViewport(Viewport* viewport)
+    void SynapseRepresentation::addViewport(const Viewport* viewport)
     {
         if (_viewports.contains(viewport)) {
             return;
@@ -244,7 +244,7 @@ namespace neoneuron
         _viewports.emplace(viewport, std::move(material));
     }
 
-    void SynapseRepresentation::removeViewport(Viewport* viewport)
+    void SynapseRepresentation::removeViewport(const Viewport* viewport)
     {
         auto it = _viewports.find(viewport);
         if (it == _viewports.end()) {
@@ -258,7 +258,12 @@ namespace neoneuron
         _viewports.erase(it);
     }
 
-    void SynapseRepresentation::setViewports(const std::unordered_set<Viewport*>& viewport)
+    bool SynapseRepresentation::hasViewport(const Viewport* viewport)
+    {
+        return _viewports.contains(viewport);
+    }
+
+    void SynapseRepresentation::setViewports(const std::unordered_set<const Viewport*>& viewport)
     {
         // First, remove
         for (auto it = _viewports.begin(); it != _viewports.end();) {

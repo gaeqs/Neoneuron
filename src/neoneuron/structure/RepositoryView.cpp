@@ -34,12 +34,12 @@ namespace neoneuron
         return _repository;
     }
 
-    const std::vector<GID>& RepositoryView::getNeurons() const
+    const std::vector<GID>& RepositoryView::getNeuronsGIDs() const
     {
         return _neurons;
     }
 
-    const std::vector<GID>& RepositoryView::getSynapses() const
+    const std::vector<GID>& RepositoryView::getSynapsesGIDs() const
     {
         return _synapses;
     }
@@ -105,8 +105,8 @@ namespace neoneuron
             if (repository == nullptr && view.getRepository() != nullptr) {
                 repository = view.getRepository();
             }
-            neurons.insert(view.getNeurons().begin(), view.getNeurons().end());
-            synapses.insert(view.getSynapses().begin(), view.getSynapses().end());
+            neurons.insert(view.getNeuronsGIDs().begin(), view.getNeuronsGIDs().end());
+            synapses.insert(view.getSynapsesGIDs().begin(), view.getSynapsesGIDs().end());
         }
 
         return RepositoryView(repository, std::vector(neurons.begin(), neurons.end()),

@@ -100,7 +100,7 @@ namespace neoneuron
         std::shared_ptr<neon::ShaderProgram> _jointShader;
         std::shared_ptr<neon::ShaderProgram> _somaShader;
 
-        std::unordered_map<Viewport*, Materials> _viewports;
+        std::unordered_map<const Viewport*, Materials> _viewports;
 
         std::shared_ptr<neon::Model> _segmentModel;
         std::shared_ptr<neon::Model> _jointModel;
@@ -209,11 +209,13 @@ namespace neoneuron
 
         void clearData() override;
 
-        void addViewport(Viewport* viewport) override;
+        void addViewport(const Viewport* viewport) override;
 
-        void removeViewport(Viewport* viewport) override;
+        void removeViewport(const Viewport* viewport) override;
 
-        void setViewports(const std::unordered_set<Viewport*>& viewport) override;
+        void setViewports(const std::unordered_set<const Viewport*>& viewport) override;
+
+        bool hasViewport(const Viewport* viewport) override;
 
         [[nodiscard]] size_t getTotalAllocatedMemory() const override;
 

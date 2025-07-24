@@ -22,6 +22,7 @@
 #include "neoneuron/ui/style/MaterialSymbols.h"
 #include "nodes/CameraNode.h"
 #include "nodes/DatasetNode.h"
+#include "nodes/ReduceNode.h"
 #include "nodes/RepositoryNode.h"
 #include "nodes/RepresentationNode.h"
 #include "nodes/SelectionNode.h"
@@ -70,6 +71,7 @@ namespace neoneuron
         _factories.push_back(CameraNode::createFactory());
         _factories.push_back(DatasetNode::createFactory());
         _factories.push_back(SelectionNode::createFactory());
+        _factories.push_back(ReduceNode::createFactory());
     }
 
     NeoneuronUINodeEditor::~NeoneuronUINodeEditor() = default;

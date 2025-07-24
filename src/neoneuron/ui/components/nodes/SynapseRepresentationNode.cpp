@@ -71,7 +71,7 @@ namespace neoneuron
 
             auto& vec = viewports.value();
 
-            std::unordered_set set(vec.begin(), vec.end());
+            std::unordered_set<const Viewport*> set(vec.begin(), vec.end());
             ptr->setViewports(set);
         }
     }

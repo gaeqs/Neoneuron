@@ -124,6 +124,9 @@ configure_file(
         ${NEONEURON_GENERATED_DIR}/neoneuron/version.h
 )
 
+if (RELEASE_DEBUG)
+    add_compile_definitions(RELEASE_DEBUG)
+endif ()
 
 include_directories(src)
 add_subdirectory(src)

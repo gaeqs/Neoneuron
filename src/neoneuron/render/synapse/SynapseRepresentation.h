@@ -59,7 +59,7 @@ namespace neoneuron
          */
         GPUSynapseCreateInfo _createInfo;
 
-        std::unordered_map<Viewport*, std::shared_ptr<neon::Material>> _viewports;
+        std::unordered_map<const Viewport*, std::shared_ptr<neon::Material>> _viewports;
 
         std::unordered_set<GID> _synapsesInDataset;
         std::unordered_map<GID, GPUSynapse> _gpuSynapses;
@@ -103,11 +103,13 @@ namespace neoneuron
 
         void clearData() override;
 
-        void addViewport(Viewport* viewport) override;
+        void addViewport(const Viewport* viewport) override;
 
-        void removeViewport(Viewport* viewport) override;
+        void removeViewport(const Viewport* viewport) override;
 
-        void setViewports(const std::unordered_set<Viewport*>& viewport) override;
+        bool hasViewport(const Viewport* viewport) override;
+
+        void setViewports(const std::unordered_set<const Viewport*>& viewport) override;
 
         [[nodiscard]] size_t getTotalAllocatedMemory() const override;
 

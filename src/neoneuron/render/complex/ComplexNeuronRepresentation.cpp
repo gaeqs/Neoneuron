@@ -599,7 +599,7 @@ namespace neoneuron
     void ComplexNeuronRepresentation::refreshData(const RepositoryView& view)
     {
         // Generate the preprocess task.
-        auto& newGIDs = view.getNeurons();
+        auto& newGIDs = view.getNeuronsGIDs();
         std::unordered_set set(newGIDs.begin(), newGIDs.end());
 
         // Remove
@@ -640,7 +640,7 @@ namespace neoneuron
         _neurons.clear();
     }
 
-    void ComplexNeuronRepresentation::addViewport(Viewport* viewport)
+    void ComplexNeuronRepresentation::addViewport(const Viewport* viewport)
     {
         if (_viewports.contains(viewport)) {
             return;
@@ -663,9 +663,9 @@ namespace neoneuron
         _viewports.emplace(viewport, std::move(materials));
     }
 
-    void ComplexNeuronRepresentation::removeViewport(Viewport* viewport)
+    void ComplexNeuronRepresentation::removeViewport(const Viewport* viewport)
     {
-        auto it = _viewports.find(viewport);
+        auto it = _viewports.find(const_cast<Viewport*>(viewport));
         if (it == _viewports.end()) {
             return;
         }
@@ -675,7 +675,7 @@ namespace neoneuron
         _viewports.erase(it);
     }
 
-    void ComplexNeuronRepresentation::setViewports(const std::unordered_set<Viewport*>& viewport)
+    void ComplexNeuronRepresentation::setViewports(const std::unordered_set<const Viewport*>& viewport)
     {
         // First, remove
         for (auto it = _viewports.begin(); it != _viewports.end();) {
@@ -691,6 +691,11 @@ namespace neoneuron
         for (auto vp : viewport) {
             addViewport(vp);
         }
+    }
+
+    bool ComplexNeuronRepresentation::hasViewport(const Viewport* viewport)
+    {
+        return _viewports.contains(const_cast<Viewport*>(viewport));
     }
 
     size_t ComplexNeuronRepresentation::getTotalAllocatedMemory() const

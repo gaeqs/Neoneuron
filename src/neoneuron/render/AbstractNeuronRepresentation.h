@@ -48,11 +48,13 @@ namespace neoneuron
 
         virtual void clearData() = 0;
 
-        virtual void addViewport(Viewport* viewport) = 0;
+        virtual void addViewport(const Viewport* viewport) = 0;
 
-        virtual void setViewports(const std::unordered_set<Viewport*>& viewport) = 0;
+        virtual void setViewports(const std::unordered_set<const Viewport*>& viewport) = 0;
 
-        virtual void removeViewport(Viewport* viewport) = 0;
+        virtual void removeViewport(const Viewport* viewport) = 0;
+
+        virtual bool hasViewport(const Viewport* viewport) = 0;
 
         [[nodiscard]] virtual size_t getTotalAllocatedMemory() const = 0;
 

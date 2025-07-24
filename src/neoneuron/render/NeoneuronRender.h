@@ -111,6 +111,11 @@ namespace neoneuron
         Viewport* addViewport();
 
         void removeViewport(Viewport* viewport);
+
+        auto getViewports() const
+        {
+            return _viewports | std::views::transform([](const Viewport* viewport) { return viewport; });
+        }
     };
 } // namespace neoneuron
 
