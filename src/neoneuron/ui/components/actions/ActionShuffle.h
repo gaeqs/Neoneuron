@@ -45,7 +45,7 @@ namespace neoneuron
 
         void onModalDraw() override;
 
-        void actionButton(ImVec2 recommendedSize) override;
+        void actionButton(ImGui::neon::LinearLayout& layout) override;
     };
 } // namespace neoneuron
 

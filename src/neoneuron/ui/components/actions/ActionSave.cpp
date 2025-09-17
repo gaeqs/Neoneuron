@@ -223,9 +223,9 @@ namespace neoneuron
     {
     }
 
-    void ActionSave::actionButton(ImVec2 recommendedSize)
+    void ActionSave::actionButton(ImGui::neon::LinearLayout& layout)
     {
-        if (ImGui::Button("Run", recommendedSize)) {
+        if (layout.button("Run", ImVec2(120.0f, 0.0f))) {
             run();
             ImGui::CloseCurrentPopup();
         }
