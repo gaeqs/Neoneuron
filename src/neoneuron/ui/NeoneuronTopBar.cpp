@@ -85,7 +85,7 @@ namespace neoneuron
         }
 
         if (ImGui::MenuItem(ICON_MS_PERFORMANCE_MAX "Performance Recorder", nullptr, &performance)) {
-            s[PERFORMANCE] = debug;
+            s[PERFORMANCE] = performance;
             files.signalSettingsChange(PERFORMANCE);
         }
 
