@@ -78,6 +78,14 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(imblueprint)
 
+FetchContent_Declare(
+        cxxopts
+        GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+        GIT_TAG master
+)
+
+FetchContent_MakeAvailable(cxxopts)
+
 if (TARGET morphio_obj)
     target_precompile_headers(morphio_obj PUBLIC <cstdint>)
 endif ()
@@ -103,7 +111,7 @@ endif ()
 find_package(glfw3 CONFIG REQUIRED)
 list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
-list(APPEND LIBRARIES neon hey pugixml mindset imblueprint HighFive)
+list(APPEND LIBRARIES neon hey pugixml mindset imblueprint HighFive cxxopts)
 
 # Create version.h
 

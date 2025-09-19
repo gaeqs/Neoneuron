@@ -20,14 +20,31 @@
 #include <cmrc/cmrc.hpp>
 #include <neon/logging/Logger.h>
 
+#include <cxxopts.hpp>
+
 #include <neoneuron/render/NeoneuronRender.h>
 
 #include "application/NeoneuronApplication.h"
 
 CMRC_DECLARE(resources);
 
-int main()
+int main(int argc, const char* argv[])
 {
+    cxxopts::Options options("neoneuron", "A 3D viewer for neurons.");
+
+    options.add_options("General")("h,help", "Print help");
+
+    options.add_options("Graphics")("f,fullscreen", "Start in fullscreen mode",
+                                    cxxopts::value<bool>()->default_value("false"))(
+        "vsync", "Enable vsync", cxxopts::value<bool>()->default_value("true"));
+
+    options.add_options("Load")("snudda", "Load a snudda file", cxxopts::value<std::string>());
+
+    auto args = options.parse(argc, argv);
+    if (args.count("help")) {
+        std::cout << options.help() << std::endl;
+        return 0;
+    }
 
     using MeshFeature = VkPhysicalDeviceMeshShaderFeaturesEXT;
     constexpr VkStructureType MESH_FEATURE = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT;
@@ -35,12 +52,18 @@ int main()
     neon::vulkan::VKApplicationCreateInfo info;
     info.name = "Neoneuron";
     info.extraFeatures.emplace_back(MeshFeature{MESH_FEATURE});
-    info.icon.push_back(neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/16x16/neoneuron.png")));
-    info.icon.push_back(neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/32x32/neoneuron.png")));
-    info.icon.push_back(neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/64x64/neoneuron.png")));
-    info.icon.push_back(neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/128x128/neoneuron.png")));
-    info.icon.push_back(neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/256x256/neoneuron.png")));
-    info.icon.push_back(neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/512x512/neoneuron.png")));
+    info.icon.push_back(
+        neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/16x16/neoneuron.png")));
+    info.icon.push_back(
+        neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/32x32/neoneuron.png")));
+    info.icon.push_back(
+        neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/64x64/neoneuron.png")));
+    info.icon.push_back(
+        neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/128x128/neoneuron.png")));
+    info.icon.push_back(
+        neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/256x256/neoneuron.png")));
+    info.icon.push_back(
+        neon::TextureData::fromFile(cmrc::resources::get_filesystem().open("icon/512x512/neoneuron.png")));
 
     info.deviceFilter = [](const neon::vulkan::VKPhysicalDevice& device) {
         if (!neon::vulkan::VKApplicationCreateInfo::defaultDeviceFilter(device)) {
@@ -69,11 +92,27 @@ int main()
         features.extensions.emplace_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
     };
 
-    info.vSync = false;
+    info.vSync = args["vsync"].as<bool>();
+    info.fullscreen = args["fullscreen"].as<bool>();
+    neon::debug() << "Fullscreen: " << info.fullscreen;
 
     neoneuron::NeoneuronApplication app(info);
 
-    //app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
+    if (args.count("snudda")) {
+        for (auto& f : app.getLoaderRegistry().getAll()) {
+
+            //std::unique_ptr fileSystem = std::make_unique<neon::DirectoryFileSystem>(path.parent_path());
+            //auto fileProvider = [fs = std::move(fileSystem)](std::filesystem::path path) {
+            //    return fs->readFile(path)->readLines();
+            //};
+//
+            //f.create(, {}, )
+            std::cout << f.getId() << " - " << f.getDisplayName() << std::endl;
+        }
+        return 0;
+    }
+
+    // app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
 
     bool result = app.getRender().renderLoop();
     app.getFiles().saveSettings();

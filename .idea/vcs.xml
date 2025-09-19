@@ -20,6 +20,7 @@
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/brion-src/deps/libsonata/extlib/HighFive/deps/catch2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/brion-src/deps/libsonata/extlib/fmt" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/brion-src/deps/libsonata/python/pybind11" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/cxxopts-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/hey-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/imblueprint-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/imnodes-src" vcs="Git" />
@@ -51,6 +52,7 @@
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/libsonata/extlib/HighFive/deps/catch2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/libsonata/extlib/fmt" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/brion-src/deps/libsonata/python/pybind11" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/cxxopts-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/hey-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/imblueprint-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/imnodes-src" vcs="Git" />
