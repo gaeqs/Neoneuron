@@ -28,8 +28,6 @@ namespace neoneuron
 
     void NeoneuronBottomBar::multiLoaderStatusBar()
     {
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - LOADING_STATUS_WIDTH);
-
         auto text = std::format("Loading {} datasets...", _application->getLoaderCollection().getLoadingAmount());
         ImGui::ProgressBar(-1.0f * static_cast<float>(ImGui::GetTime()), ImVec2(LOADING_STATUS_WIDTH, 0.0f),
                            text.c_str());
@@ -96,7 +94,12 @@ namespace neoneuron
             _layout.begin();
 
             _layout.text("Neoneuron " NEONEURON_VERSION " (" NEONEURON_GIT_COMMIT ")");
-            _layout.text("%.2f FPS", fps);
+
+            // This text has a dynamic size, and it bugs the layout. Let's make it invisible to the layout system.
+            auto cursor = ImGui::GetCursorPos();
+            ImGui::Text("%.2f FPS", fps);
+            ImGui::SetCursorPos(cursor);
+
             _layout.stretch();
             loadingStatus();
 

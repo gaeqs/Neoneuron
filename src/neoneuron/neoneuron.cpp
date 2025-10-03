@@ -21,12 +21,15 @@
 #include <neon/logging/Logger.h>
 
 #include <cxxopts.hpp>
+#include <utility>
 
 #include <neoneuron/render/NeoneuronRender.h>
 
 #include "application/NeoneuronApplication.h"
 
 CMRC_DECLARE(resources);
+
+void parseLoaderArguments(const cxxopts::ParseResult& result, neoneuron::NeoneuronApplication& app);
 
 int main(int argc, const char* argv[])
 {
@@ -38,7 +41,16 @@ int main(int argc, const char* argv[])
                                     cxxopts::value<bool>()->default_value("false"))(
         "vsync", "Enable vsync", cxxopts::value<bool>()->default_value("true"));
 
-    options.add_options("Load")("snudda", "Load a snudda file", cxxopts::value<std::string>());
+    options.add_options("Load")
+    ("swc", "Load a SWC file", cxxopts::value<std::vector<std::string>>())
+    ("xml", "Load a XML file", cxxopts::value<std::vector<std::string>>())
+#ifdef MINDSET_BRION
+    ("blueconfig", "Load a BlueConfig file", cxxopts::value<std::vector<std::string>>())
+    ("morpho", "Load a Morpho IO file", cxxopts::value<std::vector<std::string>>())
+#endif
+    ("snudda", "Load a snudda file", cxxopts::value<std::vector<std::string>>())
+    ("target", "Configure a BlueConfig target", cxxopts::value<std::vector<std::string>>())
+    ("snuddapath", "Configure snudda data path", cxxopts::value<std::string>());
 
     auto args = options.parse(argc, argv);
     if (args.count("help")) {
@@ -98,19 +110,7 @@ int main(int argc, const char* argv[])
 
     neoneuron::NeoneuronApplication app(info);
 
-    if (args.count("snudda")) {
-        for (auto& f : app.getLoaderRegistry().getAll()) {
-
-            //std::unique_ptr fileSystem = std::make_unique<neon::DirectoryFileSystem>(path.parent_path());
-            //auto fileProvider = [fs = std::move(fileSystem)](std::filesystem::path path) {
-            //    return fs->readFile(path)->readLines();
-            //};
-//
-            //f.create(, {}, )
-            std::cout << f.getId() << " - " << f.getDisplayName() << std::endl;
-        }
-        return 0;
-    }
+    parseLoaderArguments(args, app);
 
     // app.getRender().setSkybox(loadSkybox(app.getRender().getRoom().get()));
 
@@ -118,4 +118,53 @@ int main(int argc, const char* argv[])
     app.getFiles().saveSettings();
     app.getFiles().saveImGuiIniFile();
     return result ? 0 : 1;
+}
+
+void loadDataset(neoneuron::NeoneuronApplication& app, mindset::Environment env, std::filesystem::path path,
+                 const std::string& datasetPrefix, const std::string& loaderId)
+{
+    if (auto opt = app.getLoaderRegistry().get(loaderId); opt.has_value()) {
+        auto fileSystem = std::make_shared<neon::DirectoryFileSystem>(path.parent_path());
+        auto fileProvider = [fileSystem](std::filesystem::path p) {
+            return fileSystem->readFile(std::move(p))->readLines();
+        };
+        auto loader = opt.value().create(std::move(fileProvider), std::move(env), path);
+        if (loader.isOk()) {
+            std::string name = std::format("{} - {}", datasetPrefix, path.filename().string());
+            auto [uid, _, ok] = app.getRepository().addDataset(mindset::Dataset(), name);
+            auto dataset = app.getRepository().getDatasetAsOwned(uid).value();
+            app.getLoaderCollection().load(std::move(loader.getResult()), dataset);
+        }
+    }
+}
+
+void parseLoaderArguments(const cxxopts::ParseResult& result, neoneuron::NeoneuronApplication& app)
+{
+    std::vector<std::tuple<std::string, std::string, std::string>> LOADERS = {
+        {    "snudda",   "Snudda",      mindset::SNUDDA_LOADER_ID},
+        {       "swc",      "SWC",         mindset::SWC_LOADER_ID},
+        {       "xml",      "XML",         mindset::XML_LOADER_ID},
+#ifdef MINDSET_BRION
+        {"blueconfig",    "Brion", mindset::BLUE_CONFIG_LOADER_ID},
+        {    "morpho", "MorphoIO",   mindset::MORPHO_IO_LOADER_ID},
+#endif
+    };
+
+    mindset::Environment env;
+    if (result.count("snuddapath")) {
+        env[mindset::SNUDDA_LOADER_ENTRY_SNUDDA_DATA_PATH] = result["snuddapath"].as<std::string>();
+    }
+
+    if (result.count("target")) {
+        env[mindset::BLUE_CONFIG_LOADER_ENTRY_TARGETS] = result["target"].as<std::vector<std::string>>();
+    }
+
+    for (auto& [argId, displayName, loaderId] : LOADERS) {
+        if (result.count(argId)) {
+            for (auto& stringPath : result[argId].as<std::vector<std::string>>()) {
+                auto path = std::filesystem::path(stringPath);
+                loadDataset(app, env, path, displayName, loaderId);
+            }
+        }
+    }
 }
