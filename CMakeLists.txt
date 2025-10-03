@@ -55,7 +55,7 @@ FetchContent_MakeAvailable(rush)
 FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG user-experience
+        GIT_TAG master
 )
 
 FetchContent_MakeAvailable(neon)
