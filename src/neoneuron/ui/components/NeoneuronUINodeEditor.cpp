@@ -19,8 +19,10 @@
 
 #include "NeoneuronUINodeEditor.h"
 
+#include "neoneuron/ui/style/MaterialSymbols.h"
 #include "nodes/CameraNode.h"
 #include "nodes/DatasetNode.h"
+#include "nodes/ReduceNode.h"
 #include "nodes/RepositoryNode.h"
 #include "nodes/RepresentationNode.h"
 #include "nodes/SelectionNode.h"
@@ -29,6 +31,33 @@
 
 namespace neoneuron
 {
+
+    void NeoneuronUINodeEditor::loadDefault()
+    {
+        auto repo = _editor.addNode<RepositoryNode>(_application);
+        auto viewport = _editor.addNode<ViewportNode>(_application);
+        auto representation = _editor.addNode<RepresentationNode>(_application);
+
+        _editor.setNodePosition(repo, {150, 50});
+        _editor.setNodePosition(viewport, {150, 150});
+        _editor.setNodePosition(representation, {500, 100});
+
+        for (auto& [name, output] : repo->getOutputs()) {
+            for (auto& [iName, input] : representation->getInputs()) {
+                if (name == iName) {
+                    output->addLink(input.get());
+                }
+            }
+        }
+
+        for (auto& [name, output] : viewport->getOutputs()) {
+            for (auto& [iName, input] : representation->getInputs()) {
+                if (name == iName) {
+                    output->addLink(input.get());
+                }
+            }
+        }
+    }
 
     NeoneuronUINodeEditor::NeoneuronUINodeEditor(NeoneuronApplication* application) :
         _application(application)
@@ -42,9 +71,15 @@ namespace neoneuron
         _factories.push_back(CameraNode::createFactory());
         _factories.push_back(DatasetNode::createFactory());
         _factories.push_back(SelectionNode::createFactory());
+        _factories.push_back(ReduceNode::createFactory());
     }
 
     NeoneuronUINodeEditor::~NeoneuronUINodeEditor() = default;
+
+    void NeoneuronUINodeEditor::onStart()
+    {
+        loadDefault();
+    }
 
     void NeoneuronUINodeEditor::onUpdate(float deltaTime)
     {
@@ -52,7 +87,7 @@ namespace neoneuron
 
     void NeoneuronUINodeEditor::onPreDraw()
     {
-        if (ImGui::Begin("Scene editor")) {
+        if (ImGui::Begin(ICON_MS_SCENE "Scene editor")) {
             float sidebarWidth = 200.0f;
 
             ImGui::BeginChild("Sidebar", ImVec2(sidebarWidth, 0), ImGuiChildFlags_Border);

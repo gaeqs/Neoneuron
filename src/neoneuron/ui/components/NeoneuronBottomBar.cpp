@@ -20,42 +20,93 @@
 #include "NeoneuronBottomBar.h"
 
 #include "imgui.h"
-#include "imgui_internal.h"
+#include "neoneuron/version.h"
 #include "neoneuron/application/NeoneuronApplication.h"
 
 namespace neoneuron
 {
 
-    void NeoneuronBottomBar::loadingStatus() const
+    void NeoneuronBottomBar::multiLoaderStatusBar()
     {
-        float height = ImGui::GetFrameHeight() * 0.7f;
+        auto text = std::format("Loading {} datasets...", _application->getLoaderCollection().getLoadingAmount());
+        ImGui::ProgressBar(-1.0f * static_cast<float>(ImGui::GetTime()), ImVec2(LOADING_STATUS_WIDTH, 0.0f),
+                           text.c_str());
+        _layout.next();
+    }
 
+    void NeoneuronBottomBar::singleLoaderStatusBar()
+    {
         auto& loaders = _application->getLoaderCollection();
-        if (loaders.getLoadingAmount() > 0) {
-            ImGui::ProgressBar(-1.0f * static_cast<float>(ImGui::GetTime()), ImVec2(500.0f, height),
-                               "Loading dataset...");
+        auto& status = (*loaders.getLoaders().begin())->latestStatus;
+        std::string text = "Loading unknown data...";
+        float fraction = -1.0f * static_cast<float>(ImGui::GetTime());
+        if (status != nullptr) {
+            text = std::format("Loading dataset: {} ({}/{})", status->currentTask, status->stagesCompleted,
+                               status->stages);
+            fraction = static_cast<float>(status->stagesCompleted) / status->stages;
+        }
+
+        ImGui::ProgressBar(fraction, ImVec2(LOADING_STATUS_WIDTH, 0.0f), text.c_str());
+        _layout.next();
+    }
+
+    void NeoneuronBottomBar::loadingStatus()
+    {
+        auto& loaders = _application->getLoaderCollection();
+        switch (loaders.getLoadingAmount()) {
+            case 0:
+                return;
+            case 1:
+                singleLoaderStatusBar();
+                return;
+            default:
+                multiLoaderStatusBar();
         }
     }
 
-    NeoneuronBottomBar::NeoneuronBottomBar(NeoneuronApplication* application) :
-        _application(application)
+    NeoneuronBottomBar::NeoneuronBottomBar(NeoneuronApplication* application,
+                                           neon::IdentifiableWrapper<neon::DockSpaceComponent> dockSpace) :
+        _application(application),
+        _dockSpace(dockSpace)
     {
+        _sidebar = _dockSpace->addSidebar(neon::DockSidebarPosition::BOTTOM, imGuiUId("BottomBar"), 24.0f);
+    }
+
+    NeoneuronBottomBar::~NeoneuronBottomBar()
+    {
+        if (_dockSpace) {
+            _dockSpace->removeSidebar(_sidebar);
+        }
     }
 
     void NeoneuronBottomBar::onPreDraw()
     {
-        ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGuiWindowFlags window_flags =
-            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
-        float height = ImGui::GetFrameHeight();
+        _sidebar->size = ImGui::GetFrameHeight() + ImGui::GetStyle().WindowPadding.y * 2.0f;
+        constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking |
+                                           ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                                           ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-        if (ImGui::BeginViewportSideBar("##Status", viewport, ImGuiDir_Down, height, window_flags)) {
-            if (ImGui::BeginMenuBar()) {
-                ImGui::SetCursorPosY(height * 0.15f);
-                loadingStatus();
-                ImGui::EndMenuBar();
-            }
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::GetStyle().Colors[ImGuiCol_DockingEmptyBg]);
+        if (ImGui::Begin(imGuiUId("BottomBar").c_str(), nullptr, flags)) {
+            float fps = 1.0f / getApplication()->getCurrentFrameInformation().lastFrameProcessTime;
+
+            _layout.begin();
+
+            _layout.text("Neoneuron " NEONEURON_VERSION " (" NEONEURON_GIT_COMMIT ")");
+
+            // This text has a dynamic size, and it bugs the layout. Let's make it invisible to the layout system.
+            auto cursor = ImGui::GetCursorPos();
+            ImGui::Text("%.2f FPS", fps);
+            ImGui::SetCursorPos(cursor);
+
+            _layout.stretch();
+            loadingStatus();
+
+            _layout.end();
             ImGui::End();
         }
+        ImGui::PopStyleVar(1);
+        ImGui::PopStyleColor(1);
     }
 } // namespace neoneuron

@@ -20,20 +20,18 @@
 #ifndef NEONEURONUIGLOBALPARAMETERS_H
 #define NEONEURONUIGLOBALPARAMETERS_H
 
-#include <neon/Neon.h>
-#include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/ui/components/ToolWindow.h>
 
 namespace neoneuron
 {
-    class NeoneuronUIGlobalParameters : public neon::Component
+    class NeoneuronUIGlobalParameters : public ToolWindow
     {
-        NeoneuronRender* _render;
+      protected:
+        void drawWindowContents() override;
 
       public:
-        NeoneuronUIGlobalParameters(NeoneuronRender* render);
-
-        void onPreDraw() override;
+        explicit NeoneuronUIGlobalParameters(NeoneuronApplication* application);
     };
 } // namespace neoneuron
 
-#endif //NEONEURONUIGLOBALPARAMETERS_H
+#endif // NEONEURONUIGLOBALPARAMETERS_H

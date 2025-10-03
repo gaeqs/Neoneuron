@@ -3,20 +3,13 @@ stages:
 
 mirror_to_github:
   stage: mirror
-  before_script:
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-    - chmod 600 ~/.ssh/id_ed25519
-    - rm -f ~/.ssh/known_hosts
-    - ssh-keyscan github.com >> ~/.ssh/known_hosts
-    - chmod 600 ~/.ssh/known_hosts
   script:
     - git config --unset-all remote.origin.fetch
     - git config --add remote.origin.fetch "+refs/heads/*:refs/heads/*"
     - git config --add remote.origin.fetch "+refs/tags/*:refs/tags/*"
     - git fetch --prune origin
     - git remote set-url --push origin git@github.com:gaeqs/Neoneuron.git
-    - export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes"
+    - export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519"
     - git push --mirror origin
   only:
     - branches

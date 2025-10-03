@@ -20,15 +20,12 @@
 #ifndef NEONEURONUINEURONLIST_H
 #define NEONEURONUINEURONLIST_H
 
-#include <neon/Neon.h>
-#include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/ui/components/ToolWindow.h>
 
 namespace neoneuron
 {
-    class NeoneuronUINeuronList : public neon::Component
+    class NeoneuronUINeuronList : public ToolWindow
     {
-        NeoneuronRender* _render;
-
         bool neuronSection(GID gid, mindset::Dataset* dataset, const mindset::Neuron* neuron, size_t id,
                            bool selected) const;
 
@@ -38,10 +35,12 @@ namespace neoneuron
 
         void neuronNewProperty(GID gid, mindset::Dataset* dataset, mindset::Neuron* neuron) const;
 
-      public:
-        explicit NeoneuronUINeuronList(NeoneuronRender* render);
+    protected:
 
-        void onPreDraw() override;
+        void drawWindowContents() override;
+
+      public:
+        explicit NeoneuronUINeuronList(NeoneuronApplication* application);
     };
 } // namespace neoneuron
 

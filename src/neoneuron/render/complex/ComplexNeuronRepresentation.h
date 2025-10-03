@@ -71,13 +71,16 @@ namespace neoneuron
         static constexpr size_t SOMA_BINDING = 4;
         static constexpr size_t SELECTION_BINDING = 5;
         static constexpr size_t SOMA_GPU_DATA_BINDING = 6;
+        static constexpr size_t SECTION_GPU_DATA_BINDING = 7;
+        static constexpr size_t SAVING_VERTICES_DATA_BINDING = 8;
+        static constexpr size_t SAVING_INDICES_DATA_BINDING = 9;
 
         static constexpr size_t SEGMENT_INSTANCES = 10000000;
         static constexpr size_t JOINT_INSTANCES = 1000000;
         static constexpr size_t SOMA_INSTANCES = 100000;
         static constexpr size_t STORAGE_PER_SOMA = 64 * 64;
         static constexpr size_t STORAGE_PER_SECTION = sizeof(uint32_t);
-        static constexpr size_t MAX_SAVE_VERTICES = 1000000;
+        static constexpr size_t MAX_SAVE_VERTICES = 50000000;
 
         struct Materials
         {
@@ -97,7 +100,7 @@ namespace neoneuron
         std::shared_ptr<neon::ShaderProgram> _jointShader;
         std::shared_ptr<neon::ShaderProgram> _somaShader;
 
-        std::unordered_map<Viewport*, Materials> _viewports;
+        std::unordered_map<const Viewport*, Materials> _viewports;
 
         std::shared_ptr<neon::Model> _segmentModel;
         std::shared_ptr<neon::Model> _jointModel;
@@ -206,11 +209,21 @@ namespace neoneuron
 
         void clearData() override;
 
-        void addViewport(Viewport* viewport) override;
+        void addViewport(const Viewport* viewport) override;
 
-        void removeViewport(Viewport* viewport) override;
+        void removeViewport(const Viewport* viewport) override;
 
-        void setViewports(const std::unordered_set<Viewport*>& viewport) override;
+        void setViewports(const std::unordered_set<const Viewport*>& viewport) override;
+
+        bool hasViewport(const Viewport* viewport) override;
+
+        [[nodiscard]] size_t getTotalAllocatedMemory() const override;
+
+        [[nodiscard]] size_t getAllocatedInstanceMemory() const override;
+
+        [[nodiscard]] size_t getUsedInstanceMemory() const override;
+
+        [[nodiscard]] float getUsedInstanceMemoryPercentage() const override;
 
         [[nodiscard]] bool isWireframeMode() const;
 

@@ -25,11 +25,11 @@ CMRC_DECLARE(resources);
 
 namespace
 {
-    std::shared_ptr<neon::Texture> loadSkybox(neon::Room* room)
+    std::shared_ptr<neon::SampledTexture> loadSkybox(neon::Room* room)
     {
         neon::CMRCFileSystem fileSystem(cmrc::resources::get_filesystem());
         neon::AssetLoaderContext context(room->getApplication(), nullptr, &fileSystem);
-        return loadAssetFromFile<neon::Texture>("texture/skybox/skybox.json", context);
+        return loadAssetFromFile<neon::SampledTexture>("texture/white_skybox/skybox.json", context);
     }
 } // namespace
 

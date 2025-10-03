@@ -144,7 +144,7 @@ void main() {
         vec3 center;
         float radius2;
         generateSphere(joint, center, radius2);
-        valid = sphereInFrustum(neuron, center, radius2);
+        valid = savingNeuron == neuron.neuronId || sphereInFrustum(neuron, center, radius2);
     }
 
     uvec4 vote = subgroupBallot(valid);

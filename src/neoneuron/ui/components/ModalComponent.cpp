@@ -19,6 +19,8 @@
 
 #include "ModalComponent.h"
 
+#include "neon/util/ImGuiUtils.h"
+
 #include <imgui.h>
 
 namespace neoneuron
@@ -39,13 +41,30 @@ namespace neoneuron
 
         ImGui::SetNextWindowSizeConstraints(ImVec2(400, 150), ImVec2(1000, 1000));
         if (ImGui::BeginPopupModal(_name.c_str(), &_open)) {
-            onModalDraw();
+            auto& layout = ImGui::neon::BeginColumnLayout("modal_layout");
+
+            if (ImGui::BeginChild("content", ImVec2(0.0f, layout.popStretchedSize()),
+                                  ImGuiChildFlags_AlwaysUseWindowPadding)) {
+                layout.next(true, 1.0f);
+                onModalDraw();
+            }
+            ImGui::EndChild();
             if (_hasActionButton) {
                 ImGui::Separator();
-                ImGui::SetCursorPosY(ImGui::GetContentRegionMax().y - 40.0f);
-                ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 140.0f);
-                actionButton(ImVec2(120.0f, 0.0f));
+                layout.next();
+
+                layout.space(ImGui::GetFrameHeight() / 2.0f);
+
+                auto& buttonsLayout = ImGui::neon::BeginRowLayout("modal_layout_buttons");
+                buttonsLayout.stretch();
+                actionButton(buttonsLayout);
+                buttonsLayout.end();
+                layout.next();
+
+                layout.space(ImGui::GetFrameHeight() / 2.0f);
             }
+
+            layout.end();
             ImGui::EndPopup();
         }
 

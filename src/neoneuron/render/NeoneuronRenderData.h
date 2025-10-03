@@ -45,8 +45,8 @@ namespace neoneuron
         uint32_t lod = 0;
         uint32_t frame = 0;
         uint32_t savingNeuron = std::numeric_limits<uint32_t>::max();
-        rush::Vec4f defaultColor = rush::Vec4f(1.0f, 0.0f, 0.0f, 1.0f);
-        rush::Vec4f selectedColor = rush::Vec4f(0.0f, 0.0f, 1.0f, 1.0f);
+        rush::Vec4f defaultColor = rush::Vec4f(0.0f, 0.470588f, 0.980392f, 1.0f);
+        rush::Vec4f selectedColor = rush::Vec4f(0.980392f, 0.470588f, 0.0f, 1.0f);
     };
 } // namespace neoneuron
 #endif //NEONEURONRENDERDATA_H

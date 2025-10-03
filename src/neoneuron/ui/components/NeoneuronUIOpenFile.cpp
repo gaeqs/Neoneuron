@@ -19,6 +19,8 @@
 
 #include "NeoneuronUIOpenFile.h"
 
+#include "neon/util/dialog/Dialogs.h"
+
 #include <mindset/loader/BlueConfigLoader.h>
 #include <mindset/loader/SWCLoader.h>
 #include <neon/util/Chronometer.h>
@@ -287,5 +289,53 @@ namespace neoneuron
         if (!_open) {
             getGameObject()->destroy();
         }
+    }
+
+    void NeoneuronUiOpenFile::openDialog(NeoneuronApplication* app)
+    {
+        auto& runner = app->getRender().getApplication().getTaskRunner();
+
+        auto task = runner.executeAsync(
+            [](NeoneuronApplication* nn) -> std::optional<std::filesystem::path> {
+                auto& app = nn->getRender().getApplication();
+                neon::OpenFileDialogInfo info;
+                info.application = &app;
+
+                app.setModalMode(true);
+                auto result = neon::openFileDialog(info);
+                app.setModalMode(false);
+
+                if (result.empty()) {
+                    return {};
+                }
+
+                std::filesystem::path path = result[0];
+                auto fileSystem = std::make_unique<neon::DirectoryFileSystem>(path.parent_path());
+                if (!fileSystem->exists(path.filename())) {
+                    return {};
+                }
+                return path;
+            },
+            app);
+
+        task->then(
+            false, true,
+            [task](NeoneuronApplication* app) {
+                auto& optional = task->getResult();
+                if (!optional.has_value() || !optional->has_value()) {
+                    return;
+                }
+                auto path = std::move(**optional);
+                auto fileSystem = std::make_unique<neon::DirectoryFileSystem>(path.parent_path());
+
+                auto file = fileSystem->readFile(path);
+                if (!file) {
+                    return;
+                }
+
+                auto go = app->getRender().getRoom()->newGameObject();
+                go->newComponent<NeoneuronUiOpenFile>(app, std::move(fileSystem), path, std::move(*file));
+            },
+            app);
     }
 } // namespace neoneuron

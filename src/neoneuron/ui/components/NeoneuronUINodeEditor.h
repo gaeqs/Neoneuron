@@ -33,10 +33,14 @@ namespace neoneuron
         ImBlueprint::Editor _editor;
         std::vector<NodeFactory> _factories;
 
+        void loadDefault();
+
       public:
         explicit NeoneuronUINodeEditor(NeoneuronApplication* application);
 
         ~NeoneuronUINodeEditor() override;
+
+        void onStart() override;
 
         void onUpdate(float deltaTime) override;
 

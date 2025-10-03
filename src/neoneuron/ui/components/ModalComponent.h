@@ -22,6 +22,7 @@
 
 #include <imgui.h>
 #include <neon/structure/Component.h>
+#include <neon/util/ImGuiUtils.h>
 
 namespace neoneuron
 {
@@ -39,8 +40,8 @@ namespace neoneuron
 
         virtual void onModalDraw() = 0;
 
-        virtual void actionButton(ImVec2 recommendedSize) = 0;
+        virtual void actionButton(ImGui::neon::LinearLayout& layout) = 0;
     };
 } // namespace neoneuron
 
-#endif //MODALCOMPONENT_H
+#endif // MODALCOMPONENT_H

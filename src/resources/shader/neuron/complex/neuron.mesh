@@ -107,7 +107,9 @@ layout(location = 4) flat out float fragSectionId[];
 layout(location = 5) flat out float fragSelected[];
 
 uint computeLOD(Neuron neuron, Section segment) {
-    if (neuron.lodMode == 8) {
+    if (neuron.neuronId == savingNeuron) {
+        return 7;
+    } else if (neuron.lodMode == 8) {
         float sceneRadius = neuron.radius;
         vec3 viewPosition = vec3(view * neuron.model * vec4(segment.endAndRadius.xyz, 1.0f));
         float distance = length(viewPosition);

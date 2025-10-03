@@ -20,6 +20,9 @@
 #ifndef NEURONTEXTUREPICKER_H
 #define NEURONTEXTUREPICKER_H
 
+#include "neon/render/texture/TextureView.h"
+#include "neon/structure/MutableAsset.h"
+
 #include <mindset/UID.h>
 #include <neon/render/texture/Texture.h>
 #include <neon/structure/Component.h>
@@ -34,7 +37,7 @@ namespace neoneuron
     {
         NeoneuronApplication* _application;
         Viewport* _viewport;
-        std::shared_ptr<neon::Texture> _texture;
+        std::shared_ptr<neon::MutableAsset<neon::TextureView>> _texture;
 
         bool _inside = false;
         rush::Vec2i _pixelPosition;

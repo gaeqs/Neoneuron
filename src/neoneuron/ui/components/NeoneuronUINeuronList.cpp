@@ -22,6 +22,7 @@
 #include <mindset/DefaultProperties.h>
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/ui/imgui/ImGuiCustomComponents.h>
+#include <neoneuron/ui/style/MaterialSymbols.h>
 
 namespace neoneuron
 {
@@ -50,7 +51,7 @@ namespace neoneuron
         }
         if (ImGui::Button(taggedName.c_str(), ImVec2(-1.0f, 25.0f))) {
             bool control = ImGui::IsKeyDown(ImGuiKey_ModCtrl);
-            auto& selector = _render->getNeoneuronApplication()->getSelector();
+            auto& selector = getNeoneuronApplication()->getSelector();
             if (!control) {
                 selector.selectNeuron(SelectionMode::OVERRIDE_ALL, gid);
             } else {
@@ -92,8 +93,8 @@ namespace neoneuron
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg));
         ImGui::BeginChild("List", ImVec2(0, ImGui::GetContentRegionAvail().y / 3.0f), ImGuiChildFlags_Borders);
 
-        auto& repo = _render->getNeoneuronApplication()->getRepository();
-        auto& selectedNeurons = _render->getNeoneuronApplication()->getSelector().getSelectedNeurons();
+        auto& repo = getNeoneuronApplication()->getRepository();
+        auto& selectedNeurons = getNeoneuronApplication()->getSelector().getSelectedNeurons();
 
         std::vector<std::tuple<GID, mindset::Dataset*, mindset::Neuron*>> neurons;
         for (auto [uid, dataset] : repo.getDatasets()) {
@@ -124,7 +125,7 @@ namespace neoneuron
     {
         ImGui::BeginChild("Information", ImVec2(0, ImGui::GetContentRegionAvail().y));
 
-        auto& selectedNeurons = _render->getNeoneuronApplication()->getSelector().getSelectedNeurons();
+        auto& selectedNeurons = getNeoneuronApplication()->getSelector().getSelectedNeurons();
 
         if (selectedNeurons.size() != 1) {
             ImGui::EndChild();
@@ -133,7 +134,7 @@ namespace neoneuron
 
         auto selectedNeuron = *selectedNeurons.begin();
 
-        auto optionalNeuron = _render->getNeoneuronApplication()->getRepository().getNeuronAndDataset(selectedNeuron);
+        auto optionalNeuron = getNeoneuronApplication()->getRepository().getNeuronAndDataset(selectedNeuron);
 
         if (!optionalNeuron.has_value()) {
             ImGui::EndChild();
@@ -147,7 +148,7 @@ namespace neoneuron
         ImGui::Text("Sections: %d", morph.has_value() ? morph.value()->getNeuritesAmount() : 0);
         ImGui::Text("Properties provided:");
 
-        auto& storage = _render->getNeoneuronApplication()->getPropertyStorage();
+        auto& storage = getNeoneuronApplication()->getPropertyStorage();
 
         std::vector<std::string> segmentProperties;
         std::vector<std::string> undefinedProperties;
@@ -169,6 +170,7 @@ namespace neoneuron
                 continue;
             }
 
+            auto& render = getNeoneuronApplication()->getRender();
             bool closed = false;
             if (collapsingHeaderWithCloseButton(prop.value()->getDisplayName().c_str(), closed)) {
                 ImGui::Indent();
@@ -176,14 +178,14 @@ namespace neoneuron
                     auto value = optionalValue.value();
                     if (editor(&value, neuron)) {
                         neuron->setProperty(uid, value);
-                        _render->refreshNeuronProperty(selectedNeuron, name);
+                        render.refreshNeuronProperty(selectedNeuron, name);
                     }
                 }
                 ImGui::Unindent();
             }
             if (closed) {
                 neuron->deleteProperty(uid);
-                _render->refreshNeuronProperty(selectedNeuron, name);
+                render.refreshNeuronProperty(selectedNeuron, name);
             }
         }
 
@@ -215,7 +217,7 @@ namespace neoneuron
         const char* names[100];
         const DefinedProperty* properties[100];
 
-        auto& storage = _render->getNeoneuronApplication()->getPropertyStorage();
+        auto& storage = getNeoneuronApplication()->getPropertyStorage();
         for (auto& [name, prop] : storage) {
             auto uid = dataset->getProperties().getPropertyUID(name);
 
@@ -244,23 +246,20 @@ namespace neoneuron
                 auto val = prop->getGenerator()(prototype);
                 auto uid = dataset->getProperties().defineProperty(prop->getName());
                 prototype->setProperty(uid, val);
-                _render->refreshNeuronProperty(gid, prop->getName());
+                getNeoneuronApplication()->getRender().refreshNeuronProperty(gid, prop->getName());
             }
             ImGui::EndDisabled();
         }
     }
 
-    NeoneuronUINeuronList::NeoneuronUINeuronList(NeoneuronRender* render) :
-        _render(render)
+    void NeoneuronUINeuronList::drawWindowContents()
     {
+        neuronList();
+        neuronInformation();
     }
 
-    void NeoneuronUINeuronList::onPreDraw()
+    NeoneuronUINeuronList::NeoneuronUINeuronList(NeoneuronApplication* application) :
+        ToolWindow(application, NeoneuronFiles::SETTINGS_TOOL_NEURON_LIST, ICON_MS_NEUROLOGY "Neurons")
     {
-        if (ImGui::Begin("Neurons")) {
-            neuronList();
-            neuronInformation();
-        }
-        ImGui::End();
     }
 } // namespace neoneuron
