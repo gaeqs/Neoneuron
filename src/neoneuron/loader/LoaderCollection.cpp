@@ -53,8 +53,10 @@ namespace neoneuron
 
     void LoaderCollection::load(std::unique_ptr<mindset::Loader> loader, std::shared_ptr<NamedDataset> dataset)
     {
-        LoaderData data(std::move(loader), std::move(dataset));
-        data.statusListener = data.loader->createListener([](mindset::LoaderStatus status) {
+        std::shared_ptr<mindset::LoaderStatus> latestStatus = std::make_shared<mindset::LoaderStatus>();
+        LoaderData data(std::move(loader), std::move(dataset), nullptr, {}, latestStatus);
+        data.statusListener = data.loader->createListener([latestStatus](mindset::LoaderStatus status) {
+            *latestStatus = status;
             neon::debug() << status.currentTask << " (" << status.stagesCompleted << "/" << status.stages << ")";
         });
 

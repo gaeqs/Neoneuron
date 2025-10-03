@@ -166,6 +166,8 @@ namespace neoneuron
 
         std::optional<neon::InstanceData::Instance> findJoint(mindset::UID uid) const;
 
+        size_t getAllocatedMemorySize() const;
+
         ComplexGPUNeuron& operator=(ComplexGPUNeuron&& other) noexcept;
     };
 } // namespace neoneuron

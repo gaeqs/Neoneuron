@@ -23,9 +23,6 @@
     #define GLFW_EXPOSE_NATIVE_WIN32
 #endif
 
-#include <imgui_internal.h>
-#include <nfd.hpp>
-#include <nfd_glfw3.h>
 #include <neoneuron/loader/SceneLoader.h>
 
 #include <neoneuron/render/NeoneuronRender.h>
@@ -35,94 +32,66 @@
 #include "components/actions/ActionSave.h"
 #include "components/actions/ActionShuffle.h"
 #include "components/NeoneuronUIAbout.h"
+#include "components/actions/ActionDuplicate.h"
+#include "neon/util/dialog/Dialogs.h"
 #include "settings/NeoneuronUiSettings.h"
 #include "style/Fonts.h"
+#include "style/MaterialSymbols.h"
 
 namespace neoneuron
 {
-    void NeoneuronTopBar::openFile() const
-    {
-        auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
-
-        nfdwindowhandle_t handle;
-        NFD_GetNativeWindowFromGLFWWindow(app->getWindow(), &handle);
-
-        NFD::UniquePath outPath = NULL;
-        nfdresult_t result = NFD::OpenDialog(outPath, nullptr, 0, nullptr, handle);
-        std::string file;
-        if (result == NFD_OKAY) {
-            file = std::string(outPath.get());
-        } else if (result == NFD_CANCEL) {
-            return;
-        } else {
-            getLogger().error(neon::MessageBuilder().print("Error while choosing file: ").print(NFD_GetError()));
-            return;
-        }
-
-        std::filesystem::path path(file);
-        auto fileSystem = std::make_unique<neon::DirectoryFileSystem>(path.parent_path());
-        auto optional = fileSystem->readFile(path.filename());
-        if (!optional.has_value()) {
-            return;
-        }
-        _render->getRoom()->newGameObject()->newComponent<NeoneuronUiOpenFile>(
-            _render->getNeoneuronApplication(), std::move(fileSystem), path, std::move(optional.value()));
-    }
 
     void NeoneuronTopBar::saveFile(const std::string& data) const
     {
-        auto* app = dynamic_cast<neon::vulkan::VKApplication*>(getApplication()->getImplementation());
-
-        nfdwindowhandle_t handle;
-        NFD_GetNativeWindowFromGLFWWindow(app->getWindow(), &handle);
-
-        nfdu8filteritem_t filters = {"JSON", "json"};
-        NFD::UniquePath outPath = NULL;
-        nfdresult_t result = NFD::SaveDialog(outPath, &filters, 0, nullptr, "scene.json", handle);
-        std::string file;
-        if (result == NFD_OKAY) {
-            file = std::string(outPath.get());
-        } else if (result == NFD_CANCEL) {
-            return;
-        } else {
-            getLogger().error(neon::MessageBuilder().print("Error while choosing file: ").print(NFD_GetError()));
-            return;
+        neon::SaveFileDialogInfo info;
+        info.application = getApplication();
+        info.defaultExtension = "json";
+        if (auto result = neon::saveFileDialog(info)) {
+            if (std::ofstream out(result.value().string()); out) {
+                out << data;
+            }
         }
-
-        std::filesystem::path path(file);
-
-        std::ofstream out(path);
-        if (!out) {
-            return;
-        }
-        out << data;
-        out.close();
     }
 
     void NeoneuronTopBar::toolsMenu() const
     {
-        static const auto GLOBAL_PARAMS = NeoneuronApplication::SETTINGS_TOOL_GLOBAL_PARAMETERS;
-        static const auto DEBUG = NeoneuronApplication::SETTINGS_TOOL_DEBUG;
-        static const auto DEMO = NeoneuronApplication::SETTINGS_TOOL_DEMO;
-        auto& s = _render->getNeoneuronApplication()->getSettings();
+        static const auto NEURON_LIST = NeoneuronFiles::SETTINGS_TOOL_NEURON_LIST;
+        static const auto GLOBAL_PARAMS = NeoneuronFiles::SETTINGS_TOOL_GLOBAL_PARAMETERS;
+        static const auto DEBUG = NeoneuronFiles::SETTINGS_TOOL_DEBUG;
+        static const auto PERFORMANCE = NeoneuronFiles::SETTINGS_TOOL_PERFORMANCE;
+        static const auto DEMO = NeoneuronFiles::SETTINGS_TOOL_DEMO;
+        auto& files = _render->getNeoneuronApplication()->getFiles();
+        auto& s = files.getSettings();
 
+        bool neuronList = s.value(NEURON_LIST, false);
         bool globalParameters = s.value(GLOBAL_PARAMS, false);
         bool debug = s.value(DEBUG, false);
+        bool performance = s.value(PERFORMANCE, false);
         bool demo = s.value(DEMO, false);
 
-        if (ImGui::MenuItem("Global parameters", nullptr, &globalParameters)) {
+        if (ImGui::MenuItem(ICON_MS_NEUROLOGY "Neurons", nullptr, &neuronList)) {
+            s[NEURON_LIST] = neuronList;
+            files.signalSettingsChange(NEURON_LIST);
+        }
+
+        if (ImGui::MenuItem(ICON_MS_GLOBE "Global parameters", nullptr, &globalParameters)) {
             s[GLOBAL_PARAMS] = globalParameters;
-            _render->getNeoneuronApplication()->signalSettingsChange(GLOBAL_PARAMS);
+            files.signalSettingsChange(GLOBAL_PARAMS);
         }
 
-        if (ImGui::MenuItem("Debug", nullptr, &debug)) {
+        if (ImGui::MenuItem(ICON_MS_INFO "Debug", nullptr, &debug)) {
             s[DEBUG] = debug;
-            _render->getNeoneuronApplication()->signalSettingsChange(DEBUG);
+            files.signalSettingsChange(DEBUG);
         }
 
-        if (ImGui::MenuItem("ImGUI Demo", nullptr, &demo)) {
+        if (ImGui::MenuItem(ICON_MS_PERFORMANCE_MAX "Performance Recorder", nullptr, &performance)) {
+            s[PERFORMANCE] = performance;
+            files.signalSettingsChange(PERFORMANCE);
+        }
+
+        if (ImGui::MenuItem(ICON_MS_IMAGESEARCH_ROLLER "ImGUI Demo", nullptr, &demo)) {
             s[DEMO] = demo;
-            _render->getNeoneuronApplication()->signalSettingsChange(DEMO);
+            files.signalSettingsChange(DEMO);
         }
     }
 
@@ -148,28 +117,31 @@ namespace neoneuron
     void NeoneuronTopBar::actionsMenu() const
     {
         auto app = _render->getNeoneuronApplication();
-        if (ImGui::MenuItem("Focus scene")) {
+        if (ImGui::MenuItem(ICON_MS_RECENTER "Focus scene")) {
             _render->focusScene();
         }
-        if (ImGui::MenuItem("Shuffle")) {
+        if (ImGui::MenuItem(ICON_MS_SHUFFLE "Shuffle")) {
             _render->getRoom()->newGameObject()->newComponent<ActionShuffle>(app);
         }
-        if (ImGui::MenuItem("Save neuron model")) {
+        if (ImGui::MenuItem(ICON_MS_TAB_DUPLICATE "Duplicate")) {
+            _render->getRoom()->newGameObject()->newComponent<ActionDuplicate>(app);
+        }
+        if (ImGui::MenuItem(ICON_MS_DOWNLOAD "Save neuron model")) {
             _render->getRoom()->newGameObject()->newComponent<ActionSave>(app);
         }
     }
 
     void NeoneuronTopBar::demo() const
     {
-        auto& s = _render->getNeoneuronApplication()->getSettings();
-        bool opened = s.value(NeoneuronApplication::SETTINGS_TOOL_DEMO, false);
+        auto& files = _render->getNeoneuronApplication()->getFiles();
+        bool opened = files.getSettings().value(NeoneuronFiles::SETTINGS_TOOL_DEMO, false);
         bool keepOpen = true;
         if (opened) {
             ImGui::ShowDemoWindow(&keepOpen);
         }
         if (opened && !keepOpen) {
-            s[NeoneuronApplication::SETTINGS_TOOL_DEMO] = false;
-            _render->getNeoneuronApplication()->signalSettingsChange(NeoneuronApplication::SETTINGS_TOOL_DEMO);
+            files.getSettings()[NeoneuronFiles::SETTINGS_TOOL_DEMO] = false;
+            files.signalSettingsChange(NeoneuronFiles::SETTINGS_TOOL_DEMO);
         }
     }
 
@@ -185,47 +157,46 @@ namespace neoneuron
     void NeoneuronTopBar::onPreDraw()
     {
         bool openSettings = false;
-
-        fonts::imGuiPushFont(fonts::SS3_20);
+        ImGui::PushFont(nullptr, 20.0f);
         if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu("File")) {
-                fonts::imGuiPushFont(fonts::SS3_18);
-                if (ImGui::MenuItem("Open file", "Ctrl+O")) {
-                    openFile();
+            if (ImGui::BeginMenu(ICON_MS_FILES "File")) {
+                ImGui::PushFont(nullptr, 18.0f);
+                if (ImGui::MenuItem(ICON_MS_FILE_OPEN "Open file", "Ctrl+O")) {
+                    NeoneuronUiOpenFile::openDialog(_render->getNeoneuronApplication());
                 }
-                if (ImGui::MenuItem("Close scene")) {
+                if (ImGui::MenuItem(ICON_MS_CLOSE "Close scene")) {
                     _render->getNeoneuronApplication()->getRepository().clear();
                 }
-                if (ImGui::MenuItem("Save scene")) {
+                if (ImGui::MenuItem(ICON_MS_SAVE "Save scene")) {
                     saveFile(saveScene(_render).dump(4));
                 }
-                if (ImGui::MenuItem("Settings", "Ctrl+S")) {
+                if (ImGui::MenuItem(ICON_MS_SETTINGS "Settings", "Ctrl+S")) {
                     openSettings = true;
                 }
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("View")) {
-                fonts::imGuiPushFont(fonts::SS3_18);
+            if (ImGui::BeginMenu(ICON_MS_VISIBILITY "View")) {
+                ImGui::PushFont(nullptr, 18.0f);
                 viewMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("Tools")) {
-                fonts::imGuiPushFont(fonts::SS3_18);
+            if (ImGui::BeginMenu(ICON_MS_BUILD "Tools")) {
+                ImGui::PushFont(nullptr, 18.0f);
                 toolsMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("Actions")) {
-                fonts::imGuiPushFont(fonts::SS3_18);
+            if (ImGui::BeginMenu(ICON_MS_PLAY_ARROW "Actions")) {
+                ImGui::PushFont(nullptr, 18.0f);
                 actionsMenu();
                 ImGui::PopFont();
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("Help")) {
-                fonts::imGuiPushFont(fonts::SS3_18);
-                if (ImGui::MenuItem("About")) {
+            if (ImGui::BeginMenu(ICON_MS_HELP "Help")) {
+                ImGui::PushFont(nullptr, 18.0f);
+                if (ImGui::MenuItem(ICON_MS_INFO "About")) {
                     _render->getRoom()->newGameObject()->newComponent<NeoneuronUIAbout>(
                         _render->getNeoneuronApplication());
                 }

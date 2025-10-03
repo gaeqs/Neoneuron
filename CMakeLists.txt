@@ -37,18 +37,20 @@ set(BRION_BUILD_PYTHON_BINDINGS OFF)
 
 include(FetchContent)
 
-project(Neoneuron LANGUAGES CXX VERSION 0.0.2)
-
-if (UNIX)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GTK REQUIRED gtkmm-3.0)
-    include_directories(${GTK_INCLUDE_DIRS})
-    list(APPEND LIBRARIES ${GTK_LIBRARIES})
-endif ()
+project(Neoneuron LANGUAGES CXX VERSION 0.1)
 
 if (MSVC)
     add_compile_definitions(NOMINMAX)
 endif ()
+
+FetchContent_Declare(
+        rush
+        GIT_REPOSITORY https://github.com/gaeqs/Rush.git
+        GIT_TAG mesh
+)
+
+FetchContent_MakeAvailable(rush)
+
 
 FetchContent_Declare(
         neon
@@ -66,14 +68,6 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(mindset)
 
-FetchContent_Declare(
-        nativefiledialog
-        GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
-        GIT_TAG a1a401062819beb8c3da84518ab1fe7de88632db
-)
-
-FetchContent_MakeAvailable(nativefiledialog)
-
 set(IMBLUEPRINT_IMGUI_TARGET imgui)
 
 FetchContent_Declare(
@@ -83,6 +77,14 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(imblueprint)
+
+FetchContent_Declare(
+        cxxopts
+        GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+        GIT_TAG master
+)
+
+FetchContent_MakeAvailable(cxxopts)
 
 if (TARGET morphio_obj)
     target_precompile_headers(morphio_obj PUBLIC <cstdint>)
@@ -109,7 +111,7 @@ endif ()
 find_package(glfw3 CONFIG REQUIRED)
 list(APPEND LIBRARIES glfw ${GLFW_LIBRARIES})
 list(APPEND LIBRARIES ${VULKAN_LIB_LIST})
-list(APPEND LIBRARIES neon nfd hey pugixml mindset imblueprint HighFive)
+list(APPEND LIBRARIES neon hey pugixml mindset imblueprint HighFive cxxopts)
 
 # Create version.h
 
@@ -130,6 +132,9 @@ configure_file(
         ${NEONEURON_GENERATED_DIR}/neoneuron/version.h
 )
 
+if (RELEASE_DEBUG)
+    add_compile_definitions(RELEASE_DEBUG)
+endif ()
 
 include_directories(src)
 add_subdirectory(src)

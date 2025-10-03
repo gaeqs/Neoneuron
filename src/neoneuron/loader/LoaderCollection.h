@@ -20,6 +20,8 @@
 #ifndef LOADERCOLLECTION_H
 #define LOADERCOLLECTION_H
 
+#include <ranges>
+
 #include <neoneuron/loader/LoaderData.h>
 #include <neoneuron/structure/NamedDataset.h>
 
@@ -45,6 +47,14 @@ namespace neoneuron
         void load(std::unique_ptr<mindset::Loader> loader, std::shared_ptr<NamedDataset> dataset);
 
         size_t getLoadingAmount() const;
+
+
+        auto getLoaders() const
+        {
+            return _loaders | std::views::transform([](const LoaderData& loader) {
+                return &loader;
+            });
+        }
     };
 } // namespace neoneuron
 

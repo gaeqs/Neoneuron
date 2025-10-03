@@ -53,6 +53,8 @@ namespace neoneuron
         std::shared_ptr<neon::RenderPassStrategy> _inputStrategy;
         std::shared_ptr<neon::RenderPassStrategy> _outputStrategy;
 
+        std::shared_ptr<neon::SampledTexture> _outputColorTexture;
+
         std::shared_ptr<neon::Model> _selectionResolver;
 
         neon::IdentifiableWrapper<NeuronTexturePicker> _texturePicker;
@@ -68,6 +70,8 @@ namespace neoneuron
         void loadSelectionResolver();
 
         void assignRecreationConditions(neon::SimpleFrameBuffer* frameBuffer) const;
+
+        void renderSidebar();
 
       public:
         Viewport(const Viewport& other) = delete;
@@ -96,15 +100,17 @@ namespace neoneuron
 
         [[nodiscard]] std::shared_ptr<neon::ShaderUniformBuffer> getUniformBuffer() const;
 
-        [[nodiscard]] std::shared_ptr<neon::Texture> getPickerTexture() const;
+        [[nodiscard]] std::shared_ptr<neon::MutableAsset<neon::TextureView>> getPickerTexture() const;
 
-        void setSkybox(const std::shared_ptr<neon::Texture>& skybox) const;
+        void setSkybox(const std::shared_ptr<neon::SampledTexture>& skybox) const;
 
         [[nodiscard]] bool isHovered() const;
 
         [[nodiscard]] ImVec2 getWindowSize() const;
 
         [[nodiscard]] ImVec2 getWindowOrigin() const;
+
+        void focusScene() const;
 
         void onStart() override;
 

@@ -22,7 +22,6 @@
 
 #include <hey/Listener.h>
 #include <neon/Neon.h>
-#include <neon/util/component/ViewportComponent.h>
 
 namespace neoneuron
 {
@@ -37,6 +36,8 @@ namespace neoneuron
         void initStyle(NeoneuronRender* render);
 
         void initDebugToggle();
+
+        void initLogToggle();
 
       public:
         NeoneuronUI() = default;

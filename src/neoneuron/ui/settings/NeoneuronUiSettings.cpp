@@ -28,20 +28,15 @@ namespace neoneuron::settings
 {
     void settingsSection(const std::string& name)
     {
-        auto font = fonts::getFont(fonts::SS3_32);
-
-        if (font.has_value()) {
-            ImGui::PushFont(font.value());
-        }
+        ImGui::PushFont(nullptr, 32.0f);
         ImGui::Text(name.c_str());
-        if (font.has_value()) {
-            ImGui::PopFont();
-        }
+        ImGui::PopFont();
     }
 
     void settingsTheme(NeoneuronApplication* app)
     {
-        static int styleIdx = app->getSettings().value(NeoneuronApplication::SETTINGS_THEME, 0);
+        auto& files = app->getFiles();
+        static int styleIdx = files.getSettings().value(NeoneuronFiles::SETTINGS_THEME, 0);
         static int current = styleIdx;
         ImGui::Combo("Theme", &styleIdx, "Dark Theme\0Light Theme\0");
 
@@ -58,45 +53,21 @@ namespace neoneuron::settings
             }
 
             current = styleIdx;
-            app->getSettings()[NeoneuronApplication::SETTINGS_THEME] = styleIdx;
-            app->signalSettingsChange(NeoneuronApplication::SETTINGS_THEME);
+            files.getSettings()[NeoneuronFiles::SETTINGS_THEME] = styleIdx;
+            files.signalSettingsChange(NeoneuronFiles::SETTINGS_THEME);
         }
     }
 
     void settingsFontSize(NeoneuronApplication* app)
     {
-        static int fontIdx = app->getSettings().value(NeoneuronApplication::SETTINGS_FONT_SIZE, 1);
-        static int current = fontIdx;
-        ImGui::Combo("Font size", &fontIdx, "Small\0Normal\0Large\0Extra large\0Giant\0");
+        auto& files = app->getFiles();
 
-        if (fontIdx != current) {
-            const char* font = fonts::SS3_18;
-            switch (fontIdx) {
-                case 0:
-                    font = fonts::SS3_16;
-                    break;
-                case 1:
-                    font = fonts::SS3_18;
-                    break;
-                case 2:
-                    font = fonts::SS3_20;
-                    break;
-                case 3:
-                    font = fonts::SS3_24;
-                    break;
-                case 4:
-                    font = fonts::SS3_32;
-                    break;
-                default:
-                    break;
-            }
-            if (auto opt = fonts::getFont(font); opt.has_value()) {
-                ImGui::GetIO().FontDefault = opt.value();
-            }
+        static float scale = files.getSettings().value(NeoneuronFiles::SETTINGS_FONT_SCALE, 1.0f);
 
-            current = fontIdx;
-            app->getSettings()[NeoneuronApplication::SETTINGS_FONT_SIZE] = fontIdx;
-            app->signalSettingsChange(NeoneuronApplication::SETTINGS_FONT_SIZE);
+        if (ImGui::SliderFloat("Font scale", &scale, 0.5f, 5.0f, "%.2f")) {
+            ImGui::GetStyle().FontScaleMain = scale;
+            files.getSettings()[NeoneuronFiles::SETTINGS_FONT_SCALE] = scale;
+            files.signalSettingsChange(NeoneuronFiles::SETTINGS_FONT_SCALE);
         }
     }
 

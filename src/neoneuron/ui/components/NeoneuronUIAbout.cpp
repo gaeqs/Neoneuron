@@ -103,21 +103,21 @@ namespace neoneuron
 
     void NeoneuronUIAbout::showTitle() const
     {
-        fonts::imGuiPushFont(fonts::SS3_32);
+        ImGui::PushFont(nullptr, 32.0f);
         ImGui::Text("Neoneuron %s", NEONEURON_VERSION);
         ImGui::PopFont();
     }
 
     void NeoneuronUIAbout::showVersionInfo() const
     {
-        fonts::imGuiPushFont(fonts::SS3_24);
+        ImGui::PushFont(nullptr, 24.0f);
         ImGui::Text("Build %s, built on %s", NEONEURON_GIT_COMMIT, NEONEURON_BUILD_DATE);
         ImGui::PopFont();
     }
 
     void NeoneuronUIAbout::showAcknowledges() const
     {
-        fonts::imGuiPushFont(fonts::SS3_20);
+        ImGui::PushFont(nullptr, 20.0f);
         ImGui::Text("Gael Rial Costas - VG-Lab/URJC © 2025-%d", NEONEURON_BUILD_YEAR);
         ImGui::PopFont();
     }
@@ -164,10 +164,12 @@ namespace neoneuron
                 auto& f = file.value();
                 IconEntry entry;
                 std::string id = std::format("neoneuron:icon_{}", icons);
-                entry.icon = neon::Texture::createTextureFromFile(app, id, f.getData(), f.getSize());
-                auto sampler = entry.icon->getImplementation().getSampler();
-                auto view = entry.icon->getImplementation().getImageView();
-                entry.descriptor = ImGui_ImplVulkan_AddTexture(sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                auto texture = neon::Texture::createTextureFromFile(app, id, f.getData(), f.getSize());
+                entry.icon = neon::SampledTexture::create(app, texture);
+                auto [view, sampler, layout] = entry.icon->getNativeHandlers();
+                entry.descriptor =
+                    ImGui_ImplVulkan_AddTexture(static_cast<VkSampler>(sampler), static_cast<VkImageView>(view),
+                                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
                 entry.textureId = reinterpret_cast<ImTextureID>(entry.descriptor);
                 _icons.push_back(std::move(entry));
             }
@@ -188,7 +190,7 @@ namespace neoneuron
         neon::CMRCFileSystem fs(cmrc::resources::get_filesystem());
         auto licenseFile = fs.readFile("LICENSE.txt");
         if (licenseFile.has_value()) {
-            _license = licenseFile.value().getData();
+            _license = std::string(reinterpret_cast<const char*>(licenseFile.value().getData()));
         }
     }
 

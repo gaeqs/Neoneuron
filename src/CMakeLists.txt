@@ -25,9 +25,11 @@ cmrc_add_resource_library(
         NAMESPACE resources
         WHENCE resources
 
+        resources/imgui.ini
         resources/LICENSE.txt
 
         resources/font/SourceSans3.ttf
+        resources/font/MaterialSymbols.ttf
 
         resources/icon/16x16/neoneuron.png
         resources/icon/32x32/neoneuron.png
@@ -80,6 +82,9 @@ cmrc_add_resource_library(
         resources/texture/skybox/right.png
         resources/texture/skybox/top.png
         resources/texture/skybox/skybox.json
+
+        resources/texture/white_skybox/white.png
+        resources/texture/white_skybox/skybox.json
 
         resources/swc/data.swc
         resources/swc/test.swc

@@ -32,7 +32,7 @@ namespace neoneuron
     class SynapseRepresentationNode : public ImBlueprint::Node
     {
         NeoneuronApplication* _application;
-        SynapseRepresentation* _representation;
+        std::weak_ptr<SynapseRepresentation> _representation;
 
       public:
         explicit SynapseRepresentationNode(NeoneuronApplication* application);

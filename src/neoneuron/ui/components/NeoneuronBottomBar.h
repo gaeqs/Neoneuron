@@ -20,6 +20,10 @@
 #ifndef NEONEURONBOTTOMBAR_H
 #define NEONEURONBOTTOMBAR_H
 
+#include "neon/util/ImGuiUtils.h"
+
+#include <neon/util/component/DockSpaceComponent.h>
+
 #include <neon/Neon.h>
 
 namespace neoneuron
@@ -28,12 +32,24 @@ namespace neoneuron
 
     class NeoneuronBottomBar : public neon::Component
     {
-        NeoneuronApplication* _application;
+        static constexpr float LOADING_STATUS_WIDTH = 300.0f;
 
-        void loadingStatus() const;
+        NeoneuronApplication* _application;
+        neon::IdentifiableWrapper<neon::DockSpaceComponent> _dockSpace;
+        neon::DockSidebar* _sidebar;
+        ImGui::neon::RowLayout _layout;
+
+        void multiLoaderStatusBar();
+
+        void singleLoaderStatusBar();
+
+        void loadingStatus();
 
       public:
-        explicit NeoneuronBottomBar(NeoneuronApplication* application);
+        NeoneuronBottomBar(NeoneuronApplication* application,
+                           neon::IdentifiableWrapper<neon::DockSpaceComponent> dockSpace);
+
+        ~NeoneuronBottomBar() override;
 
         void onPreDraw() override;
     };

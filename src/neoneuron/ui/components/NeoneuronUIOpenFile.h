@@ -83,6 +83,8 @@ namespace neoneuron
                                      std::filesystem::path path, neon::File file);
 
         void onPreDraw() override;
+
+        static void openDialog(NeoneuronApplication* app);
     };
 } // namespace neoneuron
 

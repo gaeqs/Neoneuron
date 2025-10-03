@@ -22,6 +22,7 @@
 #include "NeoneuronRender.h"
 #include "Uniforms.h"
 #include "neoneuron/ui/components/nodes/CameraNode.h"
+#include "neoneuron/ui/style/MaterialSymbols.h"
 
 namespace
 {
@@ -73,8 +74,8 @@ namespace neoneuron
         auto& materials = _selectionResolver->getMeshes()[0]->getMaterials();
         for (auto& material : materials) {
             auto& ubo = material->getUniformBuffer();
-            ubo->setTexture(0, colorOutput);
-            ubo->setTexture(1, selectionOutput);
+            ubo->setTexture(0, neon::SampledTexture::create(application, colorOutput));
+            ubo->setTexture(1, neon::SampledTexture::create(application, selectionOutput));
             ubo->uploadData(3, 0);
         }
     }
@@ -83,18 +84,28 @@ namespace neoneuron
     {
         frameBuffer->setRecreationCondition([&](auto* fb) {
             auto vp = rush::Vec2i(_windowSize.x, _windowSize.y);
-            if (vp.x() == 0 || vp.y() == 0) {
+            if (vp.x() <= 0 || vp.y() <= 0) {
                 return false;
             }
-
-            return vp.x() != fb->getWidth() || vp.y() != fb->getHeight();
+            return vp.cast<uint32_t>() != fb->getDimensions();
         });
 
         frameBuffer->setRecreationParameters([&](auto* app) {
-            auto vp = rush::Vec2i(_windowSize.x, _windowSize.y);
-            return std::make_pair(std::max(static_cast<uint32_t>(vp.x()), 1u),
-                                  std::max(static_cast<uint32_t>(vp.y()), 1u));
+            auto vp = rush::max(rush::Vec2i(_windowSize.x, _windowSize.y), 1);
+            return vp.cast<uint32_t>();
         });
+    }
+
+    void Viewport::renderSidebar()
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        if (ImGui::Button(ICON_MS_RECENTER)) {
+            focusScene();
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Focus scene");
+        }
+        ImGui::PopStyleColor();
     }
 
     Viewport::Viewport(NeoneuronRender* render, int priority, const std::string& name) :
@@ -124,19 +135,15 @@ namespace neoneuron
         textures[0].name = "neoneuron:color";
         textures[0].resolveName = "neoneuron:resolved_color";
         textures[1].name = "neoneuron:picker";
-        textures[0].samples = neon::SamplesPerTexel::COUNT_8;
-        textures[1].samples = neon::SamplesPerTexel::COUNT_8;
 
-        _inputFrameBuffer = std::make_shared<neon::SimpleFrameBuffer>(
-            application, "neoneuron:input", textures, true, "neoneuron:depth", neon::SamplesPerTexel::COUNT_8);
+        _inputFrameBuffer =
+            std::make_shared<neon::SimpleFrameBuffer>(application, "neoneuron:input", neon::SamplesPerTexel::COUNT_8,
+                                                      textures, neon::FrameBufferDepthCreateInfo("neoneuron:depth"));
 
         _inputFrameBuffer->setClearColor(0, rush::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
 
-        textures[0].samples = neon::SamplesPerTexel::COUNT_1;
-        textures[1].samples = neon::SamplesPerTexel::COUNT_1;
-
-        _outputFrameBuffer = std::make_shared<neon::SimpleFrameBuffer>(application, "neoneuron:output", textures, false,
-                                                                       "neoneuron:depth");
+        _outputFrameBuffer = std::make_shared<neon::SimpleFrameBuffer>(application, "neoneuron:output",
+                                                                       neon::SamplesPerTexel::COUNT_1, textures);
 
         assignRecreationConditions(_inputFrameBuffer.get());
         assignRecreationConditions(_outputFrameBuffer.get());
@@ -150,13 +157,18 @@ namespace neoneuron
         neonRender->addRenderPass(_inputStrategy);
         neonRender->addRenderPass(_outputStrategy);
 
+        _outputColorTexture =
+            neon::SampledTexture::create(application, _outputFrameBuffer->getOutputs()[0].resolvedTexture);
+
         loadUniforms();
         loadSelectionResolver();
     }
 
     Viewport::~Viewport()
     {
-        _internalCameraController->destroy();
+        if (_internalCameraController.isValid()) {
+            _internalCameraController->destroy();
+        }
         _render->getRoom()->unmarkUsingModel(_selectionResolver.get());
 
         auto neonRender = _render->getApplication().getRender();
@@ -238,12 +250,12 @@ namespace neoneuron
         return _uniformBuffer;
     }
 
-    std::shared_ptr<neon::Texture> Viewport::getPickerTexture() const
+    std::shared_ptr<neon::MutableAsset<neon::TextureView>> Viewport::getPickerTexture() const
     {
         return _outputFrameBuffer->getOutputs()[1].resolvedTexture;
     }
 
-    void Viewport::setSkybox(const std::shared_ptr<neon::Texture>& skybox) const
+    void Viewport::setSkybox(const std::shared_ptr<neon::SampledTexture>& skybox) const
     {
         auto& materials = _selectionResolver->getMeshes()[0]->getMaterials();
         if (skybox == nullptr) {
@@ -275,6 +287,28 @@ namespace neoneuron
         return _windowOrigin;
     }
 
+    void Viewport::focusScene() const
+    {
+        bool first = true;
+        rush::AABB<3, float> aabb;
+        for (auto viewport : _render->getRepresentations()) {
+            if (viewport->hasViewport(this)) {
+                if (first) {
+                    aabb = viewport->getSceneBoundingBox();
+                    first = false;
+                } else {
+                    auto repAABB = viewport->getSceneBoundingBox();
+                    auto min = rush::min(aabb.center - aabb.radius, repAABB.center - repAABB.radius);
+                    auto max = rush::max(aabb.center + aabb.radius, repAABB.center + repAABB.radius);
+                    aabb = rush::AABB<3, float>::fromEdges(min, max);
+                }
+            }
+        }
+        if (!first) {
+            getCameraController()->focusOn(aabb);
+        }
+    }
+
     void Viewport::onStart()
     {
         _internalCameraController = CameraNode::createDefaultCameraController(getGameObject(), _internalCamera.get());
@@ -300,9 +334,10 @@ namespace neoneuron
 
         ImGui::SetNextWindowSizeConstraints(ImVec2(200, 200), ImVec2(100000, 100000));
         if (ImGui::Begin(_name.c_str())) {
+            renderSidebar();
             _windowSize = ImGui::GetContentRegionAvail();
             _windowOrigin = ImGui::GetCursorScreenPos();
-            ImGui::Image(_outputFrameBuffer->getImGuiDescriptor(0), _windowSize);
+            ImGui::Image(_outputColorTexture->getImGuiDescriptor(), _windowSize);
             _hovered = ImGui::IsItemHovered();
         }
         ImGui::End();

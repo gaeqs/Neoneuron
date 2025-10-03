@@ -41,9 +41,9 @@ namespace neoneuron
 
         [[nodiscard]] Repository* getRepository() const;
 
-        [[nodiscard]] const std::vector<GID>& getNeurons() const;
+        [[nodiscard]] const std::vector<GID>& getNeuronsGIDs() const;
 
-        [[nodiscard]] const std::vector<GID>& getSynapses() const;
+        [[nodiscard]] const std::vector<GID>& getSynapsesGIDs() const;
 
         decltype(auto) getNeurons()
         {

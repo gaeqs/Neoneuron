@@ -113,11 +113,24 @@ layout(location = 3) flat out float fragNeuronId[];
 layout(location = 4) flat out float fragSectionId[];
 layout(location = 5) flat out float fragSelected[];
 
-uint getVerticesPerCircle(Section segment) {
-    uint metadata = segment.metadata;
-    uint localLod = (metadata >> 14u) & 7u;
+uint computeLOD(Neuron neuron, Section segment) {
+    if (neuron.neuronId == savingNeuron) {
+        return 7;
+    } else if (neuron.lodMode == 8) {
+        float sceneRadius = neuron.radius;
+        vec3 viewPosition = vec3(view * neuron.model * vec4(segment.endAndRadius.xyz, 1.0f));
+        float distance = length(viewPosition);
+        return 7 - min(uint(distance * 7.0f / sceneRadius), 7);
+    } else {
+        return neuron.lodMode < 8 ? neuron.lodMode : lod;
+    }
+}
+
+uint getVerticesPerCircle(Neuron neuron, Section segment) {
+    uint localLod = computeLOD(neuron, segment);
     return 4 + localLod * (MAX_POINTS_PER_CIRCLE - 4) / 7;
 }
+
 
 void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
     vec4 globalPosition = neuron.model * position;
@@ -237,8 +250,8 @@ void joint1(Joint joint) {
     Section grandParent = sections[parent.parent];
     Neuron neuron = neurons[parent.neuronIndex];
 
-    uint startVPC = getVerticesPerCircle(parent);
-    uint endVPC = getVerticesPerCircle(section);
+    uint startVPC = getVerticesPerCircle(neuron, parent);
+    uint endVPC = getVerticesPerCircle(neuron, section);
 
     uint rotationIndex = (joint.rotationIndex + rotationIndexOffset) * startVPC / 16;
     uint childrenRotationIndex = (joint.rotationIndex + rotationIndexOffset + childrenRotationIndexOffset) * endVPC / 16;
@@ -330,7 +343,7 @@ void joint2(Joint joint) {
     Section parent = sections[joint.parent];
     Section grandParent = sections[parent.parent];
     Neuron neuron = neurons[parent.neuronIndex];
-    uint parentVPC = getVerticesPerCircle(parent);
+    uint parentVPC = getVerticesPerCircle(neuron, parent);
 
     uint slipVerticesAmount = parentVPC / 2u + ((parentVPC & 1u) == 0u ? 0 : 1);
     SetMeshOutputsEXT(parentVPC * 3 + slipVerticesAmount, parentVPC * 4 + 2);
@@ -339,7 +352,13 @@ void joint2(Joint joint) {
     uint rotationIndex = uint(ceil((joint.rotationIndex + rotationIndexOffset) * parentVPC / 16.0f));
     uint childrenRotationIndex = uint(ceil((joint.rotationIndex + rotationIndexOffset + childrenRotationIndexOffset) * parentVPC / 16.0f));
 
+    uint grandParentType = grandParent.metadata & 255u;
+
     float parentRadius = mix(grandParent.endAndRadius.w, parent.endAndRadius.w, 1.0f - endClip);
+    if(grandParentType == 1) {
+        // If grandparent is soma, use the parent radius.
+        parentRadius = parent.endAndRadius.w;
+    }
 
     vec3 startDirectionUnorm = parent.endAndRadius.xyz - grandParent.endAndRadius.xyz;
     vec3 startDirection = normalize(startDirectionUnorm);

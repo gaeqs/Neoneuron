@@ -32,7 +32,9 @@ namespace neoneuron
     class RepresentationNode : public ImBlueprint::Node
     {
         NeoneuronApplication* _application;
-        ComplexNeuronRepresentation* _representation;
+        std::weak_ptr<ComplexNeuronRepresentation> _representation;
+
+        static void drawProgressBar(ComplexNeuronRepresentation* ptr);
 
       public:
         explicit RepresentationNode(NeoneuronApplication* application);
