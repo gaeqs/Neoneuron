@@ -99,7 +99,7 @@ namespace neoneuron
         out.write(data.c_str(), data.size());
     }
 
-    void NeoneuronFiles::loadImGuiIniFile() const
+    neon::vulkan::VKApplicationCreateInfo NeoneuronFiles::setupImGuiIniFile(neon::vulkan::VKApplicationCreateInfo info) const
     {
         std::filesystem::path path = _configFolder / IMGUI_FILE;
         bool exists = std::filesystem::exists(path);
@@ -109,28 +109,19 @@ namespace neoneuron
             auto file = fs.readFile("imgui.ini");
             if (!file.has_value()) {
                 neon::error() << "Cannot find embedded imgui.ini!";
-                return;
+                return std::move(info);
             }
-
             const std::byte* data = file->getData();
-            const char* chars = reinterpret_cast<const char*>(data);
-            neon::info() << "Load imgui settings from memory.";
-            ImGui::LoadIniSettingsFromMemory(chars, file->getSize());
-            return;
+            std::ofstream out(path, std::ios::binary);
+            if (!out.good()) {
+                neon::error() << "Cannot write imgui.ini file!";
+                return std::move(info);
+            }
+            out.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(file->getSize()));
         }
 
-        neon::info() << "Load imgui settings from " << path;
-        ImGui::LoadIniSettingsFromDisk(path.string().c_str());
-    }
-
-    void NeoneuronFiles::saveImGuiIniFile() const
-    {
-        std::filesystem::path path = _configFolder / IMGUI_FILE;
-        if (std::filesystem::is_directory(path)) {
-            neon::warning() << "ImGui init file (" << path << ") is a directory. Cannot save ini file.";
-            return;
-        }
-        ImGui::SaveIniSettingsToDisk(path.string().c_str());
+        info.imGuiIniPath = std::filesystem::absolute(path).string();
+        return std::move(info);
     }
 
 } // namespace neoneuron

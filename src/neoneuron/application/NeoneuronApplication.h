@@ -50,7 +50,7 @@ namespace neoneuron
       public:
         NeoneuronApplication(const NeoneuronApplication&) = delete;
 
-        explicit NeoneuronApplication(const neon::vulkan::VKApplicationCreateInfo& renderCreateInfo);
+        explicit NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo);
 
         /**
          *

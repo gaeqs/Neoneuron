@@ -55,13 +55,12 @@ namespace neoneuron
     }
 
     NeoneuronRender::NeoneuronRender(NeoneuronApplication* neoneuron,
-                                     const neon::vulkan::VKApplicationCreateInfo& createInfo) :
+                                     neon::vulkan::VKApplicationCreateInfo createInfo) :
         _neoneuronApplication(neoneuron),
         _application(std::make_unique<neon::vulkan::VKApplication>(createInfo)),
         _fileSystem(cmrc::resources::get_filesystem())
     {
         _application.init();
-        neoneuron->getFiles().loadImGuiIniFile();
         _application.setRender(initRender());
 
         _room = std::make_shared<neon::Room>(&_application);

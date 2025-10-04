@@ -59,8 +59,7 @@ namespace neoneuron
       public:
         NeoneuronRender(const NeoneuronRender& other) = delete;
 
-        explicit NeoneuronRender(NeoneuronApplication* neoneuron,
-                                 const neon::vulkan::VKApplicationCreateInfo& createInfo);
+        NeoneuronRender(NeoneuronApplication* neoneuron, neon::vulkan::VKApplicationCreateInfo createInfo);
 
         ~NeoneuronRender();
 

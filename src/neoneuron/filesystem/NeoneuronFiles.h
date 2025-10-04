@@ -26,6 +26,8 @@
 
 #include <hey/Hey.h>
 #include <nlohmann/json.hpp>
+#include <rush/rush.h>
+#include <vulkan/VKApplicationCreateInfo.h>
 
 namespace neoneuron
 {
@@ -94,9 +96,7 @@ namespace neoneuron
          */
         void saveSettings() const;
 
-        void loadImGuiIniFile() const;
-
-        void saveImGuiIniFile() const;
+        neon::vulkan::VKApplicationCreateInfo setupImGuiIniFile(neon::vulkan::VKApplicationCreateInfo info) const;
     };
 } // namespace neoneuron
 

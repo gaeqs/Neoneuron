@@ -42,7 +42,7 @@ namespace neoneuron
 
         NeoneuronUIPerformanceRecorder(NeoneuronApplication* application);
 
-        ~NeoneuronUIPerformanceRecorder();
+        ~NeoneuronUIPerformanceRecorder() override;
 
 
         void onUpdate(float deltaTime) override;

@@ -116,7 +116,6 @@ int main(int argc, const char* argv[])
 
     bool result = app.getRender().renderLoop();
     app.getFiles().saveSettings();
-    app.getFiles().saveImGuiIniFile();
     return result ? 0 : 1;
 }
 

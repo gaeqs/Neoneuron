@@ -23,9 +23,9 @@
 namespace neoneuron
 {
 
-    NeoneuronApplication::NeoneuronApplication(const neon::vulkan::VKApplicationCreateInfo& renderCreateInfo) :
+    NeoneuronApplication::NeoneuronApplication(neon::vulkan::VKApplicationCreateInfo renderCreateInfo) :
         _selector(&_repository),
-        _render(this, renderCreateInfo),
+        _render(this, _files.setupImGuiIniFile(std::move(renderCreateInfo))),
         _loaderCollection(this)
     {
         initDefaultProperties(_propertyStorage);

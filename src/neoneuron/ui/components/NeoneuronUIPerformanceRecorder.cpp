@@ -37,8 +37,7 @@ namespace neoneuron
     NeoneuronUIPerformanceRecorder::NeoneuronUIPerformanceRecorder(NeoneuronApplication* application) :
         ToolWindow(application, NeoneuronFiles::SETTINGS_TOOL_PERFORMANCE,
                    ICON_MS_PERFORMANCE_MAX "Performance Recorder"),
-        _enabled(false),
-        _output("performance.csv", std::ios::app)
+        _enabled(false)
     {
     }
 
@@ -50,6 +49,9 @@ namespace neoneuron
     void NeoneuronUIPerformanceRecorder::onUpdate(float deltaTime)
     {
         if (_enabled) {
+            if (!_output) {
+                _output.open("performance.csv", std::ios::app);
+            }
             double delay = getApplication()->getCurrentFrameInformation().lastFrameProcessTime;
             _output << (1 / delay) << "\n";
         }
