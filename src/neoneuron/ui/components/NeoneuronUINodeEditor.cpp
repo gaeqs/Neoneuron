@@ -27,6 +27,7 @@
 #include "nodes/RepresentationNode.h"
 #include "nodes/SelectionNode.h"
 #include "nodes/SynapseRepresentationNode.h"
+#include "nodes/TimelineNode.h"
 #include "nodes/ViewportNode.h"
 
 namespace neoneuron
@@ -72,6 +73,7 @@ namespace neoneuron
         _factories.push_back(DatasetNode::createFactory());
         _factories.push_back(SelectionNode::createFactory());
         _factories.push_back(ReduceNode::createFactory());
+        _factories.push_back(TimelineNode::createFactory());
     }
 
     NeoneuronUINodeEditor::~NeoneuronUINodeEditor() = default;

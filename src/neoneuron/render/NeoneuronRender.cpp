@@ -70,6 +70,7 @@ namespace neoneuron
         _components = std::make_unique<Components>(this);
 
         _viewportGO = _room->newGameObject();
+        _timelineGO = _room->newGameObject();
 
         initGameObjects();
     }
@@ -231,5 +232,27 @@ namespace neoneuron
 
         _viewports.erase(it);
         viewport->destroy();
+    }
+
+    Timeline* NeoneuronRender::addTimeline()
+    {
+        auto ptr = _timelineGO->newComponent<Timeline>();
+        _timelines.push_back(ptr.raw());
+        return ptr.raw();
+    }
+
+    void NeoneuronRender::removeTimeline(Timeline* timeline)
+    {
+        if (timeline == nullptr) {
+            return;
+        }
+
+        auto it = std::ranges::find_if(_timelines, [&](const Timeline* it) { return it == timeline; });
+        if (it == _timelines.end()) {
+            return;
+        }
+
+        _timelines.erase(it);
+        timeline->destroy();
     }
 } // namespace neoneuron

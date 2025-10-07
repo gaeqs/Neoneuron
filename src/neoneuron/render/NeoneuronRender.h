@@ -25,6 +25,7 @@
 #include <neoneuron/ui/NeoneuronUI.h>
 #include <neoneuron/render/AbstractNeuronRepresentation.h>
 #include <neoneuron/render/NeoneuronRenderData.h>
+#include <neoneuron/render/Timeline.h>
 
 namespace neoneuron
 {
@@ -51,6 +52,9 @@ namespace neoneuron
 
         neon::IdentifiableWrapper<neon::GameObject> _viewportGO;
         std::vector<Viewport*> _viewports;
+
+        neon::IdentifiableWrapper<neon::GameObject> _timelineGO;
+        std::vector<Timeline*> _timelines;
 
         std::shared_ptr<neon::Render> initRender();
 
@@ -114,6 +118,15 @@ namespace neoneuron
         auto getViewports() const
         {
             return _viewports | std::views::transform([](const Viewport* viewport) { return viewport; });
+        }
+
+        Timeline* addTimeline();
+
+        void removeTimeline(Timeline* timeline);
+
+        auto getTimelines() const
+        {
+            return _timelines | std::views::transform([](const Timeline* timeline) { return timeline; });
         }
     };
 } // namespace neoneuron
