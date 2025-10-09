@@ -1,0 +1,91 @@
+#version 460
+#extension GL_EXT_mesh_shader: enable
+#extension GL_KHR_shader_subgroup_ballot: enable
+
+layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
+
+layout (set = 1, binding = 0) uniform Matrices {
+    mat4 view;
+    mat4 viewProjection;
+    mat4 inverseProjection;
+    vec4 planes[6];
+    float near;
+    float far;
+};
+
+layout (set = 0, binding = 1) uniform GlobalData {
+    float currentTime;
+    float radiusStrength;
+    float somaRadiusStrength;
+    float startClip;
+    float endClip;
+    float splitHeight;
+    float splitArcStrength;
+    uint rotationIndexOffset;
+    uint childrenRotationIndexOffset;
+    uint minChildrenForJoint;
+    uint verticesPerCircle;
+    uint somaLatitudes;
+    uint somaLongitudes;
+    float somaConnectionPushFactor;
+    float somaWeightPower;
+    float somaSphereWeight;
+    float somaConnectionMaxWeight;
+    uint lod;
+    uint frame;
+    uint savingNeuron;
+    vec4 defaultColor;
+    vec4 selectedColor;
+};
+
+layout (set = 0, binding = 2) uniform Scene {
+    vec3 sceneCenter;
+    vec3 sceneRadius;
+};
+
+struct TaskData {
+    uint neurons[1024];
+    uint amount;
+};
+
+struct Neuron {
+    uint datasetId;
+    uint neuronId;
+    float value;
+    float dummy;
+    vec4 position;
+};
+
+layout (set = 2, binding = 0) uniform Representation {
+    uint neuronsAmount;
+};
+
+layout(std430, set = 2, binding = 1) buffer Neurons {
+    Neuron neurons[];
+};
+
+taskPayloadSharedEXT TaskData td;
+
+void main() {
+    uint start = gl_WorkGroupID.x * 1024;
+    uint end = min(start + 1024, neuronsAmount);
+
+    uint amount = 0;
+    for (uint i = start + gl_LocalInvocationID.x; i < end; i += 32) {
+        Neuron neuron = neurons[i];
+        bool valid = neuron.position.w > 0.5f;
+
+        uvec4 vote = subgroupBallot(valid);
+        if (valid) {
+            uint index = amount + subgroupBallotExclusiveBitCount(vote);
+            td.neurons[index] = i;
+        }
+
+        amount += subgroupBallotBitCount(vote);
+    }
+
+    td.amount = amount;
+
+    EmitMeshTasksEXT(amount / 32 + (amount % 32 > 0 ? 1 : 0), 1, 1);
+}
+    

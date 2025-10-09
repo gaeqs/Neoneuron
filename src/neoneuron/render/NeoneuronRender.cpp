@@ -236,7 +236,7 @@ namespace neoneuron
 
     Timeline* NeoneuronRender::addTimeline()
     {
-        auto ptr = _timelineGO->newComponent<Timeline>();
+        auto ptr = _timelineGO->newComponent<Timeline>(_neoneuronApplication);
         _timelines.push_back(ptr.raw());
         return ptr.raw();
     }

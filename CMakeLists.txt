@@ -33,6 +33,7 @@ set(SPIRV_WERROR OFF)
 set(IMBLUEPRINT_EXAMPLES OFF)
 set(FETCHCONTENT_UPDATES_SUBMODULES OFF)
 set(MINDSET_TESTS OFF)
+set(MINDSET_USE_BRION OFF)
 set(BRION_BUILD_PYTHON_BINDINGS OFF)
 
 include(FetchContent)
@@ -62,7 +63,7 @@ FetchContent_MakeAvailable(neon)
 
 FetchContent_Declare(
         mindset
-        GIT_REPOSITORY https://github.com/gaeqs/Mindset.git
+        GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mindset.git
         GIT_TAG master
 )
 

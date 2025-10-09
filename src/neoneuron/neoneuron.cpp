@@ -41,16 +41,15 @@ int main(int argc, const char* argv[])
                                     cxxopts::value<bool>()->default_value("false"))(
         "vsync", "Enable vsync", cxxopts::value<bool>()->default_value("true"));
 
-    options.add_options("Load")
-    ("swc", "Load a SWC file", cxxopts::value<std::vector<std::string>>())
-    ("xml", "Load a XML file", cxxopts::value<std::vector<std::string>>())
+    options.add_options("Load")("swc", "Load a SWC file", cxxopts::value<std::vector<std::string>>())(
+        "xml", "Load a XML file", cxxopts::value<std::vector<std::string>>())
 #ifdef MINDSET_BRION
-    ("blueconfig", "Load a BlueConfig file", cxxopts::value<std::vector<std::string>>())
-    ("morpho", "Load a Morpho IO file", cxxopts::value<std::vector<std::string>>())
+        ("blueconfig", "Load a BlueConfig file", cxxopts::value<std::vector<std::string>>())(
+            "morpho", "Load a Morpho IO file", cxxopts::value<std::vector<std::string>>())
 #endif
-    ("snudda", "Load a snudda file", cxxopts::value<std::vector<std::string>>())
-    ("target", "Configure a BlueConfig target", cxxopts::value<std::vector<std::string>>())
-    ("snuddapath", "Configure snudda data path", cxxopts::value<std::string>());
+            ("snudda", "Load a snudda file", cxxopts::value<std::vector<std::string>>())(
+                "target", "Configure a BlueConfig target", cxxopts::value<std::vector<std::string>>())(
+                "snuddapath", "Configure snudda data path", cxxopts::value<std::string>());
 
     auto args = options.parse(argc, argv);
     if (args.count("help")) {
@@ -154,9 +153,11 @@ void parseLoaderArguments(const cxxopts::ParseResult& result, neoneuron::Neoneur
         env[mindset::SNUDDA_LOADER_ENTRY_SNUDDA_DATA_PATH] = result["snuddapath"].as<std::string>();
     }
 
+#ifdef MINDSET_BRION
     if (result.count("target")) {
         env[mindset::BLUE_CONFIG_LOADER_ENTRY_TARGETS] = result["target"].as<std::vector<std::string>>();
     }
+#endif
 
     for (auto& [argId, displayName, loaderId] : LOADERS) {
         if (result.count(argId)) {

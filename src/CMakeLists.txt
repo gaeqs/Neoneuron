@@ -75,6 +75,10 @@ cmrc_add_resource_library(
         resources/shader/synapse/synapse.mesh
         resources/shader/synapse/synapse.frag
 
+        resources/shader/activity/activity.task
+        resources/shader/activity/activity.mesh
+        resources/shader/activity/activity.frag
+
         resources/texture/skybox/back.png
         resources/texture/skybox/bottom.png
         resources/texture/skybox/front.png

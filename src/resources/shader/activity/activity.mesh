@@ -1,0 +1,121 @@
+#version 460
+#extension GL_EXT_mesh_shader: enable
+#extension GL_KHR_shader_subgroup_ballot: enable
+
+const float M_PI = 3.1415926535897932384626433832795f;
+
+const float PARTICLE_RADIUS = 1.5f;
+
+layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
+layout (triangles) out;
+layout (max_vertices = 128, max_primitives = 64) out;
+
+layout (set = 1, binding = 0) uniform Matrices {
+    mat4 view;
+    mat4 viewProjection;
+    mat4 inverseProjection;
+    vec4 planes[6];
+    float near;
+    float far;
+};
+
+layout (set = 0, binding = 2) uniform Scene {
+    vec3 sceneCenter;
+    vec3 sceneRadius;
+};
+
+layout (set = 0, binding = 1) uniform GlobalData {
+    float currentTime;
+    float radiusStrength;
+    float somaRadiusStrength;
+    float startClip;
+    float endClip;
+    float splitHeight;
+    float splitArcStrength;
+    uint rotationIndexOffset;
+    uint childrenRotationIndexOffset;
+    uint minChildrenForJoint;
+    uint verticesPerCircle;
+    uint somaLatitudes;
+    uint somaLongitudes;
+    float somaConnectionPushFactor;
+    float somaWeightPower;
+    float somaSphereWeight;
+    float somaConnectionMaxWeight;
+    uint lod;
+    uint frame;
+    uint savingNeuron;
+    vec4 defaultColor;
+    vec4 selectedColor;
+};
+
+struct TaskData {
+    uint neurons[1024];
+    uint amount;
+};
+
+struct Neuron {
+    uint datasetId;
+    uint neuronId;
+    float value;
+    float dummy;
+    vec4 position;
+};
+
+layout (set = 2, binding = 0) uniform Representation {
+    uint neuronsAmount;
+};
+
+layout(std430, set = 2, binding = 1) buffer Neurons {
+    Neuron neurons[];
+};
+
+taskPayloadSharedEXT TaskData td;
+
+layout(location = 0) flat out uint fragSynapseType[];
+layout(location = 1) out vec3 fragCenter[];
+layout(location = 2) out vec3 fragPosition[];
+
+void generateSquare(uint index, vec3 position, bool presynaptic) {
+    vec3 camRight = normalize(vec3(view[0][0], view[1][0], view[2][0]));
+    vec3 camUp = normalize(vec3(view[0][1], view[1][1], view[2][1]));
+
+    vec3 v0 = position - PARTICLE_RADIUS * camRight - PARTICLE_RADIUS * camUp;
+    vec3 v1 = position + PARTICLE_RADIUS * camRight - PARTICLE_RADIUS * camUp;
+    vec3 v2 = position + PARTICLE_RADIUS * camRight + PARTICLE_RADIUS * camUp;
+    vec3 v3 = position - PARTICLE_RADIUS * camRight + PARTICLE_RADIUS * camUp;
+
+    uint vertexBase = index * 4u;
+
+    fragPosition[vertexBase + 0] = v0;
+    fragPosition[vertexBase + 1] = v1;
+    fragPosition[vertexBase + 2] = v2;
+    fragPosition[vertexBase + 3] = v3;
+
+    gl_MeshVerticesEXT[vertexBase + 0].gl_Position = viewProjection * vec4(v0, 1.0);
+    gl_MeshVerticesEXT[vertexBase + 1].gl_Position = viewProjection * vec4(v1, 1.0);
+    gl_MeshVerticesEXT[vertexBase + 2].gl_Position = viewProjection * vec4(v2, 1.0);
+    gl_MeshVerticesEXT[vertexBase + 3].gl_Position = viewProjection * vec4(v3, 1.0);
+
+    for (uint i = 0; i < 4; ++i) {
+        fragSynapseType[vertexBase + i] = presynaptic ? 0 : 1;
+        fragCenter[vertexBase + i] = position;
+    }
+
+    uint primBase = index * 2u;
+    // Primer triángulo: v0, v1, v2
+    gl_PrimitiveTriangleIndicesEXT[primBase + 0] = uvec3(vertexBase, vertexBase + 1, vertexBase + 2);
+    gl_PrimitiveTriangleIndicesEXT[primBase + 1] = uvec3(vertexBase, vertexBase + 2, vertexBase + 3);
+}
+
+
+void main() {
+    uint amount = min(gl_WorkGroupID.x * 32 + 32, td.amount) - gl_WorkGroupID.x * 32;
+
+    if (gl_LocalInvocationID.x < amount) {
+        Neuron neuron = neurons[td.neurons[gl_GlobalInvocationID.x]];
+        generateSquare(gl_LocalInvocationID.x, neuron.position.xyz, true);
+    }
+
+    SetMeshOutputsEXT(amount * 4, amount * 2);
+}

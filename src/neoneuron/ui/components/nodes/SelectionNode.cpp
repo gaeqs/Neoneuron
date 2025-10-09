@@ -60,7 +60,6 @@ namespace neoneuron
 
     NodeFactory SelectionNode::createFactory()
     {
-        return {"Selection",
-                [](ImBlueprint::Editor& editor, auto* app) { return editor.addNode<SelectionNode>(app); }};
+        return {"Selection", [](ImBlueprint::Editor& editor, auto* app) { return editor.addNode<SelectionNode>(app); }};
     }
 } // namespace neoneuron

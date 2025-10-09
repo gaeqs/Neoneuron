@@ -26,21 +26,53 @@
 
 #include <unordered_set>
 #include <neon/structure/Component.h>
+#include <neoneuron/structure/GID.h>
 #include <neoneuron/render/TimeAware.h>
 
 namespace neoneuron
 {
+
+    class NeoneuronApplication;
+
+    struct SampledEntry
+    {
+        uint64_t version = -1;
+        bool deleteFlag = false;
+
+        std::chrono::nanoseconds duration;
+
+        std::vector<double> times;
+        std::vector<double> samples;
+    };
+
+    struct SampledActivity
+    {
+        uint64_t version = -1;
+        bool deleteFlag = false;
+        std::map<std::string, SampledEntry> entries;
+    };
+
     class Timeline : public neon::Component
     {
+        NeoneuronApplication* _application;
         std::unordered_set<std::shared_ptr<TimeAware>> _timeAwares;
+        std::unordered_map<GID, SampledActivity> _samples;
 
-        float _minTime;
-        float _maxTime;
+        std::chrono::nanoseconds _duration;
+
+        bool _fitNextFrame;
+
+        static void sample(SampledEntry& entry, const mindset::EventSequence<std::monostate>* sampler,
+                           std::chrono::nanoseconds step);
+
+        static void sample(SampledEntry& entry, const mindset::TimeGrid<double>* sampler);
+
+        void checkTimelines();
 
         void recalculateTimelineSize();
 
       public:
-        Timeline();
+        Timeline(NeoneuronApplication* application);
 
         void addTimeAware(std::shared_ptr<TimeAware> timeAware);
 

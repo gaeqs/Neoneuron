@@ -20,8 +20,10 @@
 #include "NeoneuronUINodeEditor.h"
 
 #include "neoneuron/ui/style/MaterialSymbols.h"
+#include "nodes/ActivityRepresentationNode.h"
 #include "nodes/CameraNode.h"
 #include "nodes/DatasetNode.h"
+#include "nodes/EventSequenceNode.h"
 #include "nodes/ReduceNode.h"
 #include "nodes/RepositoryNode.h"
 #include "nodes/RepresentationNode.h"
@@ -68,12 +70,14 @@ namespace neoneuron
         _factories.push_back(RepositoryNode::createFactory());
         _factories.push_back(RepresentationNode::createFactory());
         _factories.push_back(SynapseRepresentationNode::createFactory());
+        _factories.push_back(ActivityRepresentationNode::createFactory());
         _factories.push_back(ViewportNode::createFactory());
         _factories.push_back(CameraNode::createFactory());
         _factories.push_back(DatasetNode::createFactory());
         _factories.push_back(SelectionNode::createFactory());
         _factories.push_back(ReduceNode::createFactory());
         _factories.push_back(TimelineNode::createFactory());
+        _factories.push_back(EventSequenceNode::createFactory());
     }
 
     NeoneuronUINodeEditor::~NeoneuronUINodeEditor() = default;

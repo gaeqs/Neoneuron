@@ -25,6 +25,7 @@ namespace neoneuron
     Repository::Repository() :
         _uidGenerator(0),
         _neuronAddedListener([this](auto*) { incrementVersion(); }),
+        _activityAddedListener([this](auto*) { incrementVersion(); }),
         _synapseAddedListener([this](auto*) { incrementVersion(); }),
         _elementRemovedListener([this](auto) { incrementVersion(); }),
         _clearListener([this](auto*) { incrementVersion(); })
@@ -43,8 +44,10 @@ namespace neoneuron
         auto [ptr, ok] = _datasets.insert({uid, std::move(named)});
         if (ok) {
             ptr->second->getDataset().getNeuronAddedEvent() += _neuronAddedListener;
+            ptr->second->getDataset().getActivityAddedEvent() += _activityAddedListener;
             ptr->second->getDataset().getCircuit().getSynapseAddedEvent() += _synapseAddedListener;
             ptr->second->getDataset().getNeuronRemovedEvent() += _elementRemovedListener;
+            ptr->second->getDataset().getActivityRemovedEvent() += _elementRemovedListener;
             ptr->second->getDataset().getCircuit().getSynapseRemovedEvent() += _elementRemovedListener;
             ptr->second->getDataset().getClearEvent() += _clearListener;
             incrementVersion();
@@ -175,6 +178,49 @@ namespace neoneuron
             auto synapse = it->second->getDataset().getCircuit().getSynapse(gid.internalId);
             if (synapse.has_value()) {
                 return std::make_pair(it->second.get(), synapse.value());
+            }
+        }
+        return {};
+    }
+
+    std::optional<mindset::Activity*> Repository::getActivity(GID gid)
+    {
+        auto it = _datasets.find(gid.datasetId);
+        if (it != _datasets.end()) {
+            return it->second->getDataset().getActivity(gid.internalId);
+        }
+        return {};
+    }
+
+    std::optional<const mindset::Activity*> Repository::getActivity(GID gid) const
+    {
+        auto it = _datasets.find(gid.datasetId);
+        if (it != _datasets.end()) {
+            return it->second->getDataset().getActivity(gid.internalId);
+        }
+        return {};
+    }
+
+    std::optional<std::pair<NamedDataset*, mindset::Activity*>> Repository::getActivityAndDataset(GID gid)
+    {
+        auto it = _datasets.find(gid.datasetId);
+        if (it != _datasets.end()) {
+            auto activity = it->second->getDataset().getActivity(gid.internalId);
+            if (activity.has_value()) {
+                return std::make_pair(it->second.get(), activity.value());
+            }
+        }
+        return {};
+    }
+
+    std::optional<std::pair<const NamedDataset*, const mindset::Activity*>> Repository::getActivityAndDataset(
+        GID gid) const
+    {
+        auto it = _datasets.find(gid.datasetId);
+        if (it != _datasets.end()) {
+            auto activity = it->second->getDataset().getActivity(gid.internalId);
+            if (activity.has_value()) {
+                return std::make_pair(it->second.get(), activity.value());
             }
         }
         return {};

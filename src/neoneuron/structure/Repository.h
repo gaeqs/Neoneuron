@@ -39,6 +39,7 @@ namespace neoneuron
         mindset::UID _uidGenerator;
 
         hey::Listener<mindset::Neuron*> _neuronAddedListener;
+        hey::Listener<mindset::Activity*> _activityAddedListener;
         hey::Listener<mindset::Synapse*> _synapseAddedListener;
         hey::Listener<mindset::UID> _elementRemovedListener;
         hey::Listener<void*> _clearListener;
@@ -78,6 +79,15 @@ namespace neoneuron
         [[nodiscard]] std::optional<std::pair<const NamedDataset*, const mindset::Synapse*>> getSynapseAndDataset(
             GID gid) const;
 
+        [[nodiscard]] std::optional<mindset::Activity*> getActivity(GID gid);
+
+        [[nodiscard]] std::optional<const mindset::Activity*> getActivity(GID gid) const;
+
+        [[nodiscard]] std::optional<std::pair<NamedDataset*, mindset::Activity*>> getActivityAndDataset(GID gid);
+
+        [[nodiscard]] std::optional<std::pair<const NamedDataset*, const mindset::Activity*>> getActivityAndDataset(
+            GID gid) const;
+
         [[nodiscard]] auto getDatasetsUIDs() const
         {
             return _datasets | std::views::keys;
@@ -86,13 +96,13 @@ namespace neoneuron
         [[nodiscard]] decltype(auto) getDatasets()
         {
             return _datasets |
-                   std::views::transform([this](auto& pair) { return std::make_pair(pair.first, pair.second.get()); });
+                   std::views::transform([](auto& pair) { return std::make_pair(pair.first, pair.second.get()); });
         }
 
         [[nodiscard]] decltype(auto) getDatasets() const
         {
             return _datasets |
-                   std::views::transform([this](auto& pair) { return std::make_pair(pair.first, pair.second.get()); });
+                   std::views::transform([](auto& pair) { return std::make_pair(pair.first, pair.second.get()); });
         }
 
         [[nodiscard]] decltype(auto) getNeurons()
@@ -155,6 +165,28 @@ namespace neoneuron
                        return pair.second->getDataset().getCircuit().getSynapses() |
                               std::views::transform([uid = pair.first](auto* synapse) {
                                   return std::make_pair(GID(uid, synapse->getUID()), synapse);
+                              });
+                   }) |
+                   std::views::join;
+        }
+
+        [[nodiscard]] decltype(auto) getActivities()
+        {
+            return getDatasets() | std::views::transform([](const auto& pair) {
+                       return pair.second->getDataset().getActivities() |
+                              std::views::transform([uid = pair.first](auto* activity) {
+                                  return std::make_pair(GID(uid, activity->getUID()), activity);
+                              });
+                   }) |
+                   std::views::join;
+        }
+
+        [[nodiscard]] decltype(auto) getActivities() const
+        {
+            return getDatasets() | std::views::transform([](const auto& pair) {
+                       return pair.second->getDataset().getActivities() |
+                              std::views::transform([uid = pair.first](auto* activity) {
+                                  return std::make_pair(GID(uid, activity->getUID()), activity);
                               });
                    }) |
                    std::views::join;

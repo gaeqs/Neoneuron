@@ -17,49 +17,38 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-//
-// Created by gaeqs on 6/10/25.
-//
+#ifndef NEONEURON_ACTIVITYREPRESENTATIONNODE_H
+#define NEONEURON_ACTIVITYREPRESENTATIONNODE_H
 
-#ifndef NEONEURON_TIMEAWAREREPRESENTATION_H
-#define NEONEURON_TIMEAWAREREPRESENTATION_H
+#include <imblueprint/imblueprint.h>
 
-#include <mindset/Activity.h>
-#include <mindset/EventSequence.h>
-#include <mindset/TimeGrid.h>
+#include "NodeFactory.h"
+#include <neoneuron/application/NeoneuronApplication.h>
+#include <neoneuron/render/activity/ActivityRepresentation.h>
 
 namespace neoneuron
 {
 
-    enum class TimeChangeType
+    class ActivityRepresentationNode : public ImBlueprint::Node
     {
-        JUMP,
-        FLOW
-    };
+        NeoneuronApplication* _application;
+        std::weak_ptr<ActivityRepresentation> _representation;
+        Timeline* _timeline;
 
-    template<typename Entry>
-    struct ActivityEntry
-    {
-        GID activityId;
-        std::string name;
-        Entry* entry;
-    };
+        void drawProgressBar(ActivityRepresentation* ptr);
 
-    /**
-     * Represents something that is aware of a timeline.
-     */
-    class TimeAware
-    {
       public:
-        virtual ~TimeAware() = default;
+        explicit ActivityRepresentationNode(NeoneuronApplication* application);
 
-        virtual void onTimeChanged(float lastTime, float newTime, TimeChangeType type) = 0;
+        ~ActivityRepresentationNode() override;
 
-        virtual std::vector<ActivityEntry<mindset::TimeGrid<double>>> getTimeGrids() = 0;
+        void renderBody() override;
 
-        virtual std::vector<ActivityEntry<mindset::EventSequence<std::monostate>>> getEventSequences() = 0;
+        void onInputChange(const std::string& name, const std::any& value) override;
+
+        static NodeFactory createFactory();
     };
 
 } // namespace neoneuron
 
-#endif // NEONEURON_TIMEAWAREREPRESENTATION_H
+#endif // NEONEURON_ACTIVITYREPRESENTATIONNODE_H

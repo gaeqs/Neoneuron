@@ -17,31 +17,39 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef SYNAPSEREPRESENTATION_H
-#define SYNAPSEREPRESENTATION_H
+//
+// Created by gaeqs on 8/10/25.
+//
 
-#include <neon/render/model/Model.h>
-#include <neon/render/shader/Material.h>
-#include <neon/render/shader/ShaderProgram.h>
+#ifndef NEONEURON_ACTIVITYREPRESENTATION_H
+#define NEONEURON_ACTIVITYREPRESENTATION_H
+
+#include <neoneuron/render/activity/ActivityGPUNeuron.h>
 #include <neoneuron/render/AbstractNeuronRepresentation.h>
-#include <neoneuron/render/synapse/GPUSynapse.h>
+#include <neoneuron/render/NeoneuronRender.h>
 
 namespace neoneuron
 {
-
-    struct SynapseRepresentationData
+    struct ActivityRepresentationData
     {
-        uint32_t synapses;
+        uint32_t activities;
     };
 
-    class SynapseRepresentation : public AbstractNeuronRepresentation
+    struct CurrentEventSequence
+    {
+        GID activityId;
+        std::string name;
+        mindset::EventSequence<std::monostate> sequence;
+    };
+
+    class ActivityRepresentation : public AbstractNeuronRepresentation, public TimeAware
     {
       public:
         static constexpr size_t UNIFORM_SET = 2;
         static constexpr size_t REPRESENTATION_BINDING = 0;
-        static constexpr size_t SYNAPSE_BINDING = 1;
+        static constexpr size_t ACTIVITY_BINDING = 1;
 
-        static constexpr size_t SYNAPSE_INSTANCES = 10'000'000;
+        static constexpr size_t ACTIVITY_INSTANCES = 10'000'000;
 
       private:
         NeoneuronRender* _render;
@@ -52,17 +60,14 @@ namespace neoneuron
 
         std::shared_ptr<neon::ShaderProgram> _shader;
         std::shared_ptr<neon::Model> _model;
-
-        /**
-         * Information required to create a GPUSynapse,
-         * Conveniently folded for an easy use.
-         */
-        GPUSynapseCreateInfo _createInfo;
+        neon::InstanceData* _instanceData;
 
         std::unordered_map<const Viewport*, std::shared_ptr<neon::Material>> _viewports;
 
-        std::unordered_set<GID> _synapsesInDataset;
-        std::unordered_map<GID, GPUSynapse> _gpuSynapses;
+        std::unordered_set<GID> _neuronsInData;
+        std::unordered_map<GID, ActivityGPUNeuron> _gpuNeurons;
+
+        std::optional<CurrentEventSequence> _activity;
 
         void loadUniformBuffers();
 
@@ -76,16 +81,16 @@ namespace neoneuron
 
         void recalculateBoundingBox();
 
-        void addSynapseToBoundingBox(const GPUSynapse& synapse);
+        void addNeuronToBoundingBox(const ActivityGPUNeuron& neuron);
 
         void updateGPURepresentationData() const;
 
       public:
-        SynapseRepresentation(const SynapseRepresentation&) = delete;
+        ActivityRepresentation(const ActivityRepresentation&) = delete;
 
-        explicit SynapseRepresentation(NeoneuronRender* render);
+        explicit ActivityRepresentation(NeoneuronRender* render);
 
-        ~SynapseRepresentation() override;
+        ~ActivityRepresentation() override;
 
         [[nodiscard]] NeoneuronRender* getRender() override;
 
@@ -114,7 +119,17 @@ namespace neoneuron
         [[nodiscard]] size_t getUsedInstanceMemory() const override;
 
         [[nodiscard]] float getUsedInstanceMemoryPercentage() const override;
-    };
 
+        void onTimeChanged(float lastTime, float newTime, TimeChangeType type) override;
+
+        std::vector<ActivityEntry<mindset::TimeGrid<double>>> getTimeGrids() override;
+
+        std::vector<ActivityEntry<mindset::EventSequence<std::monostate>>> getEventSequences() override;
+
+        void setActivity(GID activityId, std::string name, mindset::EventSequence<std::monostate> sequence);
+
+        void clearActivity();
+    };
 } // namespace neoneuron
-#endif // SYNAPSEREPRESENTATION_H
+
+#endif // NEONEURON_ACTIVITYREPRESENTATION_H
