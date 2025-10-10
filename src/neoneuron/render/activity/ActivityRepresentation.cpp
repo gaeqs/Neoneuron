@@ -34,7 +34,9 @@ namespace neoneuron
 
         std::vector bindings = {
             neon::ShaderUniformBinding::uniformBuffer(sizeof(ActivityRepresentationData)),
+            neon::ShaderUniformBinding::uniformBuffer(sizeof(ActivityRepresentationVolatileData)),
             neon::ShaderUniformBinding::storageBuffer(sizeof(ActivityGPUNeuronData) * ACTIVITY_INSTANCES),
+            neon::ShaderUniformBinding::storageBuffer(sizeof(float) * ACTIVITY_INSTANCES),
         };
 
         _uboDescriptor =
@@ -90,8 +92,10 @@ namespace neoneuron
         modelCreateInfo.defineInstanceType<ActivityGPUNeuronData>();
         modelCreateInfo.instanceDataProvider = [this](neon::Application* app, const neon::ModelCreateInfo& info,
                                                       const neon::Model* model) {
-            std::vector indices = {neon::StorageBufferInstanceData::Slot(
-                sizeof(ActivityGPUNeuronData), sizeof(ActivityGPUNeuronData), ACTIVITY_BINDING, _ubo.get())};
+            std::vector indices = {
+                neon::StorageBufferInstanceData::Slot(sizeof(ActivityGPUNeuronData), sizeof(ActivityGPUNeuronData),
+                                                      NEURON_BINDING, _ubo.get()),
+                neon::StorageBufferInstanceData::Slot(sizeof(float), sizeof(float), ACTIVITY_BINDING, _ubo.get())};
             return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
         };
 
@@ -139,7 +143,20 @@ namespace neoneuron
 
     void ActivityRepresentation::updateGPURepresentationData() const
     {
-        _ubo->uploadData(REPRESENTATION_BINDING, ActivityRepresentationData(_gpuNeurons.size()));
+        ActivityRepresentationData data;
+        rush::Vec4f red = {1.0f, 0.0f, 0.0f, 1.0f};
+        rush::Vec4f blue = {0.0f, 0.0f, 1.0f, 1.0f};
+
+        for (size_t i = 0; i < ACTIVITY_REPRESENTATION_GRADIENT_SIZE; i++) {
+            float n = static_cast<float>(i) / (ACTIVITY_REPRESENTATION_GRADIENT_SIZE - 1);
+            data.gradient[i] = rush::mix(red, blue, n);
+            data.sizes[i] = rush::mix(2.0f, 1.0f, n);
+        }
+
+        data.decay = 1.0f;
+        data.activities = _gpuNeurons.size();
+
+        _ubo->uploadData(REPRESENTATION_BINDING, std::move(data));
     }
 
     ActivityRepresentation::ActivityRepresentation(NeoneuronRender* render) :
@@ -149,6 +166,7 @@ namespace neoneuron
         loadShader();
         loadModel();
 
+        _ubo->uploadData(VOLATILE_BINDING, ActivityRepresentationVolatileData(0.0f));
         _instanceData = _model->getInstanceData(0);
     }
 
@@ -203,7 +221,7 @@ namespace neoneuron
                     }
                     if (auto position = neuron->getProperty<mindset::NeuronTransform>(*prop)) {
                         _gpuNeurons.emplace(std::piecewise_construct, std::forward_as_tuple(gid),
-                                            std::forward_as_tuple(_instanceData, gid, position->getPosition(), 0.0f));
+                                            std::forward_as_tuple(_instanceData, gid, position->getPosition(), -10000.0f));
                     } else {
                         neon::error() << "Neuron's position not found";
                     }
@@ -311,8 +329,33 @@ namespace neoneuron
         return static_cast<float>(getUsedInstanceMemory()) / static_cast<float>(getAllocatedInstanceMemory());
     }
 
-    void ActivityRepresentation::onTimeChanged(float lastTime, float newTime, TimeChangeType type)
+    void ActivityRepresentation::onTimeChanged(std::chrono::nanoseconds lastTime, std::chrono::nanoseconds newTime,
+                                               TimeChangeType type)
     {
+        if (!_activity) {
+            return;
+        }
+
+        if (lastTime > newTime) {
+            // Loop detected. Process both segments
+            onTimeChanged(lastTime, std::chrono::nanoseconds::max(), type);
+            onTimeChanged(std::chrono::nanoseconds(0), newTime, type);
+            return;
+        }
+
+        for (auto event : _activity->sequence.getRange(lastTime, newTime)) {
+            GID gid = {_activity->activityId.datasetId, event.uid};
+            auto it = _gpuNeurons.find(gid);
+            if (it == _gpuNeurons.end()) {
+                continue;
+            }
+
+            auto seconds = std::chrono::duration_cast<std::chrono::duration<float>>(event.timepoint);
+            it->second.updateActivityValue(seconds.count());
+        }
+
+        auto seconds = std::chrono::duration_cast<std::chrono::duration<float>>(newTime);
+        _ubo->uploadData(VOLATILE_BINDING, ActivityRepresentationVolatileData(seconds.count()));
     }
 
     std::vector<ActivityEntry<mindset::TimeGrid<double>>> ActivityRepresentation::getTimeGrids()

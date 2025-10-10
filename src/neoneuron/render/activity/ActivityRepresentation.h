@@ -30,9 +30,20 @@
 
 namespace neoneuron
 {
+
+    constexpr size_t ACTIVITY_REPRESENTATION_GRADIENT_SIZE = 256;
+
     struct ActivityRepresentationData
     {
+        rush::Vec4f gradient[ACTIVITY_REPRESENTATION_GRADIENT_SIZE];
+        float sizes[ACTIVITY_REPRESENTATION_GRADIENT_SIZE];
         uint32_t activities;
+        float decay;
+    };
+
+    struct ActivityRepresentationVolatileData
+    {
+        float simulationTime;
     };
 
     struct CurrentEventSequence
@@ -47,7 +58,9 @@ namespace neoneuron
       public:
         static constexpr size_t UNIFORM_SET = 2;
         static constexpr size_t REPRESENTATION_BINDING = 0;
-        static constexpr size_t ACTIVITY_BINDING = 1;
+        static constexpr size_t VOLATILE_BINDING = 1;
+        static constexpr size_t NEURON_BINDING = 2;
+        static constexpr size_t ACTIVITY_BINDING = 3;
 
         static constexpr size_t ACTIVITY_INSTANCES = 10'000'000;
 
@@ -120,7 +133,8 @@ namespace neoneuron
 
         [[nodiscard]] float getUsedInstanceMemoryPercentage() const override;
 
-        void onTimeChanged(float lastTime, float newTime, TimeChangeType type) override;
+        void onTimeChanged(std::chrono::nanoseconds lastTime, std::chrono::nanoseconds newTime,
+                           TimeChangeType type) override;
 
         std::vector<ActivityEntry<mindset::TimeGrid<double>>> getTimeGrids() override;
 

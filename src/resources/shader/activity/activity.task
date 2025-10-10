@@ -2,6 +2,8 @@
 #extension GL_EXT_mesh_shader: enable
 #extension GL_KHR_shader_subgroup_ballot: enable
 
+const int GRADIENT_SIZE = 256;
+
 layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
 layout (set = 1, binding = 0) uniform Matrices {
@@ -51,16 +53,23 @@ struct TaskData {
 struct Neuron {
     uint datasetId;
     uint neuronId;
-    float value;
-    float dummy;
+    float dummy1;
+    float dummy2;
     vec4 position;
 };
 
 layout (set = 2, binding = 0) uniform Representation {
+    vec4 gradient[GRADIENT_SIZE];
+    vec4 sizes[GRADIENT_SIZE / 4];
     uint neuronsAmount;
+    float decay;
 };
 
-layout(std430, set = 2, binding = 1) buffer Neurons {
+layout(set = 2, binding = 1) uniform Volaitle {
+    float simulationTime;
+};
+
+layout(std430, set = 2, binding = 2) buffer Neurons {
     Neuron neurons[];
 };
 

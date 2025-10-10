@@ -35,14 +35,7 @@ namespace neoneuron
         static constexpr float SIDEBAR_SIZE = 128.0f;
         static constexpr float ICON_SIZE = 96.0f;
 
-        struct IconEntry
-        {
-            std::shared_ptr<neon::SampledTexture> icon;
-            VkDescriptorSet descriptor;
-            ImTextureID textureId;
-        };
-
-        std::vector<IconEntry> _icons;
+        std::vector<std::shared_ptr<neon::SampledTexture>> _icons;
 
         uint32_t _vulkanAPIVersion;
         std::string _glfwVersion;

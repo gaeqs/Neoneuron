@@ -42,8 +42,6 @@ namespace neoneuron
         entry.times.push_back(0);
         entry.samples.push_back(0.0f);
 
-        neon::debug() << "Sampling...";
-
         for (size_t i = 0; i < size; i++) {
             auto from = start + step * i;
             auto to = from + step;
@@ -171,7 +169,8 @@ namespace neoneuron
     Timeline::Timeline(NeoneuronApplication* application) :
         _application(application),
         _duration(0),
-        _fitNextFrame(false)
+        _fitNextFrame(false),
+        _currentTime(0)
     {
     }
 
@@ -185,6 +184,21 @@ namespace neoneuron
         _timeAwares.erase(std::move(timeAware));
     }
 
+    void Timeline::onUpdate(float deltaTime)
+    {
+        auto then = _currentTime;
+        _currentTime =
+            then + std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<float>(deltaTime));
+
+        if (_duration.count() > 0) {
+            _currentTime %= _duration;
+        }
+
+        for (auto aware : _timeAwares) {
+            aware->onTimeChanged(then, _currentTime, TimeChangeType::FLOW);
+        }
+    }
+
     void Timeline::onPreDraw()
     {
         checkTimelines();
@@ -194,11 +208,21 @@ namespace neoneuron
             _fitNextFrame = false;
         }
 
+        auto currentTime = std::chrono::duration_cast<std::chrono::duration<double>>(_currentTime);
+
         ImPlot::ShowDemoWindow();
         if (ImGui::Begin("Timeline")) {
             ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.25f);
             if (ImPlot::BeginPlot("Timeline", ImVec2(-1, -1), ImPlotFlags_NoTitle)) {
                 ImPlot::SetupAxes("Time (s)", "Sum", ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit);
+
+                float x1 = ImPlot::PlotToPixels(ImPlotPoint(static_cast<float>(currentTime.count() - 1), 0.0f)).x;
+                float x2 = ImPlot::PlotToPixels(ImPlotPoint(static_cast<float>(currentTime.count()), 0.0f)).x;
+                ImPlot::PushPlotClipRect();
+                ImPlot::GetPlotDrawList()->AddRectFilledMultiColor({x1, 0}, {x2, 10000.0f}, 0x0000FF00, 0x5500FF00,
+                                                                   0x5500FF00, 0x0000FF00);
+                ImPlot::GetPlotDrawList()->AddLine({x2, 0}, {x2, 10000.0f}, 0xFF00FF00, 2.0f);
+                ImPlot::PopPlotClipRect();
                 for (auto& [gid, activity] : _samples) {
                     for (auto& [name, sampled] : activity.entries) {
                         auto plotName = std::format("{}##{}_{}", name, gid.datasetId, gid.internalId);
@@ -206,6 +230,7 @@ namespace neoneuron
                                            sampled.samples.size(), 0);
                     }
                 }
+
                 ImPlot::EndPlot();
             }
             ImPlot::PopStyleVar();

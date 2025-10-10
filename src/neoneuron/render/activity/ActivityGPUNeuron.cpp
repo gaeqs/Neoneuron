@@ -52,7 +52,8 @@ namespace neoneuron
         }
         _instance = result.getResult();
 
-        refreshGPUData(value);
+        refreshGPUData();
+        updateActivityValue(value);
     }
 
     ActivityGPUNeuron::~ActivityGPUNeuron()
@@ -67,7 +68,7 @@ namespace neoneuron
         return _position;
     }
 
-    void ActivityGPUNeuron::refreshGPUData(float value) const
+    void ActivityGPUNeuron::refreshGPUData() const
     {
         if (!_valid) {
             return;
@@ -75,9 +76,12 @@ namespace neoneuron
         ActivityGPUNeuronData data;
         data.datasetId = _gid.datasetId;
         data.neuronId = _gid.internalId;
-        data.value = value;
-        data.dummy = 0.0f;
         data.postPosition = rush::Vec4f(_position, 1.0f);
         _instanceData->uploadData(_instance, 0, data);
+    }
+
+    void ActivityGPUNeuron::updateActivityValue(float value) const
+    {
+        _instanceData->uploadData(_instance, 1, value);
     }
 } // namespace neoneuron

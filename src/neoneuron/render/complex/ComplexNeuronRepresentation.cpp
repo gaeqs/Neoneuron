@@ -365,10 +365,12 @@ namespace neoneuron
 
     void ComplexNeuronRepresentation::refreshSelectionData()
     {
-        auto data = static_cast<ComplexGPUSelectionData*>(_ubo->fetchData(SELECTION_BINDING));
+        constexpr size_t SIZE = sizeof(ComplexGPUSelectionData);
+        ComplexGPUSelectionData notSelected{};
+        ComplexGPUSelectionData selected{1};
 
         for (uint32_t id : _selection) {
-            (data + id)->selected = false;
+            _ubo->uploadData(SELECTION_BINDING, &notSelected, SIZE, id * SIZE);
         }
 
         _selection.clear();
@@ -385,7 +387,7 @@ namespace neoneuron
             }
 
             _selection.push_back(*segment.value().id);
-            (data + *segment.value().id)->selected = true;
+            _ubo->uploadData(SELECTION_BINDING, &selected, SIZE, *segment.value().id * SIZE);
         }
     }
 

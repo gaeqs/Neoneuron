@@ -53,7 +53,7 @@ namespace neoneuron
       public:
         virtual ~TimeAware() = default;
 
-        virtual void onTimeChanged(float lastTime, float newTime, TimeChangeType type) = 0;
+        virtual void onTimeChanged(std::chrono::nanoseconds lastTime, std::chrono::nanoseconds newTime, TimeChangeType type) = 0;
 
         virtual std::vector<ActivityEntry<mindset::TimeGrid<double>>> getTimeGrids() = 0;
 

@@ -59,8 +59,9 @@ namespace neoneuron
         std::unordered_map<GID, SampledActivity> _samples;
 
         std::chrono::nanoseconds _duration;
-
         bool _fitNextFrame;
+
+        std::chrono::nanoseconds _currentTime;
 
         static void sample(SampledEntry& entry, const mindset::EventSequence<std::monostate>* sampler,
                            std::chrono::nanoseconds step);
@@ -77,6 +78,8 @@ namespace neoneuron
         void addTimeAware(std::shared_ptr<TimeAware> timeAware);
 
         void removeTimeAware(std::shared_ptr<TimeAware> timeAware);
+
+        void onUpdate(float deltaTime) override;
 
         void onPreDraw() override;
     };

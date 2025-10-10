@@ -97,7 +97,7 @@ namespace neoneuron
             if (offsetX > 0.0f) {
                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offsetX);
             }
-            ImGui::Image(icon.textureId, imageSize);
+            ImGui::Image(icon->getImGuiDescriptor(), imageSize);
         }
     }
 
@@ -162,16 +162,9 @@ namespace neoneuron
         for (const char* icons : ICONS) {
             if (auto file = fs.readFile(icons)) {
                 auto& f = file.value();
-                IconEntry entry;
                 std::string id = std::format("neoneuron:icon_{}", icons);
                 auto texture = neon::Texture::createTextureFromFile(app, id, f.getData(), f.getSize());
-                entry.icon = neon::SampledTexture::create(app, texture);
-                auto [view, sampler, layout] = entry.icon->getNativeHandlers();
-                entry.descriptor =
-                    ImGui_ImplVulkan_AddTexture(static_cast<VkSampler>(sampler), static_cast<VkImageView>(view),
-                                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-                entry.textureId = reinterpret_cast<ImTextureID>(entry.descriptor);
-                _icons.push_back(std::move(entry));
+                _icons.push_back(neon::SampledTexture::create(app, texture));
             }
         }
     }
@@ -196,9 +189,6 @@ namespace neoneuron
 
     NeoneuronUIAbout::~NeoneuronUIAbout()
     {
-        for (auto& icon : _icons) {
-            ImGui_ImplVulkan_RemoveTexture(icon.descriptor);
-        }
     }
 
     void NeoneuronUIAbout::onPreDraw()

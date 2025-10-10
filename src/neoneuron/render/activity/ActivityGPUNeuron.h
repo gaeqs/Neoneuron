@@ -35,10 +35,10 @@ namespace neoneuron
 
     struct ActivityGPUNeuronData
     {
-        mindset::UID datasetId;
-        mindset::UID neuronId;
-        float value;
-        float dummy;
+        mindset::UID datasetId = 0;
+        mindset::UID neuronId = 0;
+        float dummy1 = 0;
+        float dummy2 = 0;
         rush::Vec4f postPosition; // x, y, z, w = valid
     };
 
@@ -61,7 +61,9 @@ namespace neoneuron
 
         [[nodiscard]] rush::Vec3f getPosition() const;
 
-        void refreshGPUData(float value) const;
+        void refreshGPUData() const;
+
+        void updateActivityValue(float value) const;
     };
 } // namespace neoneuron
 #endif // NEONEURON_GPUACTIVITY_H
