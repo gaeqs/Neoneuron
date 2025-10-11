@@ -1,6 +1,11 @@
 #version 460
 #extension GL_EXT_mesh_shader: enable
 
+#include <extension/neuron_color_and_scale>
+
+// This definition is not required. It's only here for the autocompletion!
+void fetchColorAndScale(uint extensionIndex, bool selected, out vec4 color, out float scale);
+
 const float M_PI = 3.1415926535897932384626433832795f;
 
 const int MAX_POINTS_PER_CIRCLE = 16;
@@ -57,6 +62,7 @@ struct Neuron {
     uint updateFrame;
     uint maxSegmentId;
     float radius;
+    uint colorAndScaleIndex;
     mat4 model;
     mat4 normal;
 };
@@ -100,7 +106,7 @@ struct TaskData {
 taskPayloadSharedEXT TaskData td;
 
 layout(location = 0) out vec3 fragNormal[];
-layout(location = 1) flat out float fragType[];
+layout(location = 1) flat out vec4 fragColor[];
 layout(location = 2) flat out float fragDatasetId[];
 layout(location = 3) flat out float fragNeuronId[];
 layout(location = 4) flat out float fragSectionId[];
@@ -124,11 +130,11 @@ uint getVerticesPerCircle(Neuron neuron, Section segment) {
     return 4 + localLod * (MAX_POINTS_PER_CIRCLE - 4) / 7;
 }
 
-void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel, bool end) {
+void pushVertex(uint i, vec4 position, vec3 normal, vec4 color, Neuron neuron, uint sectionId, bool sel, bool end) {
     vec4 globalPosition = neuron.model * position;
     gl_MeshVerticesEXT[i].gl_Position = viewProjection * globalPosition;
     fragNormal[i] = mat3(neuron.normal) * normal;
-    fragType[i] = uintBitsToFloat(type);
+    fragColor[i] = color;
     fragDatasetId[i] = uintBitsToFloat(neuron.datasetId);
     fragNeuronId[i] = uintBitsToFloat(neuron.neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
@@ -162,6 +168,7 @@ void generateSection(uint sectionIndex, uint nextToParentIndex) {
     Section nextToParent = sections[nextToParentIndex];
     Section parent = sections[nextToParent.parent];
     Section grandParent = sections[parent.parent];
+
     Neuron neuron = neurons[section.neuronIndex];
 
     uint sectionVPC = getVerticesPerCircle(neuron, section);
@@ -187,6 +194,10 @@ void generateSection(uint sectionIndex, uint nextToParentIndex) {
         bool hasStartJoint = parentChildren >= minChildrenForJoint;
         bool hasEndJoint = sectionChildren >= minChildrenForJoint;
 
+        vec4 color;
+        float scale;
+        fetchColorAndScale(neuron.colorAndScaleIndex, isSelected, color, scale);
+
         float sClip = hasStartJoint ? startClip : 0.0f;
         float eClip = hasEndJoint ? endClip : 0.0f;
 
@@ -197,7 +208,7 @@ void generateSection(uint sectionIndex, uint nextToParentIndex) {
 
         float startRadius = mix(parent.endAndRadius.w, nextToParent.endAndRadius.w, parentSoma ? 1.0f : sClip);
         float endRadius = mix(directParent.endAndRadius.w, section.endAndRadius.w, 1.0f - eClip);
-        float radius = (first ? startRadius : endRadius) * radiusStrength;
+        float radius = (first ? startRadius : endRadius) * radiusStrength * scale;
 
         float angle = float(gl_LocalInvocationID.x - (first ? 0 : parentVPC)) / float(first ? parentVPC : sectionVPC) * 2.0f * M_PI;
 
@@ -235,7 +246,7 @@ void generateSection(uint sectionIndex, uint nextToParentIndex) {
         vec3 center = first ? (start + parentUnormDirection * sClip) : end - unormDirection * eClip;
 
         vec3 point = center + rotated * radius;
-        pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected, false);
+        pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, color, neuron, section.sectionId, isSelected, false);
     }
 
     // Generate the triangles!
@@ -265,6 +276,8 @@ void generateSection(uint sectionIndex, uint nextToParentIndex) {
 void generateEnd (uint sectionIndex) {
     Section section = sections[sectionIndex];
     Neuron neuron = neurons[section.neuronIndex];
+
+
     uint sectionVPC = getVerticesPerCircle(neuron, section);
     if (gl_LocalInvocationID.x >= sectionVPC) return;
 
@@ -285,12 +298,16 @@ void generateEnd (uint sectionIndex) {
     bool hasStartJoint = parentChildren >= minChildrenForJoint;
     bool hasEndJoint = sectionChildren >= minChildrenForJoint;
 
+    vec4 color;
+    float scale;
+    fetchColorAndScale(neuron.colorAndScaleIndex, isSelected, color, scale);
+
     float eClip = hasEndJoint ? endClip : 0.0f;
 
     vec3 end = section.endAndRadius.xyz;
     vec3 start = parent.endAndRadius.xyz;
 
-    float radius = section.endAndRadius.w * radiusStrength;
+    float radius = section.endAndRadius.w * radiusStrength * scale;
 
     float angle = float(gl_LocalInvocationID.x) / float(sectionVPC) * 2.0f * M_PI;
 
@@ -313,8 +330,8 @@ void generateEnd (uint sectionIndex) {
     vec3 edge = end + tangent * radius;
 
     SetMeshOutputsEXT(sectionVPC + 1, sectionVPC);
-    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, section.sectionId, isSelected, true);
-    pushVertex(sectionVPC, vec4(edge, 1), tangent, 0, neuron, section.sectionId, isSelected, true);
+    pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, color, neuron, section.sectionId, isSelected, true);
+    pushVertex(sectionVPC, vec4(edge, 1), tangent, color, neuron, section.sectionId, isSelected, true);
 
     uint a = gl_LocalInvocationID.x;
     uint b = (gl_LocalInvocationID.x + 1) % sectionVPC;

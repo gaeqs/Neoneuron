@@ -20,6 +20,7 @@
 #include "NeoneuronUINodeEditor.h"
 
 #include "neoneuron/ui/style/MaterialSymbols.h"
+#include "nodes/ActivityColorAndScaleNode.h"
 #include "nodes/ActivityRepresentationNode.h"
 #include "nodes/CameraNode.h"
 #include "nodes/DatasetNode.h"
@@ -78,6 +79,7 @@ namespace neoneuron
         _factories.push_back(ReduceNode::createFactory());
         _factories.push_back(TimelineNode::createFactory());
         _factories.push_back(EventSequenceNode::createFactory());
+        _factories.push_back(ActivityColorAndScaleNode::createFactory());
     }
 
     NeoneuronUINodeEditor::~NeoneuronUINodeEditor() = default;

@@ -40,6 +40,7 @@ namespace neoneuron
     {
         defineInput<RepositoryView>("Data", true);
         defineInput<Viewport*>("Viewport", true);
+        defineInput<std::shared_ptr<NeuronColorAndScaleSE>>("Color and scale", true);
         _representation = _application->getRender().addRepresentation<ComplexNeuronRepresentation>();
         defineOutput<std::weak_ptr<AbstractNeuronRepresentation>>("Representation", _representation);
     }
@@ -98,6 +99,12 @@ namespace neoneuron
 
             std::unordered_set<const Viewport*> set(vec.begin(), vec.end());
             ptr->setViewports(set);
+        } else if (name == "Color and scale") {
+            if (auto se = getInput<std::shared_ptr<NeuronColorAndScaleSE>>("Color and scale")) {
+                ptr->setColorAndScale(*se);
+            } else {
+                ptr->setColorAndScale(nullptr);
+            }
         }
     }
 

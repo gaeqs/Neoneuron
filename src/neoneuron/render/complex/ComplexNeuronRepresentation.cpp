@@ -19,12 +19,13 @@
 
 #include "ComplexNeuronRepresentation.h"
 
-#include "neoneuron/render/Viewport.h"
-
 #include <neon/util/Chronometer.h>
 #include <neon/util/task/Coroutine.h>
-#include <neoneuron/render/NeoneuronRender.h>
+
 #include <neoneuron/application/NeoneuronApplication.h>
+#include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/render/Viewport.h>
+#include <neoneuron/render/extension/neuron/StaticNeuronColorAndScaleSE.h>
 
 CMRC_DECLARE(resources);
 
@@ -81,18 +82,22 @@ namespace neoneuron
         _ubo = std::make_shared<neon::ShaderUniformBuffer>("neoneuron:complex_neuron_ubo", _uboDescriptor);
 
         std::vector slots = {
-            neon::StorageBufferInstanceData::Slot(sizeof(ComplexGPUNeuronGlobalData),
-                                                  sizeof(ComplexGPUNeuronGlobalData), NEURON_BINDING, _ubo.get()),
+            neon::PinnedStorageBufferInstanceData::Slot(sizeof(ComplexGPUNeuronGlobalData),
+                                                        sizeof(ComplexGPUNeuronGlobalData), NEURON_BINDING, _ubo.get()),
         };
 
         std::vector<std::type_index> types = {typeid(ComplexGPUNeuronGlobalData)};
 
-        _globalInstanceData =
-            std::make_shared<neon::StorageBufferInstanceData>(app, static_cast<uint32_t>(SOMA_INSTANCES), types, slots);
+        _globalInstanceData = std::make_shared<neon::PinnedStorageBufferInstanceData>(
+            app, static_cast<uint32_t>(SOMA_INSTANCES), types, slots);
     }
 
     void ComplexNeuronRepresentation::loadNeuronShader()
     {
+        std::string include = _colorAndScale->generateShaderCode(COLOR_AND_SCALE_SET);
+        neon::IncluderCreateInfo info;
+        info.prefetchedIncludes[NeuronColorAndScaleSE::EXTENSION_INCLUDE_NAME] = include;
+
         _neuronShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
 
         auto fs = cmrc::resources::get_filesystem();
@@ -100,13 +105,17 @@ namespace neoneuron
         _neuronShader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/neuron.mesh"));
         _neuronShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/neuron.frag"));
 
-        if (auto result = _neuronShader->compile(); result.has_value()) {
+        if (auto result = _neuronShader->compile(info); result.has_value()) {
             neon::error() << result.value();
         }
     }
 
     void ComplexNeuronRepresentation::loadJointShader()
     {
+        std::string include = _colorAndScale->generateShaderCode(COLOR_AND_SCALE_SET);
+        neon::IncluderCreateInfo info;
+        info.prefetchedIncludes[NeuronColorAndScaleSE::EXTENSION_INCLUDE_NAME] = include;
+
         _jointShader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
 
         auto fs = cmrc::resources::get_filesystem();
@@ -114,13 +123,17 @@ namespace neoneuron
         _jointShader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/joint.mesh"));
         _jointShader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/joint.frag"));
 
-        if (auto result = _jointShader->compile(); result.has_value()) {
+        if (auto result = _jointShader->compile(info); result.has_value()) {
             neon::error() << result.value();
         }
     }
 
     void ComplexNeuronRepresentation::loadSomaShader()
     {
+        std::string include = _colorAndScale->generateShaderCode(COLOR_AND_SCALE_SET);
+        neon::IncluderCreateInfo info;
+        info.prefetchedIncludes[NeuronColorAndScaleSE::EXTENSION_INCLUDE_NAME] = include;
+
         auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "Neuron");
 
         auto fs = cmrc::resources::get_filesystem();
@@ -128,7 +141,7 @@ namespace neoneuron
         shader->addShader(neon::ShaderType::MESH, fs.open("/shader/neuron/complex/soma.mesh"));
         shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/neuron/complex/soma.frag"));
 
-        if (auto result = shader->compile(); result.has_value()) {
+        if (auto result = shader->compile(info); result.has_value()) {
             neon::error() << result.value();
         } else {
             _somaShader = std::move(shader);
@@ -138,11 +151,18 @@ namespace neoneuron
     std::shared_ptr<neon::Material> ComplexNeuronRepresentation::loadSegmentMaterial(const Viewport* viewport) const
     {
         auto* app = &_render->getApplication();
+
         neon::MaterialCreateInfo materialCreateInfo(viewport->getInputFrameBuffer(), _neuronShader);
         materialCreateInfo.rasterizer.cullMode = neon::CullMode::BACK;
         materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
         materialCreateInfo.descriptions.uniformBuffer = viewport->getUniformBuffer();
         materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
+
+        if (auto extensionUbo = _colorAndScale->getUBODescriptor(); extensionUbo) {
+            materialCreateInfo.descriptions.uniformBindings[COLOR_AND_SCALE_SET] =
+                neon::DescriptorBinding::extra(*extensionUbo);
+        }
+
         return std::make_shared<neon::Material>(app, "neoneuron:segment", materialCreateInfo);
     }
 
@@ -154,6 +174,12 @@ namespace neoneuron
         materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
         materialCreateInfo.descriptions.uniformBuffer = viewport->getUniformBuffer();
         materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
+
+        if (auto extensionUbo = _colorAndScale->getUBODescriptor(); extensionUbo) {
+            materialCreateInfo.descriptions.uniformBindings[COLOR_AND_SCALE_SET] =
+                neon::DescriptorBinding::extra(*extensionUbo);
+        }
+
         return std::make_shared<neon::Material>(app, "neoneuron:joint", materialCreateInfo);
     }
 
@@ -165,6 +191,12 @@ namespace neoneuron
         materialCreateInfo.rasterizer.polygonMode = _wireframe ? neon::PolygonMode::LINE : neon::PolygonMode::FILL;
         materialCreateInfo.descriptions.uniformBuffer = viewport->getUniformBuffer();
         materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
+
+        if (auto extensionUbo = _colorAndScale->getUBODescriptor(); extensionUbo) {
+            materialCreateInfo.descriptions.uniformBindings[COLOR_AND_SCALE_SET] =
+                neon::DescriptorBinding::extra(*extensionUbo);
+        }
+
         return std::make_shared<neon::Material>(app, "neoneuron:soma", materialCreateInfo);
     }
 
@@ -184,6 +216,10 @@ namespace neoneuron
         modelCreateInfo.maximumInstances = SEGMENT_INSTANCES;
         modelCreateInfo.drawables.push_back(drawable);
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
+
+        if (auto extensionUbo = _colorAndScale->getUBO(); extensionUbo) {
+            modelCreateInfo.uniformBufferBindings[COLOR_AND_SCALE_SET] = neon::ModelBufferBinding::extra(*extensionUbo);
+        }
 
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
         modelCreateInfo.instanceDataProvider = [this](neon::Application* app, const neon::ModelCreateInfo& info,
@@ -216,6 +252,10 @@ namespace neoneuron
         modelCreateInfo.drawables.push_back(drawable);
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
+        if (auto extensionUbo = _colorAndScale->getUBO(); extensionUbo) {
+            modelCreateInfo.uniformBufferBindings[COLOR_AND_SCALE_SET] = neon::ModelBufferBinding::extra(*extensionUbo);
+        }
+
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
         modelCreateInfo.instanceDataProvider = [this](neon::Application* app, const neon::ModelCreateInfo& info,
                                                       const neon::Model* model) {
@@ -246,6 +286,10 @@ namespace neoneuron
         modelCreateInfo.maximumInstances = SOMA_INSTANCES;
         modelCreateInfo.drawables.push_back(drawable);
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
+
+        if (auto extensionUbo = _colorAndScale->getUBO(); extensionUbo) {
+            modelCreateInfo.uniformBufferBindings[COLOR_AND_SCALE_SET] = neon::ModelBufferBinding::extra(*extensionUbo);
+        }
 
         modelCreateInfo.defineInstanceType<ComplexGPUNeuronSegment>();
         modelCreateInfo.instanceDataProvider = [this](neon::Application* app, const neon::ModelCreateInfo& info,
@@ -340,7 +384,7 @@ namespace neoneuron
         auto currentFrame = _render->getApplication().getCurrentFrameInformation().currentFrame;
 
         ComplexGPUNeuron gpu(_globalInstanceData, _segmentModel, _jointModel, _somaModel, 0, 0, 0, &complex,
-                             currentFrame);
+                             currentFrame, _colorAndScale->registerElement(complex.getGID()));
 
         _neurons.emplace(std::piecewise_construct, std::forward_as_tuple(complex.getGID()),
                          std::forward_as_tuple(std::move(complex), std::move(gpu)));
@@ -412,6 +456,7 @@ namespace neoneuron
 
     ComplexNeuronRepresentation::ComplexNeuronRepresentation(NeoneuronRender* render) :
         _render(render),
+        _colorAndScale(std::make_shared<StaticNeuronColorAndScaleSE>(&render->getApplication())),
         _neuronProcessor(&render->getApplication().getTaskRunner(), process),
         _wireframe(false),
         _drawSegments(true),
@@ -624,14 +669,6 @@ namespace neoneuron
             }
         }
 
-        // Update all GPU neurons
-        if (erased) {
-            auto frame = _render->getApplication().getCurrentFrameInformation().currentFrame;
-            for (auto& [neuron, gpu] : _neurons | std::views::values) {
-                gpu.refreshGPUData(&neuron, frame);
-            }
-        }
-
         _neuronsInDataset = set;
     }
 
@@ -760,6 +797,34 @@ namespace neoneuron
         _wireframe = wireframe;
 
         recreateMaterials();
+    }
+
+    void ComplexNeuronRepresentation::setColorAndScale(std::shared_ptr<NeuronColorAndScaleSE> colorAndScale)
+    {
+        if (colorAndScale == nullptr) {
+            // Default
+            _colorAndScale = std::make_shared<StaticNeuronColorAndScaleSE>(&_render->getApplication());
+        } else {
+            _colorAndScale = std::move(colorAndScale);
+        }
+
+        reloadShader();
+
+        if (auto ubo = _colorAndScale->getUBO(); ubo) {
+            auto binding = neon::ModelBufferBinding::extra(*ubo);
+            _segmentModel->getUniformBufferBindings()[COLOR_AND_SCALE_SET] = binding;
+            _jointModel->getUniformBufferBindings()[COLOR_AND_SCALE_SET] = binding;
+            _somaModel->getUniformBufferBindings()[COLOR_AND_SCALE_SET] = binding;
+        } else {
+            _segmentModel->getUniformBufferBindings().erase(COLOR_AND_SCALE_SET);
+            _jointModel->getUniformBufferBindings().erase(COLOR_AND_SCALE_SET);
+            _somaModel->getUniformBufferBindings().erase(COLOR_AND_SCALE_SET);
+        }
+
+        auto frame = _render->getApplication().getCurrentFrameInformation().currentFrame;
+        for (auto& [neuron, gpu] : _neurons | std::views::values) {
+            gpu.setColorAndSizeIndex(_colorAndScale->registerElement(neuron.getGID()), &neuron, frame);
+        }
     }
 
     void ComplexNeuronRepresentation::reloadShader()

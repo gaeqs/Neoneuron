@@ -1,6 +1,12 @@
 #version 460
 #extension GL_EXT_mesh_shader: enable
 
+#include <extension/neuron_color_and_scale>
+
+// This definition is not required. It's only here for the autocompletion!
+void fetchColorAndScale(uint extensionIndex, bool selected, out vec4 color, out float scale);
+
+
 const float M_PI = 3.1415926535897932384626433832795f;
 
 const int SAVING_SPACE_PER_SECTION = 64;
@@ -55,6 +61,7 @@ struct Neuron {
     uint updateFrame;
     uint maxSegmentId;
     float radius;
+    uint colorAndScaleIndex;
     mat4 model;
     mat4 normal;
 };
@@ -107,7 +114,7 @@ taskPayloadSharedEXT TaskData td;
 shared vec3 parentCircle[MAX_POINTS_PER_CIRCLE];
 
 layout(location = 0) out vec3 fragNormal[];
-layout(location = 1) flat out float fragType[];
+layout(location = 1) out vec4 fragColor[];
 layout(location = 2) flat out float fragDatasetId[];
 layout(location = 3) flat out float fragNeuronId[];
 layout(location = 4) flat out float fragSectionId[];
@@ -132,11 +139,11 @@ uint getVerticesPerCircle(Neuron neuron, Section segment) {
 }
 
 
-void pushVertex(uint i, vec4 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
+void pushVertex(uint i, vec4 position, vec3 normal, vec4 color, Neuron neuron, uint sectionId, bool sel) {
     vec4 globalPosition = neuron.model * position;
     gl_MeshVerticesEXT[i].gl_Position = viewProjection * globalPosition;
     fragNormal[i] = mat3(neuron.normal) * normal;
-    fragType[i] = uintBitsToFloat(type);
+    fragColor[i] = color;
     fragDatasetId[i] = uintBitsToFloat(neuron.datasetId);
     fragNeuronId[i] = uintBitsToFloat(neuron.neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
@@ -200,6 +207,10 @@ uint startSectionId,
 uint endSectionId,
 bool isSelected) {
     if (gl_LocalInvocationID.x < startVPC + endVPC) {
+        vec4 color;
+        float scale;
+        fetchColorAndScale(neuron.colorAndScaleIndex, isSelected, color, scale);
+
         bool first = gl_LocalInvocationID.x < startVPC;
         uint finalRotationIndex = first ? rotationIndex : childrenRotationIndex;
 
@@ -232,9 +243,10 @@ bool isSelected) {
         vec3 rotated = cos(angle) * normal + sin(angle) * binormal;
 
         vec3 center = first ? startCenter : endCenter;
-        float radius = (first ? startRadius : endRadius) * radiusStrength;
+        float radius = (first ? startRadius : endRadius) * radiusStrength * scale;
         vec3 point = center + rotated * radius;
-        pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, startSectionId, isSelected);
+
+        pushVertex(gl_LocalInvocationID.x, vec4(point, 1), rotated, color, neuron, startSectionId, isSelected);
     }
 
     uint triangles = generateTriangles(0, 0, startVPC, endVPC, gl_WorkGroupSize.x, 0, neuron, startSectionId);
@@ -290,7 +302,7 @@ void joint1(Joint joint) {
 }
 
 vec3 generateCircle (uint start, uint rotationIndex, vec3 center, vec3 direction,
-vec3 parentDirection, float radius, Neuron neuron, uint sectionId, bool isSelected, uint vpc) {
+vec3 parentDirection, float radius, Neuron neuron, uint sectionId, bool isSelected, uint vpc, vec4 color, float scale) {
     float angle = float(gl_LocalInvocationID.x + rotationIndex) / float(vpc) * 2.0f * M_PI;
 
     // Correctly align the initial basis for the start circle
@@ -312,8 +324,8 @@ vec3 parentDirection, float radius, Neuron neuron, uint sectionId, bool isSelect
 
     // Compute the rotated position for each vertex
     vec3 rotated = cos(angle) * normal + sin(angle) * binormal;
-    vec3 point = center + rotated * radius * radiusStrength;
-    pushVertex(start + gl_LocalInvocationID.x, vec4(point, 1), rotated, 0, neuron, sectionId, isSelected);
+    vec3 point = center + rotated * radius * radiusStrength * scale;
+    pushVertex(start + gl_LocalInvocationID.x, vec4(point, 1), rotated, color, neuron, sectionId, isSelected);
 
     return point;
 }
@@ -355,7 +367,7 @@ void joint2(Joint joint) {
     uint grandParentType = grandParent.metadata & 255u;
 
     float parentRadius = mix(grandParent.endAndRadius.w, parent.endAndRadius.w, 1.0f - endClip);
-    if(grandParentType == 1) {
+    if (grandParentType == 1) {
         // If grandparent is soma, use the parent radius.
         parentRadius = parent.endAndRadius.w;
     }
@@ -366,13 +378,18 @@ void joint2(Joint joint) {
 
     bool isSelected = selected[joint.parent];
 
+    vec4 color;
+    float scale;
+    fetchColorAndScale(neuron.colorAndScaleIndex, isSelected, color, scale);
+
     for (int i = 0; i < joint.amount; ++i) {
         isSelected = isSelected || selected[joint.connection[i]];
     }
 
     if (gl_LocalInvocationID.x < parentVPC) {
         parentCircle[gl_LocalInvocationID.x] =
-        generateCircle(0, rotationIndex, startCenter, startDirection, startDirection, parentRadius, neuron, parent.sectionId, isSelected, parentVPC);
+        generateCircle(0, rotationIndex, startCenter, startDirection, startDirection, parentRadius, neuron,
+        parent.sectionId, isSelected, parentVPC, color, scale);
     }
 
     uint childIndex = gl_LocalInvocationID.x / parentVPC;
@@ -396,7 +413,7 @@ void joint2(Joint joint) {
         vec3 endCenter = parent.endAndRadius.xyz + endDirectionUnorm * startClip;
         float endRadius = mix(parent.endAndRadius.w, section.endAndRadius.w, startClip);
         generateCircle(parentVPC, childrenRotationIndex, endCenter, endDirection, startDirection, endRadius,
-        neuron, parent.sectionId, isSelected, parentVPC);
+        neuron, parent.sectionId, isSelected, parentVPC, color, scale);
     }
 
     // Wait, we need the information of the first circle!
@@ -435,7 +452,7 @@ void joint2(Joint joint) {
         // Finally, we can push the vertex
         uint index = parentVPC * 3 + gl_LocalInvocationID.x;
 
-        pushVertex(index, vec4(position, 1), normal, 0, neuron, parent.sectionId, isSelected);
+        pushVertex(index, vec4(position, 1), normal, color, neuron, parent.sectionId, isSelected);
     }
 
     if (gl_LocalInvocationID.x < parentVPC * 2) {

@@ -20,12 +20,15 @@
 #ifndef NEONEURON_COMPLEXNEURONSCENE_H
 #define NEONEURON_COMPLEXNEURONSCENE_H
 
+#include <neoneuron/render/extension/neuron/NeuronColorAndScaleSE.h>
+
 #include <memory>
 #include <unordered_map>
 
 #include <hey/Listener.h>
 
 #include <neon/Neon.h>
+#include <neon/render/model/PinnedStorageBufferInstanceData.h>
 #include <neoneuron/structure/complex/ComplexNeuron.h>
 #include <neoneuron/render/complex/ComplexGPUNeuron.h>
 #include <neoneuron/render/AbstractNeuronRepresentation.h>
@@ -64,6 +67,7 @@ namespace neoneuron
     {
       public:
         static constexpr size_t UNIFORM_SET = 2;
+        static constexpr size_t COLOR_AND_SCALE_SET = 3;
         static constexpr size_t REPRESENTATION_BINDING = 0;
         static constexpr size_t NEURON_BINDING = 1;
         static constexpr size_t SEGMENT_BINDING = 2;
@@ -94,7 +98,9 @@ namespace neoneuron
 
         std::shared_ptr<neon::ShaderUniformDescriptor> _uboDescriptor;
         std::shared_ptr<neon::ShaderUniformBuffer> _ubo;
-        std::shared_ptr<neon::StorageBufferInstanceData> _globalInstanceData;
+        std::shared_ptr<neon::PinnedStorageBufferInstanceData> _globalInstanceData;
+
+        std::shared_ptr<NeuronColorAndScaleSE> _colorAndScale;
 
         std::shared_ptr<neon::ShaderProgram> _neuronShader;
         std::shared_ptr<neon::ShaderProgram> _jointShader;
@@ -228,6 +234,8 @@ namespace neoneuron
         [[nodiscard]] bool isWireframeMode() const;
 
         void setWireframeMode(bool wireframe);
+
+        void setColorAndScale(std::shared_ptr<NeuronColorAndScaleSE> colorAndScale);
 
         void reloadShader();
     };

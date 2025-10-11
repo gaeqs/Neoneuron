@@ -2,6 +2,11 @@
 #extension GL_EXT_mesh_shader: enable
 #extension GL_KHR_shader_subgroup_ballot: enable
 
+#include <extension/neuron_color_and_scale>
+
+// This definition is not required. It's only here for the autocompletion!
+void fetchColorAndScale(uint extensionIndex, bool selected, out vec4 color, out float scale);
+
 const float M_PI = 3.1415926535897932384626433832795f;
 
 const int SAVING_SPACE_PER_SECTION = 64;
@@ -72,6 +77,7 @@ struct Neuron {
     uint updateFrame;
     uint maxSegmentId;
     float radius;
+    uint colorAndScaleIndex;
     mat4 model;
     mat4 normal;
 };
@@ -125,10 +131,11 @@ struct TaskData {
 taskPayloadSharedEXT TaskData td;
 
 layout(location = 0) out vec3 fragNormal[];
-layout(location = 1) flat out float fragDatasetId[];
-layout(location = 2) flat out float fragNeuronId[];
-layout(location = 3) flat out float fragSectionId[];
-layout(location = 4) flat out float fragSelected[];
+layout(location = 1) out vec4 fragColor[];
+layout(location = 2) flat out float fragDatasetId[];
+layout(location = 3) flat out float fragNeuronId[];
+layout(location = 4) flat out float fragSectionId[];
+layout(location = 5) flat out float fragSelected[];
 
 
 shared uint connectionVerticesIndices[MAX_CONNECTION_VERTICES];
@@ -283,10 +290,11 @@ vec3 generateWeightedPosition(uint index, vec3 position, Soma soma, vec3 center,
     return accumulation / totalWeight;
 }
 
-void pushVertex(uint i, vec3 position, vec3 normal, uint type, Neuron neuron, uint sectionId, bool sel) {
+void pushVertex(uint i, vec3 position, vec3 normal, vec4 color, Neuron neuron, uint sectionId, bool sel) {
     vec4 globalPosition = neuron.model * vec4(position, 1.0f);
     gl_MeshVerticesEXT[i].gl_Position = viewProjection * globalPosition;
     fragNormal[i] = mat3(neuron.normal) * normal;
+    fragColor[i] = color;
     fragDatasetId[i] = uintBitsToFloat(neuron.datasetId);
     fragNeuronId[i] = uintBitsToFloat(neuron.neuronId);
     fragSectionId[i] = uintBitsToFloat(sectionId);
@@ -308,7 +316,7 @@ void pushTriangle(uint i, uvec3 triangle, Neuron neuron, bool save) {
     }
 }
 
-void generateConnectionVertices(uint offset, Section soma, Section connection, Neuron neuron, uint sectionVPC, bool isSelected) {
+void generateConnectionVertices(uint offset, Section soma, Section connection, Neuron neuron, uint sectionVPC, bool isSelected, vec4 color) {
     if (gl_LocalInvocationID.x >= sectionVPC) return;
 
     uint sectionChildren = (connection.metadata >> 8u) & 7u;
@@ -338,7 +346,7 @@ void generateConnectionVertices(uint offset, Section soma, Section connection, N
     vec3 center = connection.endAndRadius.xyz - unormDirection * eClip;
     vec3 point = center + rotated * radius;
 
-    pushVertex(offset + gl_LocalInvocationID.x, point, rotated, MAX_SOMA_CONNECTIONS, neuron, connection.sectionId, isSelected);
+    pushVertex(offset + gl_LocalInvocationID.x, point, rotated, color, neuron, connection.sectionId, isSelected);
 }
 
 void generateSomaPart () {
@@ -348,9 +356,13 @@ void generateSomaPart () {
     Neuron neuron = neurons[section.neuronIndex];
     bool isSelected = selected[soma.sectionIndex];
 
+    vec4 color;
+    float scale;
+    fetchColorAndScale(neuron.colorAndScaleIndex, isSelected, color, scale);
+
     SetMeshOutputsEXT(somaLongitudes * 2, somaLongitudes * 2);
 
-    float radius = section.endAndRadius.w * somaRadiusStrength;
+    float radius = section.endAndRadius.w * somaRadiusStrength * scale;
     vec3 center = section.endAndRadius.xyz;
 
     uint latitude = gl_WorkGroupID.x;
@@ -387,9 +399,8 @@ void generateSomaPart () {
         vec3 normalTop = normalize(top - center);
         vec3 normalBot = normalize(bot - center);
 
-        pushVertex(longitude, top, normalTop, (topInside ? 1 : 0), neuron, section.sectionId, isSelected);
-        pushVertex(longitude + somaLongitudes, bot, normalBot, (botInside ? 1 : 0), neuron, section.sectionId, isSelected);
-
+        pushVertex(longitude, top, normalTop, color, neuron, section.sectionId, isSelected);
+        pushVertex(longitude + somaLongitudes, bot, normalBot, color, neuron, section.sectionId, isSelected);
     }
 
     for (uint longitude = gl_LocalInvocationID.x; longitude < somaLongitudes; longitude += gl_WorkGroupSize.x) {
@@ -425,6 +436,10 @@ void generateConnection () {
     Neuron neuron = neurons[somaSection.neuronIndex];
     bool isSelected = selected[soma.connection[currentConnection]];
 
+    vec4 color;
+    float scale;
+    fetchColorAndScale(neuron.colorAndScaleIndex, isSelected, color, scale);
+
     uint sectionVPC = getVerticesPerCircle(neuron, connectionSection);
 
     // Find the indices of all vertices that have been selected by this connection.
@@ -454,7 +469,7 @@ void generateConnection () {
 
     barrier();
 
-    float radius = somaSection.endAndRadius.w * somaRadiusStrength;
+    float radius = somaSection.endAndRadius.w * somaRadiusStrength * scale;
     vec3 somaCenter = somaSection.endAndRadius.xyz;
     vec3 direction = normalize(connectionSection.endAndRadius.xyz - somaCenter);
     vec3 center = somaCenter + direction * radius;
@@ -498,11 +513,11 @@ void generateConnection () {
     for (uint i = gl_LocalInvocationID.x; i < verticesAmount; i += gl_WorkGroupSize.x) {
         vec3 v = connectionVertices[i];
         vec3 normal = normalize(v - center);
-        pushVertex(i, v, normal, MAX_SOMA_CONNECTIONS, neuron, connectionSection.sectionId, isSelected);
+        pushVertex(i, v, normal, color, neuron, connectionSection.sectionId, isSelected);
     }
 
     // Push connection vertices
-    generateConnectionVertices(verticesAmount, somaSection, connectionSection, neuron, sectionVPC, isSelected);
+    generateConnectionVertices(verticesAmount, somaSection, connectionSection, neuron, sectionVPC, isSelected, color);
 
     // Generate the triangles!
     float somaPerConnection = min(float(verticesAmount) / float(sectionVPC), 1.0f);

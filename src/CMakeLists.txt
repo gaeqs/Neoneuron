@@ -79,6 +79,9 @@ cmrc_add_resource_library(
         resources/shader/activity/activity.mesh
         resources/shader/activity/activity.frag
 
+        resources/shader/extension/neuron/static_neuron_color_and_scale.glsl
+        resources/shader/extension/neuron/activity_neuron_color_and_scale.glsl
+
         resources/texture/skybox/back.png
         resources/texture/skybox/bottom.png
         resources/texture/skybox/front.png

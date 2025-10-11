@@ -89,7 +89,7 @@ namespace neoneuron
         modelCreateInfo.drawables.push_back(drawable);
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
-        modelCreateInfo.defineInstanceType<ActivityGPUNeuronData>();
+        modelCreateInfo.defineInstanceType<ActivityGPUNeuronData, float>();
         modelCreateInfo.instanceDataProvider = [this](neon::Application* app, const neon::ModelCreateInfo& info,
                                                       const neon::Model* model) {
             std::vector indices = {

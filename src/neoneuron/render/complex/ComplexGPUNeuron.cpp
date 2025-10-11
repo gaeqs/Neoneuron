@@ -85,6 +85,7 @@ namespace neoneuron
                                         .updateFrame = frame,
                                         .segmentsAmount = maxSegment,
                                         .radius = neuron->getBoundingBox().radius.length(),
+                                        .colorAndSizeIndex = _colorAndSizeIndex,
                                         .model = rush::Mat4f(1.0f),
                                         .normal = rush::Mat4f(1.0f)};
 
@@ -241,6 +242,7 @@ namespace neoneuron
         _jointInstancesByUID = std::move(other._jointInstancesByUID);
         _somaInstances = std::move(other._somaInstances);
         _somaInstancesByUID = std::move(other._somaInstancesByUID);
+        _colorAndSizeIndex = other._colorAndSizeIndex;
         _valid = other._valid;
         other._valid = false;
     }
@@ -249,7 +251,7 @@ namespace neoneuron
                                        std::weak_ptr<neon::Model> neuronModel, std::weak_ptr<neon::Model> jointModel,
                                        std::weak_ptr<neon::Model> somaModel, size_t segmentInstanceDataIndex,
                                        size_t jointInstanceDataIndex, size_t somaInstanceDataIndex,
-                                       const ComplexNeuron* neuron, uint32_t frame) :
+                                       const ComplexNeuron* neuron, uint32_t frame, uint32_t colorAndSizeIndex) :
         _globalInstanceData(std::move(globalInstanceData)),
         _segmentModel(std::move(neuronModel)),
         _jointModel(std::move(jointModel)),
@@ -257,6 +259,7 @@ namespace neoneuron
         _segmentInstanceDataIndex(segmentInstanceDataIndex),
         _jointInstanceDataIndex(jointInstanceDataIndex),
         _somaInstanceDataIndex(somaInstanceDataIndex),
+        _colorAndSizeIndex(colorAndSizeIndex),
         _valid(true)
     {
         _segmentInstances.reserve(neuron->getSegments().size());
@@ -319,6 +322,12 @@ namespace neoneuron
                _somaInstances.size() * sizeof(ComplexGPUNeuronSoma) + sizeof(ComplexGPUNeuronGlobalData);
     }
 
+    void ComplexGPUNeuron::setColorAndSizeIndex(uint32_t colorAndSizeIndex, const ComplexNeuron* neuron, uint32_t frame)
+    {
+        _colorAndSizeIndex = colorAndSizeIndex;
+        refreshGlobalData(neuron, frame);
+    }
+
     ComplexGPUNeuron& ComplexGPUNeuron::operator=(ComplexGPUNeuron&& other) noexcept
     {
         if (this == &other) {
@@ -342,6 +351,7 @@ namespace neoneuron
         _jointInstancesByUID = std::move(other._jointInstancesByUID);
         _somaInstances = std::move(other._somaInstances);
         _somaInstancesByUID = std::move(other._somaInstancesByUID);
+        _colorAndSizeIndex = other._colorAndSizeIndex;
         _valid = other._valid;
         other._valid = false;
         return *this;

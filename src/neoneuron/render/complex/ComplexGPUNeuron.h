@@ -33,7 +33,8 @@ namespace neoneuron
         uint32_t updateFrame;
         uint32_t segmentsAmount;
         float radius;
-        uint32_t dummy[2];
+        uint32_t colorAndSizeIndex;
+        uint32_t dummy;
         rush::Mat4f model;
         rush::Mat4f normal;
     };
@@ -41,51 +42,51 @@ namespace neoneuron
     struct ComplexGPUNeuronSegment
     {
         /**
-        * The neuron's global data's position in the storage buffer.
-        */
+         * The neuron's global data's position in the storage buffer.
+         */
         uint32_t neuronIndex;
 
         /**
-        * The UID of the segment.
-        */
+         * The UID of the segment.
+         */
         uint32_t segmentId;
 
         /**
-        * The type of the segment.
-        * 0-7 -> Type
-        * 8 - 10 -> Amount of children.
-        * 11 - 13 -> Min LOD level
-        * 14 - 16 -> Current calculated LOD level.
-        */
+         * The type of the segment.
+         * 0-7 -> Type
+         * 8 - 10 -> Amount of children.
+         * 11 - 13 -> Min LOD level
+         * 14 - 16 -> Current calculated LOD level.
+         */
         uint32_t metadata;
 
         /**
-        * The position of the parent in the storage buffer.
-        */
+         * The position of the parent in the storage buffer.
+         */
         uint32_t parent;
 
         /**
-        * The end position of the segment (x, y, z) and the radius (w).
-        * This merge is done to save a float position (vec3 has the same padding as vec4 in std430)
-        */
+         * The end position of the segment (x, y, z) and the radius (w).
+         * This merge is done to save a float position (vec3 has the same padding as vec4 in std430)
+         */
         rush::Vec4f endAndRadius;
     };
 
     struct ComplexGPUNeuronJoint
     {
         /**
-        * The parent's position in the storage buffer.
-        */
+         * The parent's position in the storage buffer.
+         */
         uint32_t parent;
 
         /**
-        * The amount of connections.
-        */
+         * The amount of connections.
+         */
         uint32_t amount;
 
         /**
-        * The amount of vertices the split will rotate.
-        */
+         * The amount of vertices the split will rotate.
+         */
         uint32_t rotationIndex;
 
         /**
@@ -97,13 +98,13 @@ namespace neoneuron
     struct ComplexGPUNeuronSoma
     {
         /*
-        * The index of the representing section in the storage buffer.
-        */
+         * The index of the representing section in the storage buffer.
+         */
         uint32_t sectionIndex;
 
         /**
-        * The amount of connections.
-        */
+         * The amount of connections.
+         */
         uint32_t amount;
 
         /**
@@ -128,6 +129,7 @@ namespace neoneuron
         std::unordered_map<mindset::UID, neon::InstanceData::Instance> _jointInstancesByUID;
         std::vector<neon::InstanceData::Instance> _somaInstances;
         std::unordered_map<mindset::UID, neon::InstanceData::Instance> _somaInstancesByUID;
+        uint32_t _colorAndSizeIndex;
         bool _valid;
 
         void generateSegmentInstances(const ComplexNeuron* neuron);
@@ -154,7 +156,7 @@ namespace neoneuron
         ComplexGPUNeuron(std::weak_ptr<neon::InstanceData> globalInstanceData, std::weak_ptr<neon::Model> neuronModel,
                          std::weak_ptr<neon::Model> jointModel, std::weak_ptr<neon::Model> somaModel,
                          size_t segmentInstanceDataIndex, size_t jointInstanceDataIndex, size_t somaInstanceDataIndex,
-                         const ComplexNeuron* neuron, uint32_t frame);
+                         const ComplexNeuron* neuron, uint32_t frame, uint32_t colorAndSizeIndex);
 
         ~ComplexGPUNeuron();
 
@@ -168,8 +170,10 @@ namespace neoneuron
 
         size_t getAllocatedMemorySize() const;
 
+        void setColorAndSizeIndex(uint32_t colorAndSizeIndex, const ComplexNeuron* neuron, uint32_t frame);
+
         ComplexGPUNeuron& operator=(ComplexGPUNeuron&& other) noexcept;
     };
 } // namespace neoneuron
 
-#endif //COMPLEXGPUNEURON_H
+#endif // COMPLEXGPUNEURON_H

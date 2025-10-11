@@ -58,6 +58,7 @@ struct Neuron {
     uint updateFrame;
     uint maxSegmentId;
     float radius;
+    uint colorAndScaleIndex;
     mat4 model;
     mat4 normal;
 };

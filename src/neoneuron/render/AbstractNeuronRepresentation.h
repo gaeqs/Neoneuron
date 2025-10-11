@@ -23,6 +23,7 @@
 #include <unordered_set>
 
 #include <rush/rush.h>
+
 #include <neoneuron/structure/GID.h>
 #include <neoneuron/structure/RepositoryView.h>
 #include <neoneuron/render/Viewport.h>

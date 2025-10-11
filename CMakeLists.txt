@@ -56,7 +56,7 @@ FetchContent_MakeAvailable(rush)
 FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG master
+        GIT_TAG shaders
 )
 
 FetchContent_MakeAvailable(neon)
