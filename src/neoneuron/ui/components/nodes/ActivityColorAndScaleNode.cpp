@@ -26,7 +26,7 @@ namespace neoneuron
 {
 
     ActivityColorAndScaleNode::ActivityColorAndScaleNode(NeoneuronApplication* application) :
-        Node("ActivityColorAndScale"),
+        Node("Activity to color and scale"),
         _application(application),
         _activityColorAndScale(
             std::make_shared<ActivityNeuronColorAndScaleSE>(&application->getRender().getApplication())),

@@ -42,7 +42,8 @@ namespace neoneuron
         _instanceData->freeInstance(instance);
     }
 
-    ActivityNeuronColorAndScaleSE::ActivityNeuronColorAndScaleSE(neon::Application* application)
+    ActivityNeuronColorAndScaleSE::ActivityNeuronColorAndScaleSE(neon::Application* application) :
+        _decay(1.0f)
     {
         std::vector bindings = {
             neon::ShaderUniformBinding::uniformBuffer(sizeof(ActivityNeuronColorAndScaleSEData)),
@@ -65,19 +66,19 @@ namespace neoneuron
             data.sizes[i] = rush::mix(4.0f, 1.0f, n);
         }
 
-        data.decay = 1.0f;
+        data.decay = _decay;
 
         _ubo->uploadData(GENERAL_DATA_BINDING, data);
         _ubo->uploadData(VOLATILE_BINDING, ActivityNeuronColorAndScaleSEVolatileData{0.0f});
 
         std::vector slots = {
-            neon::PinnedStorageBufferInstanceData::Slot(sizeof(float), sizeof(float), ACTIVITY_BINDING, _ubo.get()),
+            neon::StorageBufferInstanceData::Slot(sizeof(float), sizeof(float), ACTIVITY_BINDING, _ubo.get()),
         };
 
         std::vector<std::type_index> types = {typeid(float)};
 
         _instanceData =
-            std::make_shared<neon::PinnedStorageBufferInstanceData>(application, ACTIVITY_INSTANCES, types, slots);
+            std::make_shared<neon::StorageBufferInstanceData>(application, ACTIVITY_INSTANCES, types, slots);
     }
 
     std::string ActivityNeuronColorAndScaleSE::generateShaderCode(size_t uniformSet) const
@@ -107,6 +108,18 @@ namespace neoneuron
                                                       std::chrono::nanoseconds newTime, TimeChangeType type)
     {
         if (!_activity) {
+            return;
+        }
+
+        if (type == TimeChangeType::JUMP) {
+            auto seconds = std::chrono::duration_cast<std::chrono::duration<float>>(newTime);
+            float f = seconds.count() - _decay;
+            for (auto id : _idToIndex | std::views::values) {
+                _instanceData->uploadData(neon::InstanceData::Instance(&id), 0, &f);
+            }
+
+            auto decay = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>{_decay});
+            onTimeChanged(newTime - decay, newTime, TimeChangeType::FLOW);
             return;
         }
 

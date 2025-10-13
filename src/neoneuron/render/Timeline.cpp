@@ -24,7 +24,30 @@
 #include "Timeline.h"
 
 #include "implot.h"
-#include "neoneuron/application/NeoneuronApplication.h"
+#include <imgui_internal.h>
+
+#include <neon/util/ImGuiUtils.h>
+#include <neoneuron/application/NeoneuronApplication.h>
+#include <neoneuron/ui/style/MaterialSymbols.h>
+
+namespace
+{
+
+    const ImGuiID SPEED_POPUP_ID = ImHashStr("##combo_popup");
+
+    constexpr size_t SPEEDS_AMOUNT = 8;
+    constexpr size_t SPEED_DEFAULT = 3;
+
+    constexpr std::array<const char*, SPEEDS_AMOUNT> SPEED_TITLES{
+        ICON_MS_SPEED_0_2X, ICON_MS_SPEED_0_5X, ICON_MS_SPEED_0_7X, ICON_MS_1X_MOBILEDATA,
+        ICON_MS_SPEED_1_2X, ICON_MS_SPEED_1_5X, ICON_MS_SPEED_1_7X, ICON_MS_SPEED_2X,
+    };
+
+    constexpr std::array<float, SPEEDS_AMOUNT> SPEED_MULTIPLIER{
+        0.2f, 0.5f, 0.7f, 1.0f, 1.2f, 1.5f, 1.7f, 2.0f,
+    };
+
+} // namespace
 
 namespace neoneuron
 {
@@ -53,8 +76,6 @@ namespace neoneuron
 
             entry.times.push_back(seconds.count());
             entry.samples.push_back(static_cast<double>(amount));
-
-            neon::debug() << from.count() << " - " << amount;
         }
 
         entry.duration = sampler->getEndTime();
@@ -166,11 +187,70 @@ namespace neoneuron
         }
     }
 
+    void Timeline::drawControlPanel()
+    {
+        auto& rows = ImGui::neon::BeginRowLayout("timeline_buttons");
+
+        ImGui::PushFont(ImGui::GetFont(), 42.0f);
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_FrameBgHovered));
+        ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
+
+        if (rows.stretchedButton(ICON_MS_REPLAY, 0.25f)) {
+            changeTime(std::chrono::nanoseconds(0), TimeChangeType::JUMP);
+            _playing = true;
+        }
+
+        if (rows.stretchedButton(_playing ? ICON_MS_PAUSE : ICON_MS_RESUME, 0.5f)) {
+            _playing = !_playing;
+        }
+
+        bool popupOpen = ImGui::IsPopupOpen(SPEED_POPUP_ID, ImGuiPopupFlags_None);
+        if (rows.stretchedButton(SPEED_TITLES[_selectedSpeed], 0.25f) && !popupOpen) {
+            ImGui::OpenPopup(SPEED_POPUP_ID);
+            popupOpen = true;
+        }
+
+        if (popupOpen) {
+            auto bb = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+            if (ImGui::BeginComboPopup(SPEED_POPUP_ID, bb, ImGuiComboFlags_None)) {
+                for (size_t n = 0; n < SPEED_TITLES.size(); n++) {
+                    bool selected = n == _selectedSpeed;
+                    if (ImGui::Selectable(SPEED_TITLES[n], selected)) {
+                        _selectedSpeed = n;
+                    }
+                    if (selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }
+        ImGui::PopStyleColor(3);
+        ImGui::PopStyleVar();
+
+        ImGui::PopFont();
+
+        rows.end();
+    }
+
+    void Timeline::changeTime(std::chrono::nanoseconds newTime, TimeChangeType type)
+    {
+        for (auto aware : _timeAwares) {
+            aware->onTimeChanged(_currentTime, newTime, type);
+        }
+        _currentTime = newTime;
+    }
+
     Timeline::Timeline(NeoneuronApplication* application) :
         _application(application),
         _duration(0),
-        _fitNextFrame(false),
-        _currentTime(0)
+        _currentTime(0),
+        _playing(false),
+        _selectedSpeed(SPEED_DEFAULT),
+        _fitNextFrame(false)
     {
     }
 
@@ -186,21 +266,26 @@ namespace neoneuron
 
     void Timeline::onUpdate(float deltaTime)
     {
-        auto then = _currentTime;
-        _currentTime =
-            then + std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<float>(deltaTime));
-
-        if (_duration.count() > 0) {
-            _currentTime %= _duration;
+        if (!_playing) {
+            return;
         }
 
-        for (auto aware : _timeAwares) {
-            aware->onTimeChanged(then, _currentTime, TimeChangeType::FLOW);
+        auto delta = std::chrono::duration<float>(deltaTime * SPEED_MULTIPLIER[_selectedSpeed]);
+
+        auto now = _currentTime + std::chrono::duration_cast<std::chrono::nanoseconds>(delta);
+
+        if (_duration.count() > 0) {
+            now %= _duration;
+            changeTime(now, TimeChangeType::JUMP);
+        } else {
+            changeTime(now, TimeChangeType::FLOW);
         }
     }
 
     void Timeline::onPreDraw()
     {
+        ImPlot::GetInputMap().Pan = ImGuiMouseButton_Middle;
+
         checkTimelines();
 
         if (_fitNextFrame) {
@@ -208,13 +293,22 @@ namespace neoneuron
             _fitNextFrame = false;
         }
 
-        auto currentTime = std::chrono::duration_cast<std::chrono::duration<double>>(_currentTime);
-
         ImPlot::ShowDemoWindow();
         if (ImGui::Begin("Timeline")) {
+            auto& layout = ImGui::neon::BeginColumnLayout("timeline_layout");
+
             ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.25f);
-            if (ImPlot::BeginPlot("Timeline", ImVec2(-1, -1), ImPlotFlags_NoTitle)) {
+            if (ImPlot::BeginPlot("Timeline", ImVec2(-1, layout.popStretchedSize()), ImPlotFlags_NoTitle)) {
                 ImPlot::SetupAxes("Time (s)", "Sum", ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit);
+
+                if (ImPlot::IsPlotHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+                    ImPlotPoint pos = ImPlot::GetPlotMousePos();
+                    auto now =
+                        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>{pos.x});
+                    changeTime(now, TimeChangeType::JUMP);
+                }
+
+                auto currentTime = std::chrono::duration_cast<std::chrono::duration<double>>(_currentTime);
 
                 float x1 = ImPlot::PlotToPixels(ImPlotPoint(static_cast<float>(currentTime.count() - 1), 0.0f)).x;
                 float x2 = ImPlot::PlotToPixels(ImPlotPoint(static_cast<float>(currentTime.count()), 0.0f)).x;
@@ -234,6 +328,13 @@ namespace neoneuron
                 ImPlot::EndPlot();
             }
             ImPlot::PopStyleVar();
+
+            layout.next(true);
+
+            drawControlPanel();
+
+            layout.next(false);
+            layout.end();
         }
         ImGui::End();
     }

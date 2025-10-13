@@ -59,9 +59,11 @@ namespace neoneuron
         std::unordered_map<GID, SampledActivity> _samples;
 
         std::chrono::nanoseconds _duration;
-        bool _fitNextFrame;
-
         std::chrono::nanoseconds _currentTime;
+
+        bool _playing;
+        int _selectedSpeed;
+        bool _fitNextFrame;
 
         static void sample(SampledEntry& entry, const mindset::EventSequence<std::monostate>* sampler,
                            std::chrono::nanoseconds step);
@@ -71,6 +73,10 @@ namespace neoneuron
         void checkTimelines();
 
         void recalculateTimelineSize();
+
+        void drawControlPanel();
+
+        void changeTime(std::chrono::nanoseconds newTime, TimeChangeType type);
 
       public:
         Timeline(NeoneuronApplication* application);

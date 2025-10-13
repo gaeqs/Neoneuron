@@ -669,6 +669,14 @@ namespace neoneuron
             }
         }
 
+        // Update all GPU neurons
+        if (erased) {
+            auto frame = _render->getApplication().getCurrentFrameInformation().currentFrame;
+            for (auto& [neuron, gpu] : _neurons | std::views::values) {
+                gpu.refreshGPUData(&neuron, frame);
+            }
+        }
+
         _neuronsInDataset = set;
     }
 
