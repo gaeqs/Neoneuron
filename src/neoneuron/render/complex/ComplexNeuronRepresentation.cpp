@@ -480,6 +480,10 @@ namespace neoneuron
 
     ComplexNeuronRepresentation::~ComplexNeuronRepresentation()
     {
+        for (const auto& gid : _neurons | std::views::keys) {
+            _colorAndScale->unregisterElement(gid);
+        }
+
         if (_segmentModel != nullptr) {
             _render->getRoom()->unmarkUsingModel(_segmentModel.get());
         }

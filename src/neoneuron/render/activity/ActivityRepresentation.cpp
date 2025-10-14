@@ -174,6 +174,10 @@ namespace neoneuron
 
     ActivityRepresentation::~ActivityRepresentation()
     {
+        for (const auto& gid : _gpuNeurons | std::views::keys) {
+            _colorAndScale->unregisterElement(gid);
+        }
+
         if (_model != nullptr) {
             _render->getRoom()->unmarkUsingModel(_model.get());
         }
@@ -225,6 +229,7 @@ namespace neoneuron
         for (const auto& gid : _neuronsInData) {
             if (!set.contains(gid)) {
                 _gpuNeurons.erase(gid);
+                _colorAndScale->unregisterElement(gid);
             }
         }
 
@@ -240,8 +245,12 @@ namespace neoneuron
                         continue;
                     }
                     if (auto position = neuron->getProperty<mindset::NeuronTransform>(*prop)) {
-                        _gpuNeurons.emplace(std::piecewise_construct, std::forward_as_tuple(gid),
-                                            std::forward_as_tuple(_instanceData, gid, position->getPosition()));
+                        auto [it, ok] =
+                            _gpuNeurons.emplace(std::piecewise_construct, std::forward_as_tuple(gid),
+                                                std::forward_as_tuple(_instanceData, gid, position->getPosition()));
+                        if (ok) {
+                            it->second.setColorAndScaleIndex(_colorAndScale->registerElement(gid));
+                        }
                     } else {
                         neon::error() << "Neuron's position not found";
                     }

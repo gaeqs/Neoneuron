@@ -37,7 +37,7 @@ namespace neoneuron
     class ShaderExtension
     {
       protected:
-        std::unordered_map<Identification, uint32_t> _idToIndex;
+        std::unordered_map<Identification, std::pair<uint32_t, size_t>> _idToIndex;
 
         virtual uint32_t newInstance() = 0;
 
@@ -57,11 +57,12 @@ namespace neoneuron
         {
             auto it = _idToIndex.find(id);
             if (it != _idToIndex.end()) {
-                return it->second;
+                ++it->second.second;
+                return it->second.first;
             }
 
             auto index = newInstance();
-            _idToIndex.emplace(id, index);
+            _idToIndex.emplace(id, std::pair<uint32_t, size_t>(index, 1u));
             return index;
         }
 
@@ -69,8 +70,11 @@ namespace neoneuron
         {
             auto it = _idToIndex.find(id);
             if (it != _idToIndex.end()) {
-                deleteInstance(it->second);
-                _idToIndex.erase(it);
+                --it->second.second;
+                if (it->second.second == 0) {
+                    deleteInstance(it->second.first);
+                    _idToIndex.erase(it);
+                }
                 return true;
             }
             return false;

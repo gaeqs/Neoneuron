@@ -72,13 +72,13 @@ namespace neoneuron
         _ubo->uploadData(VOLATILE_BINDING, ActivityNeuronColorAndScaleSEVolatileData{0.0f});
 
         std::vector slots = {
-            neon::StorageBufferInstanceData::Slot(sizeof(float), sizeof(float), ACTIVITY_BINDING, _ubo.get()),
+            neon::PinnedStorageBufferInstanceData::Slot(sizeof(float), sizeof(float), ACTIVITY_BINDING, _ubo.get()),
         };
 
         std::vector<std::type_index> types = {typeid(float)};
 
         _instanceData =
-            std::make_shared<neon::StorageBufferInstanceData>(application, ACTIVITY_INSTANCES, types, slots);
+            std::make_shared<neon::PinnedStorageBufferInstanceData>(application, ACTIVITY_INSTANCES, types, slots);
     }
 
     std::string ActivityNeuronColorAndScaleSE::generateShaderCode(size_t uniformSet) const
@@ -114,7 +114,7 @@ namespace neoneuron
         if (type == TimeChangeType::JUMP) {
             auto seconds = std::chrono::duration_cast<std::chrono::duration<float>>(newTime);
             float f = seconds.count() - _decay;
-            for (auto id : _idToIndex | std::views::values) {
+            for (auto id : _idToIndex | std::views::values | std::views::keys) {
                 _instanceData->uploadData(neon::InstanceData::Instance(&id), 0, &f);
             }
 
@@ -139,7 +139,7 @@ namespace neoneuron
 
             auto seconds = std::chrono::duration_cast<std::chrono::duration<float>>(event.timepoint);
             float secondsFloat = seconds.count();
-            neon::InstanceData::Instance instance = {&it->second};
+            neon::InstanceData::Instance instance = {&it->second.first};
             _instanceData->uploadData(instance, 0, &secondsFloat);
         }
 

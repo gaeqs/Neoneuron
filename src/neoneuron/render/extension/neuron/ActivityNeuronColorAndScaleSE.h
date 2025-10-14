@@ -24,7 +24,7 @@
 #ifndef NEONEURON_ACTIVITYNEURONCOLORANDSCALESE_H
 #define NEONEURON_ACTIVITYNEURONCOLORANDSCALESE_H
 
-#include <neon/render/model/StorageBufferInstanceData.h>
+#include <neon/render/model/PinnedStorageBufferInstanceData.h>
 
 #include <neoneuron/render/TimeAware.h>
 #include <neoneuron/render/activity/ActivityRepresentation.h>
@@ -55,7 +55,7 @@ namespace neoneuron
 
         std::shared_ptr<neon::ShaderUniformDescriptor> _uboDescriptor;
         std::shared_ptr<neon::ShaderUniformBuffer> _ubo;
-        std::shared_ptr<neon::StorageBufferInstanceData> _instanceData;
+        std::shared_ptr<neon::PinnedStorageBufferInstanceData> _instanceData;
 
         std::optional<CurrentEventSequence> _activity;
 
