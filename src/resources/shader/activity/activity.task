@@ -53,23 +53,16 @@ struct TaskData {
 struct Neuron {
     uint datasetId;
     uint neuronId;
-    float dummy1;
-    float dummy2;
+    uint colorAndScaleIndex;
+    float dummy;
     vec4 position;
 };
 
 layout (set = 2, binding = 0) uniform Representation {
-    vec4 gradient[GRADIENT_SIZE];
-    vec4 sizes[GRADIENT_SIZE / 4];
     uint neuronsAmount;
-    float decay;
 };
 
-layout(set = 2, binding = 1) uniform Volaitle {
-    float simulationTime;
-};
-
-layout(std430, set = 2, binding = 2) buffer Neurons {
+layout(std430, set = 2, binding = 1) buffer Neurons {
     Neuron neurons[];
 };
 

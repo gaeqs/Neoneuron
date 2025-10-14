@@ -37,13 +37,12 @@ namespace neoneuron
 
     ActivityRepresentationNode::ActivityRepresentationNode(NeoneuronApplication* application) :
         Node("Activity Representation"),
-        _application(application),
-        _timeline(nullptr)
+        _application(application)
     {
         defineInput<RepositoryView>("Data", true);
         defineInput<Viewport*>("Viewport", true);
-        defineInput<Timeline*>("Timeline", false);
-        defineInput<EventSequenceId>("Sequence", false);
+        defineInput<std::shared_ptr<NeuronColorAndScaleSE>>("Color and scale", true);
+
         _representation = _application->getRender().addRepresentation<ActivityRepresentation>();
         defineOutput<std::weak_ptr<AbstractNeuronRepresentation>>("Representation", _representation);
     }
@@ -51,9 +50,6 @@ namespace neoneuron
     ActivityRepresentationNode::~ActivityRepresentationNode()
     {
         sendOutput("Representation", std::any());
-        if (_timeline != nullptr) {
-            _timeline->removeTimeAware(_representation.lock());
-        }
         if (auto ptr = _representation.lock()) {
             _application->getRender().removeRepresentation(ptr.get());
         }
@@ -75,6 +71,7 @@ namespace neoneuron
         if (!ptr) {
             return;
         }
+
         if (name == "Data") {
             auto data = getMultipleInputs<RepositoryView>("Data");
             if (!data.has_value()) {
@@ -99,56 +96,12 @@ namespace neoneuron
 
             std::unordered_set<const Viewport*> set(vec.begin(), vec.end());
             ptr->setViewports(set);
-        } else if (name == "Timeline") {
-            if (_timeline != nullptr) {
-                _timeline->removeTimeAware(_representation.lock());
+        } else if (name == "Color and scale") {
+            if (auto se = getInput<std::shared_ptr<NeuronColorAndScaleSE>>("Color and scale")) {
+                ptr->setColorAndScale(*se);
+            } else {
+                ptr->setColorAndScale(nullptr);
             }
-
-            auto timeline = getInput<Timeline*>("Timeline");
-            if (!timeline.has_value()) {
-                return;
-            }
-
-            _timeline = *timeline;
-            _timeline->addTimeAware(_representation.lock());
-        } else if (name == "Sequence") {
-            auto sequenceId = getInput<EventSequenceId>("Sequence");
-            if (!sequenceId.has_value()) {
-                _representation.lock()->clearActivity();
-                return;
-            }
-
-            auto dataset = _application->getRepository().getDataset(sequenceId->datasetId);
-            if (!dataset) {
-                _representation.lock()->clearActivity();
-                return;
-            }
-
-            auto sequenceName =
-                dataset.value()->getDataset().getProperties().getPropertyName(sequenceId->eventSequenceId);
-
-            if (!sequenceName) {
-                _representation.lock()->clearActivity();
-                return;
-            }
-
-            auto activity = dataset.value()->getDataset().getActivity(sequenceId->activityId);
-
-            if (!activity) {
-                _representation.lock()->clearActivity();
-                return;
-            }
-
-            auto sequence =
-                activity.value()->getProperty<mindset::EventSequence<std::monostate>>(sequenceId->eventSequenceId);
-
-            if (!sequence) {
-                _representation.lock()->clearActivity();
-                return;
-            }
-
-            GID gid = {sequenceId->datasetId, sequenceId->activityId};
-            _representation.lock()->setActivity(gid, *sequenceName, std::move(*sequence));
         }
     }
 

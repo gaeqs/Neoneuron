@@ -24,7 +24,7 @@
 #ifndef NEONEURON_ACTIVITYNEURONCOLORANDSCALESE_H
 #define NEONEURON_ACTIVITYNEURONCOLORANDSCALESE_H
 
-#include <neon/render/model/PinnedStorageBufferInstanceData.h>
+#include <neon/render/model/StorageBufferInstanceData.h>
 
 #include <neoneuron/render/TimeAware.h>
 #include <neoneuron/render/activity/ActivityRepresentation.h>

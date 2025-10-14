@@ -24,26 +24,17 @@
 #ifndef NEONEURON_ACTIVITYREPRESENTATION_H
 #define NEONEURON_ACTIVITYREPRESENTATION_H
 
-#include <neoneuron/render/activity/ActivityGPUNeuron.h>
 #include <neoneuron/render/AbstractNeuronRepresentation.h>
 #include <neoneuron/render/NeoneuronRender.h>
+#include <neoneuron/render/activity/ActivityGPUNeuron.h>
+#include <neoneuron/render/extension/neuron/NeuronColorAndScaleSE.h>
 
 namespace neoneuron
 {
 
-    constexpr size_t ACTIVITY_REPRESENTATION_GRADIENT_SIZE = 256;
-
     struct ActivityRepresentationData
     {
-        rush::Vec4f gradient[ACTIVITY_REPRESENTATION_GRADIENT_SIZE];
-        float sizes[ACTIVITY_REPRESENTATION_GRADIENT_SIZE];
         uint32_t activities;
-        float decay;
-    };
-
-    struct ActivityRepresentationVolatileData
-    {
-        float simulationTime;
     };
 
     struct CurrentEventSequence
@@ -53,14 +44,13 @@ namespace neoneuron
         mindset::EventSequence<std::monostate> sequence;
     };
 
-    class ActivityRepresentation : public AbstractNeuronRepresentation, public TimeAware
+    class ActivityRepresentation : public AbstractNeuronRepresentation
     {
       public:
         static constexpr size_t UNIFORM_SET = 2;
+        static constexpr size_t COLOR_AND_SCALE_SET = 3;
         static constexpr size_t REPRESENTATION_BINDING = 0;
-        static constexpr size_t VOLATILE_BINDING = 1;
-        static constexpr size_t NEURON_BINDING = 2;
-        static constexpr size_t ACTIVITY_BINDING = 3;
+        static constexpr size_t NEURON_BINDING = 1;
 
         static constexpr size_t ACTIVITY_INSTANCES = 10'000'000;
 
@@ -71,6 +61,8 @@ namespace neoneuron
         std::shared_ptr<neon::ShaderUniformDescriptor> _uboDescriptor;
         std::shared_ptr<neon::ShaderUniformBuffer> _ubo;
 
+        std::shared_ptr<NeuronColorAndScaleSE> _colorAndScale;
+
         std::shared_ptr<neon::ShaderProgram> _shader;
         std::shared_ptr<neon::Model> _model;
         neon::InstanceData* _instanceData;
@@ -79,8 +71,6 @@ namespace neoneuron
 
         std::unordered_set<GID> _neuronsInData;
         std::unordered_map<GID, ActivityGPUNeuron> _gpuNeurons;
-
-        std::optional<CurrentEventSequence> _activity;
 
         void loadUniformBuffers();
 
@@ -133,16 +123,7 @@ namespace neoneuron
 
         [[nodiscard]] float getUsedInstanceMemoryPercentage() const override;
 
-        void onTimeChanged(std::chrono::nanoseconds lastTime, std::chrono::nanoseconds newTime,
-                           TimeChangeType type) override;
-
-        std::vector<ActivityEntry<mindset::TimeGrid<double>>> getTimeGrids() override;
-
-        std::vector<ActivityEntry<mindset::EventSequence<std::monostate>>> getEventSequences() override;
-
-        void setActivity(GID activityId, std::string name, mindset::EventSequence<std::monostate> sequence);
-
-        void clearActivity();
+        void setColorAndScale(std::shared_ptr<NeuronColorAndScaleSE> colorAndScale);
     };
 } // namespace neoneuron
 

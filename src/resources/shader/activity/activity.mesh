@@ -2,6 +2,12 @@
 #extension GL_EXT_mesh_shader: enable
 #extension GL_KHR_shader_subgroup_ballot: enable
 
+#include <extension/neuron_color_and_scale>
+
+// This definition is not required. It's only here for the autocompletion!
+void fetchColorAndScale(uint extensionIndex, bool selected, out vec4 color, out float scale);
+
+
 const float M_PI = 3.1415926535897932384626433832795f;
 const int GRADIENT_SIZE = 256;
 
@@ -56,28 +62,17 @@ struct TaskData {
 struct Neuron {
     uint datasetId;
     uint neuronId;
-    float dummy1;
-    float dummy2;
+    uint colorAndScaleIndex;
+    float dummy;
     vec4 position;
 };
 
 layout (set = 2, binding = 0) uniform Representation {
-    vec4 gradient[GRADIENT_SIZE];
-    vec4 sizes[GRADIENT_SIZE / 4];
     uint neuronsAmount;
-    float decay;
 };
 
-layout(set = 2, binding = 1) uniform Volaitle {
-    float simulationTime;
-};
-
-layout(std430, set = 2, binding = 2) buffer Neurons {
+layout(std430, set = 2, binding = 1) buffer Neurons {
     Neuron neurons[];
-};
-
-layout(std430, set = 2, binding = 3) buffer Actitivty {
-    float activity[];
 };
 
 taskPayloadSharedEXT TaskData td;
@@ -86,12 +81,6 @@ layout(location = 0) out vec3 fragCenter[];
 layout(location = 1) out vec3 fragPosition[];
 layout(location = 2) out vec4 fragColor[];
 layout(location = 3) out float fragSize[];
-
-void fetchData(float t, out vec4 color, out float size) {
-    int index = clamp(int(floor(t * (GRADIENT_SIZE - 1))), 0, GRADIENT_SIZE - 1);
-    color = gradient[index];
-    size = sizes[index / 4][index & 0x3];
-}
 
 void generateSquare(uint index, vec3 position, vec4 color, float size) {
     vec3 camRight = normalize(vec3(view[0][0], view[1][0], view[2][0]));
@@ -132,14 +121,10 @@ void main() {
 
     if (gl_LocalInvocationID.x < amount) {
         Neuron neuron = neurons[td.neurons[gl_GlobalInvocationID.x]];
-        float value = activity[td.neurons[gl_GlobalInvocationID.x]];
-
-        float time = (simulationTime - value) / decay;
-        if (time < 0) time = 1.0f;
 
         vec4 color;
         float size;
-        fetchData(time, color, size);
+        fetchColorAndScale(neuron.colorAndScaleIndex, false, color, size);
 
         generateSquare(gl_LocalInvocationID.x, neuron.position.xyz, color, size);
     }

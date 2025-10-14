@@ -37,8 +37,8 @@ namespace neoneuron
     {
         mindset::UID datasetId = 0;
         mindset::UID neuronId = 0;
-        float dummy1 = 0;
-        float dummy2 = 0;
+        uint32_t colorAndScaleIndex = 0;
+        float dummy = 0;
         rush::Vec4f postPosition; // x, y, z, w = valid
     };
 
@@ -46,6 +46,7 @@ namespace neoneuron
     {
         GID _gid;
         rush::Vec3f _position;
+        uint32_t _colorAndScaleIndex;
         neon::InstanceData* _instanceData;
         neon::InstanceData::Instance _instance;
         bool _valid;
@@ -55,15 +56,19 @@ namespace neoneuron
 
         ActivityGPUNeuron(const ActivityGPUNeuron& other) = delete;
 
-        ActivityGPUNeuron(neon::InstanceData* instanceData, GID gid, rush::Vec3f position, float value);
+        ActivityGPUNeuron(neon::InstanceData* instanceData, GID gid, rush::Vec3f position);
 
         ~ActivityGPUNeuron();
 
+        [[nodiscard]] GID getGID() const;
+
         [[nodiscard]] rush::Vec3f getPosition() const;
 
-        void refreshGPUData() const;
+        void setColorAndScaleIndex(uint32_t colorAndScaleIndex);
 
-        void updateActivityValue(float value) const;
+        void setPosition(rush::Vec3f position);
+
+        void refreshGPUData() const;
     };
 } // namespace neoneuron
 #endif // NEONEURON_GPUACTIVITY_H

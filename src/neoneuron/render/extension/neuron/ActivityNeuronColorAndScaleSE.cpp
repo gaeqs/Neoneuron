@@ -60,8 +60,8 @@ namespace neoneuron
         rush::Vec4f red = {1.0f, 0.0f, 0.0f, 1.0f};
         rush::Vec4f blue = {0.0f, 0.0f, 1.0f, 1.0f};
 
-        for (size_t i = 0; i < ACTIVITY_REPRESENTATION_GRADIENT_SIZE; i++) {
-            float n = static_cast<float>(i) / (ACTIVITY_REPRESENTATION_GRADIENT_SIZE - 1);
+        for (size_t i = 0; i < ACTIVITY_COLOR_AND_SCALE_GRADIENT_SIZE; i++) {
+            float n = static_cast<float>(i) / (ACTIVITY_COLOR_AND_SCALE_GRADIENT_SIZE - 1);
             data.gradient[i] = rush::mix(red, blue, n);
             data.sizes[i] = rush::mix(4.0f, 1.0f, n);
         }

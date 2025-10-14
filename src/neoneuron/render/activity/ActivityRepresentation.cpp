@@ -23,6 +23,9 @@
 
 #include "ActivityRepresentation.h"
 
+#include <neoneuron/application/NeoneuronApplication.h>
+#include <neoneuron/render/extension/neuron/StaticNeuronColorAndScaleSE.h>
+
 CMRC_DECLARE(resources);
 
 namespace neoneuron
@@ -34,9 +37,7 @@ namespace neoneuron
 
         std::vector bindings = {
             neon::ShaderUniformBinding::uniformBuffer(sizeof(ActivityRepresentationData)),
-            neon::ShaderUniformBinding::uniformBuffer(sizeof(ActivityRepresentationVolatileData)),
             neon::ShaderUniformBinding::storageBuffer(sizeof(ActivityGPUNeuronData) * ACTIVITY_INSTANCES),
-            neon::ShaderUniformBinding::storageBuffer(sizeof(float) * ACTIVITY_INSTANCES),
         };
 
         _uboDescriptor =
@@ -47,6 +48,10 @@ namespace neoneuron
 
     void ActivityRepresentation::loadShader()
     {
+        std::string include = _colorAndScale->generateShaderCode(COLOR_AND_SCALE_SET);
+        neon::IncluderCreateInfo info;
+        info.prefetchedIncludes[NeuronColorAndScaleSE::EXTENSION_INCLUDE_NAME] = include;
+
         auto shader = std::make_shared<neon::ShaderProgram>(&_render->getApplication(), "neoneuron:activity");
 
         auto fs = cmrc::resources::get_filesystem();
@@ -54,7 +59,7 @@ namespace neoneuron
         shader->addShader(neon::ShaderType::MESH, fs.open("/shader/activity/activity.mesh"));
         shader->addShader(neon::ShaderType::FRAGMENT, fs.open("/shader/activity/activity.frag"));
 
-        if (auto result = shader->compile(); result.has_value()) {
+        if (auto result = shader->compile(info); result.has_value()) {
             neon::error() << result.value();
         } else {
             _shader = std::move(shader);
@@ -69,6 +74,12 @@ namespace neoneuron
         materialCreateInfo.rasterizer.polygonMode = neon::PolygonMode::FILL;
         materialCreateInfo.descriptions.uniformBuffer = viewport->getUniformBuffer();
         materialCreateInfo.descriptions.uniformBindings[UNIFORM_SET] = neon::DescriptorBinding::extra(_uboDescriptor);
+
+        if (auto extensionUbo = _colorAndScale->getUBODescriptor(); extensionUbo) {
+            materialCreateInfo.descriptions.uniformBindings[COLOR_AND_SCALE_SET] =
+                neon::DescriptorBinding::extra(*extensionUbo);
+        }
+
         return std::make_shared<neon::Material>(app, "neoneuron:activity", materialCreateInfo);
     }
 
@@ -89,13 +100,15 @@ namespace neoneuron
         modelCreateInfo.drawables.push_back(drawable);
         modelCreateInfo.uniformBufferBindings[UNIFORM_SET] = neon::ModelBufferBinding::extra(_ubo);
 
+        if (auto extensionUbo = _colorAndScale->getUBO(); extensionUbo) {
+            modelCreateInfo.uniformBufferBindings[COLOR_AND_SCALE_SET] = neon::ModelBufferBinding::extra(*extensionUbo);
+        }
+
         modelCreateInfo.defineInstanceType<ActivityGPUNeuronData, float>();
         modelCreateInfo.instanceDataProvider = [this](neon::Application* app, const neon::ModelCreateInfo& info,
                                                       const neon::Model* model) {
-            std::vector indices = {
-                neon::StorageBufferInstanceData::Slot(sizeof(ActivityGPUNeuronData), sizeof(ActivityGPUNeuronData),
-                                                      NEURON_BINDING, _ubo.get()),
-                neon::StorageBufferInstanceData::Slot(sizeof(float), sizeof(float), ACTIVITY_BINDING, _ubo.get())};
+            std::vector indices = {neon::StorageBufferInstanceData::Slot(
+                sizeof(ActivityGPUNeuronData), sizeof(ActivityGPUNeuronData), NEURON_BINDING, _ubo.get())};
             return std::vector<neon::InstanceData*>{new neon::StorageBufferInstanceData(app, info, indices)};
         };
 
@@ -144,29 +157,18 @@ namespace neoneuron
     void ActivityRepresentation::updateGPURepresentationData() const
     {
         ActivityRepresentationData data;
-        rush::Vec4f red = {1.0f, 0.0f, 0.0f, 1.0f};
-        rush::Vec4f blue = {0.0f, 0.0f, 1.0f, 1.0f};
-
-        for (size_t i = 0; i < ACTIVITY_REPRESENTATION_GRADIENT_SIZE; i++) {
-            float n = static_cast<float>(i) / (ACTIVITY_REPRESENTATION_GRADIENT_SIZE - 1);
-            data.gradient[i] = rush::mix(red, blue, n);
-            data.sizes[i] = rush::mix(2.0f, 1.0f, n);
-        }
-
-        data.decay = 1.0f;
         data.activities = _gpuNeurons.size();
-
         _ubo->uploadData(REPRESENTATION_BINDING, std::move(data));
     }
 
     ActivityRepresentation::ActivityRepresentation(NeoneuronRender* render) :
-        _render(render)
+        _render(render),
+        _colorAndScale(std::make_shared<StaticNeuronColorAndScaleSE>(&render->getApplication()))
     {
         loadUniformBuffers();
         loadShader();
         loadModel();
 
-        _ubo->uploadData(VOLATILE_BINDING, ActivityRepresentationVolatileData(0.0f));
         _instanceData = _model->getInstanceData(0);
     }
 
@@ -194,6 +196,24 @@ namespace neoneuron
 
     void ActivityRepresentation::refreshNeuronProperty(GID neuronId, const std::string& propertyName)
     {
+        if (propertyName == mindset::PROPERTY_TRANSFORM) {
+            if (auto it = _gpuNeurons.find(neuronId); it != _gpuNeurons.end()) {
+                if (auto optional =
+                        _render->getNeoneuronApplication()->getRepository().getNeuronAndDataset(it->second.getGID())) {
+                    auto [dataset, neuron] = *optional;
+                    auto lock = neuron->readLock();
+                    auto prop = dataset->getDataset().getProperties().getPropertyUID(mindset::PROPERTY_TRANSFORM);
+                    if (!prop.has_value()) {
+                        neon::error() << "Property " << mindset::PROPERTY_TRANSFORM << " not found";
+                        return;
+                    }
+                    if (auto position = neuron->getProperty<mindset::NeuronTransform>(*prop)) {
+                        it->second.setPosition(position->getPosition());
+                        recalculateBoundingBox();
+                    }
+                }
+            }
+        }
     }
 
     void ActivityRepresentation::refreshData(const RepositoryView& view)
@@ -221,7 +241,7 @@ namespace neoneuron
                     }
                     if (auto position = neuron->getProperty<mindset::NeuronTransform>(*prop)) {
                         _gpuNeurons.emplace(std::piecewise_construct, std::forward_as_tuple(gid),
-                                            std::forward_as_tuple(_instanceData, gid, position->getPosition(), -10000.0f));
+                                            std::forward_as_tuple(_instanceData, gid, position->getPosition()));
                     } else {
                         neon::error() << "Neuron's position not found";
                     }
@@ -329,58 +349,44 @@ namespace neoneuron
         return static_cast<float>(getUsedInstanceMemory()) / static_cast<float>(getAllocatedInstanceMemory());
     }
 
-    void ActivityRepresentation::onTimeChanged(std::chrono::nanoseconds lastTime, std::chrono::nanoseconds newTime,
-                                               TimeChangeType type)
+    void ActivityRepresentation::setColorAndScale(std::shared_ptr<NeuronColorAndScaleSE> colorAndScale)
     {
-        if (!_activity) {
-            return;
+        for (const auto& gid : _gpuNeurons | std::views::keys) {
+            _colorAndScale->unregisterElement(gid);
         }
 
-        if (lastTime > newTime) {
-            // Loop detected. Process both segments
-            onTimeChanged(lastTime, std::chrono::nanoseconds::max(), type);
-            onTimeChanged(std::chrono::nanoseconds(0), newTime, type);
-            return;
+        if (colorAndScale == nullptr) {
+            // Default
+            _colorAndScale = std::make_shared<StaticNeuronColorAndScaleSE>(&_render->getApplication());
+        } else {
+            _colorAndScale = std::move(colorAndScale);
         }
 
-        for (auto event : _activity->sequence.getRange(lastTime, newTime)) {
-            GID gid = {_activity->activityId.datasetId, event.uid};
-            auto it = _gpuNeurons.find(gid);
-            if (it == _gpuNeurons.end()) {
-                continue;
+        loadShader();
+
+        for (auto& [vp, material] : _viewports) {
+            material = loadMaterial(vp);
+        }
+
+        for (auto& mesh : _model->getMeshes()) {
+            auto& set = mesh->getMaterials();
+            set.clear();
+            set.reserve(_viewports.size());
+            for (auto& materials : _viewports | std::views::values) {
+                set.insert(materials);
             }
-
-            auto seconds = std::chrono::duration_cast<std::chrono::duration<float>>(event.timepoint);
-            it->second.updateActivityValue(seconds.count());
         }
 
-        auto seconds = std::chrono::duration_cast<std::chrono::duration<float>>(newTime);
-        _ubo->uploadData(VOLATILE_BINDING, ActivityRepresentationVolatileData(seconds.count()));
-    }
-
-    std::vector<ActivityEntry<mindset::TimeGrid<double>>> ActivityRepresentation::getTimeGrids()
-    {
-        return {};
-    }
-
-    std::vector<ActivityEntry<mindset::EventSequence<std::monostate>>> ActivityRepresentation::getEventSequences()
-    {
-        if (_activity) {
-            return {ActivityEntry(_activity->activityId, _activity->name, &_activity->sequence)};
+        if (auto ubo = _colorAndScale->getUBO(); ubo) {
+            auto binding = neon::ModelBufferBinding::extra(*ubo);
+            _model->getUniformBufferBindings()[COLOR_AND_SCALE_SET] = binding;
+        } else {
+            _model->getUniformBufferBindings().erase(COLOR_AND_SCALE_SET);
         }
 
-        return {};
-    }
-
-    void ActivityRepresentation::setActivity(GID activityId, std::string name,
-                                             mindset::EventSequence<std::monostate> sequence)
-    {
-        _activity = {activityId, std::move(name), std::move(sequence)};
-    }
-
-    void ActivityRepresentation::clearActivity()
-    {
-        _activity = {};
+        for (auto& gpu : _gpuNeurons | std::views::values) {
+            gpu.setColorAndScaleIndex(_colorAndScale->registerElement(gpu.getGID()));
+        }
     }
 
 } // namespace neoneuron

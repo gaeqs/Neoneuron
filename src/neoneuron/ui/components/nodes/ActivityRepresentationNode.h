@@ -33,7 +33,6 @@ namespace neoneuron
     {
         NeoneuronApplication* _application;
         std::weak_ptr<ActivityRepresentation> _representation;
-        Timeline* _timeline;
 
         void drawProgressBar(ActivityRepresentation* ptr);
 

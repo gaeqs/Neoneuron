@@ -809,6 +809,10 @@ namespace neoneuron
 
     void ComplexNeuronRepresentation::setColorAndScale(std::shared_ptr<NeuronColorAndScaleSE> colorAndScale)
     {
+        for (const auto& gid : _neurons | std::views::keys) {
+            _colorAndScale->unregisterElement(gid);
+        }
+
         if (colorAndScale == nullptr) {
             // Default
             _colorAndScale = std::make_shared<StaticNeuronColorAndScaleSE>(&_render->getApplication());

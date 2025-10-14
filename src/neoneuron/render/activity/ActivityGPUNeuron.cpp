@@ -38,9 +38,10 @@ namespace neoneuron
         other._valid = false;
     }
 
-    ActivityGPUNeuron::ActivityGPUNeuron(neon::InstanceData* instanceData, GID gid, rush::Vec3f position, float value) :
+    ActivityGPUNeuron::ActivityGPUNeuron(neon::InstanceData* instanceData, GID gid, rush::Vec3f position) :
         _gid(gid),
         _position(position),
+        _colorAndScaleIndex(0),
         _instanceData(instanceData),
         _valid(true)
     {
@@ -53,7 +54,6 @@ namespace neoneuron
         _instance = result.getResult();
 
         refreshGPUData();
-        updateActivityValue(value);
     }
 
     ActivityGPUNeuron::~ActivityGPUNeuron()
@@ -63,9 +63,26 @@ namespace neoneuron
         }
     }
 
+    GID ActivityGPUNeuron::getGID() const
+    {
+        return _gid;
+    }
+
     rush::Vec3f ActivityGPUNeuron::getPosition() const
     {
         return _position;
+    }
+
+    void ActivityGPUNeuron::setColorAndScaleIndex(uint32_t colorAndScaleIndex)
+    {
+        _colorAndScaleIndex = colorAndScaleIndex;
+        refreshGPUData();
+    }
+
+    void ActivityGPUNeuron::setPosition(rush::Vec3f position)
+    {
+        _position = position;
+        refreshGPUData();
     }
 
     void ActivityGPUNeuron::refreshGPUData() const
@@ -76,12 +93,8 @@ namespace neoneuron
         ActivityGPUNeuronData data;
         data.datasetId = _gid.datasetId;
         data.neuronId = _gid.internalId;
+        data.colorAndScaleIndex = _colorAndScaleIndex;
         data.postPosition = rush::Vec4f(_position, 1.0f);
         _instanceData->uploadData(_instance, 0, data);
-    }
-
-    void ActivityGPUNeuron::updateActivityValue(float value) const
-    {
-        _instanceData->uploadData(_instance, 1, value);
     }
 } // namespace neoneuron
