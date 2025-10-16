@@ -27,7 +27,7 @@
 #include <neon/render/model/PinnedStorageBufferInstanceData.h>
 
 #include <neoneuron/render/TimeAware.h>
-#include <neoneuron/render/activity/ActivityRepresentation.h>
+#include <neoneuron/render/particle/ParticleNeuronRepresentation.h>
 #include <neoneuron/render/extension/neuron/NeuronColorAndScaleSE.h>
 
 namespace neoneuron

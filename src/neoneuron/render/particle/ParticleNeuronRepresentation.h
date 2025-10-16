@@ -26,7 +26,7 @@
 
 #include <neoneuron/render/AbstractNeuronRepresentation.h>
 #include <neoneuron/render/NeoneuronRender.h>
-#include <neoneuron/render/activity/ActivityGPUNeuron.h>
+#include <neoneuron/render/particle/ParticleGPUNeuron.h>
 #include <neoneuron/render/extension/neuron/NeuronColorAndScaleSE.h>
 
 namespace neoneuron
@@ -44,7 +44,7 @@ namespace neoneuron
         mindset::EventSequence<std::monostate> sequence;
     };
 
-    class ActivityRepresentation : public AbstractNeuronRepresentation
+    class ParticleNeuronRepresentation : public AbstractNeuronRepresentation
     {
       public:
         static constexpr size_t UNIFORM_SET = 2;
@@ -70,7 +70,7 @@ namespace neoneuron
         std::unordered_map<const Viewport*, std::shared_ptr<neon::Material>> _viewports;
 
         std::unordered_set<GID> _neuronsInData;
-        std::unordered_map<GID, ActivityGPUNeuron> _gpuNeurons;
+        std::unordered_map<GID, ParticleGPUNeuron> _gpuNeurons;
 
         void loadUniformBuffers();
 
@@ -84,16 +84,16 @@ namespace neoneuron
 
         void recalculateBoundingBox();
 
-        void addNeuronToBoundingBox(const ActivityGPUNeuron& neuron);
+        void addNeuronToBoundingBox(const ParticleGPUNeuron& neuron);
 
         void updateGPURepresentationData() const;
 
       public:
-        ActivityRepresentation(const ActivityRepresentation&) = delete;
+        ParticleNeuronRepresentation(const ParticleNeuronRepresentation&) = delete;
 
-        explicit ActivityRepresentation(NeoneuronRender* render);
+        explicit ParticleNeuronRepresentation(NeoneuronRender* render);
 
-        ~ActivityRepresentation() override;
+        ~ParticleNeuronRepresentation() override;
 
         [[nodiscard]] NeoneuronRender* getRender() override;
 

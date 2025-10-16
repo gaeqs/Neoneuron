@@ -17,29 +17,29 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef REPRESENTATIONNODE_H
-#define REPRESENTATIONNODE_H
+#ifndef NEONEURON_ACTIVITYREPRESENTATIONNODE_H
+#define NEONEURON_ACTIVITYREPRESENTATIONNODE_H
 
 #include <imblueprint/imblueprint.h>
 
 #include "NodeFactory.h"
 #include <neoneuron/application/NeoneuronApplication.h>
-#include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
+#include <neoneuron/render/particle/ParticleNeuronRepresentation.h>
 
 namespace neoneuron
 {
 
-    class RepresentationNode : public ImBlueprint::Node
+    class NeuronParticleRepresentationNode : public ImBlueprint::Node
     {
         NeoneuronApplication* _application;
-        std::weak_ptr<ComplexNeuronRepresentation> _representation;
+        std::weak_ptr<ParticleNeuronRepresentation> _representation;
 
-        static void drawProgressBar(ComplexNeuronRepresentation* ptr);
+        void drawProgressBar(ParticleNeuronRepresentation* ptr);
 
       public:
-        explicit RepresentationNode(NeoneuronApplication* application);
+        explicit NeuronParticleRepresentationNode(NeoneuronApplication* application);
 
-        ~RepresentationNode() override;
+        ~NeuronParticleRepresentationNode() override;
 
         void renderBody() override;
 
@@ -50,4 +50,4 @@ namespace neoneuron
 
 } // namespace neoneuron
 
-#endif // REPRESENTATIONNODE_H
+#endif // NEONEURON_ACTIVITYREPRESENTATIONNODE_H

@@ -21,13 +21,13 @@
 
 #include "neoneuron/ui/style/MaterialSymbols.h"
 #include "nodes/ActivityColorAndScaleNode.h"
-#include "nodes/ActivityRepresentationNode.h"
+#include "nodes/NeuronParticleRepresentationNode.h"
 #include "nodes/CameraNode.h"
 #include "nodes/DatasetNode.h"
 #include "nodes/EventSequenceNode.h"
 #include "nodes/ReduceNode.h"
 #include "nodes/RepositoryNode.h"
-#include "nodes/RepresentationNode.h"
+#include "nodes/MorphologyRepresentationNode.h"
 #include "nodes/SelectionNode.h"
 #include "nodes/SynapseRepresentationNode.h"
 #include "nodes/TimelineNode.h"
@@ -40,7 +40,7 @@ namespace neoneuron
     {
         auto repo = _editor.addNode<RepositoryNode>(_application);
         auto viewport = _editor.addNode<ViewportNode>(_application);
-        auto representation = _editor.addNode<RepresentationNode>(_application);
+        auto representation = _editor.addNode<MorphologyRepresentationNode>(_application);
 
         _editor.setNodePosition(repo, {150, 50});
         _editor.setNodePosition(viewport, {150, 150});
@@ -69,9 +69,9 @@ namespace neoneuron
         _editor.showMinimap(true);
 
         _factories.push_back(RepositoryNode::createFactory());
-        _factories.push_back(RepresentationNode::createFactory());
+        _factories.push_back(MorphologyRepresentationNode::createFactory());
         _factories.push_back(SynapseRepresentationNode::createFactory());
-        _factories.push_back(ActivityRepresentationNode::createFactory());
+        _factories.push_back(NeuronParticleRepresentationNode::createFactory());
         _factories.push_back(ViewportNode::createFactory());
         _factories.push_back(CameraNode::createFactory());
         _factories.push_back(DatasetNode::createFactory());

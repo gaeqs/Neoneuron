@@ -21,7 +21,7 @@
 // Created by gaeqs on 8/10/25.
 //
 
-#include "ActivityRepresentation.h"
+#include "ParticleNeuronRepresentation.h"
 
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/extension/neuron/StaticNeuronColorAndScaleSE.h>
@@ -31,7 +31,7 @@ CMRC_DECLARE(resources);
 namespace neoneuron
 {
 
-    void ActivityRepresentation::loadUniformBuffers()
+    void ParticleNeuronRepresentation::loadUniformBuffers()
     {
         auto* app = &_render->getApplication();
 
@@ -46,7 +46,7 @@ namespace neoneuron
         _ubo = std::make_shared<neon::ShaderUniformBuffer>("neoneuron:activity_ubo", _uboDescriptor);
     }
 
-    void ActivityRepresentation::loadShader()
+    void ParticleNeuronRepresentation::loadShader()
     {
         std::string include = _colorAndScale->generateShaderCode(COLOR_AND_SCALE_SET);
         neon::IncluderCreateInfo info;
@@ -66,7 +66,7 @@ namespace neoneuron
         }
     }
 
-    std::shared_ptr<neon::Material> ActivityRepresentation::loadMaterial(const Viewport* viewport) const
+    std::shared_ptr<neon::Material> ParticleNeuronRepresentation::loadMaterial(const Viewport* viewport) const
     {
         auto* app = &_render->getApplication();
         neon::MaterialCreateInfo materialCreateInfo(viewport->getInputFrameBuffer(), _shader);
@@ -83,7 +83,7 @@ namespace neoneuron
         return std::make_shared<neon::Material>(app, "neoneuron:activity", materialCreateInfo);
     }
 
-    void ActivityRepresentation::loadModel()
+    void ParticleNeuronRepresentation::loadModel()
     {
         auto* app = &_render->getApplication();
 
@@ -116,14 +116,14 @@ namespace neoneuron
         _render->getRoom()->markUsingModel(_model.get());
     }
 
-    void ActivityRepresentation::onClear()
+    void ParticleNeuronRepresentation::onClear()
     {
         _gpuNeurons.clear();
         _sceneBoundingBox = {};
         updateGPURepresentationData();
     }
 
-    void ActivityRepresentation::recalculateBoundingBox()
+    void ParticleNeuronRepresentation::recalculateBoundingBox()
     {
         if (_gpuNeurons.empty()) {
             _sceneBoundingBox = {};
@@ -142,7 +142,7 @@ namespace neoneuron
         _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
-    void ActivityRepresentation::addNeuronToBoundingBox(const ActivityGPUNeuron& neuron)
+    void ParticleNeuronRepresentation::addNeuronToBoundingBox(const ParticleGPUNeuron& neuron)
     {
         auto min = _sceneBoundingBox.center - _sceneBoundingBox.radius;
         auto max = _sceneBoundingBox.center + _sceneBoundingBox.radius;
@@ -154,14 +154,14 @@ namespace neoneuron
         _sceneBoundingBox = rush::AABB<3, float>::fromEdges(min, max);
     }
 
-    void ActivityRepresentation::updateGPURepresentationData() const
+    void ParticleNeuronRepresentation::updateGPURepresentationData() const
     {
         ActivityRepresentationData data;
         data.activities = _gpuNeurons.size();
         _ubo->uploadData(REPRESENTATION_BINDING, std::move(data));
     }
 
-    ActivityRepresentation::ActivityRepresentation(NeoneuronRender* render) :
+    ParticleNeuronRepresentation::ParticleNeuronRepresentation(NeoneuronRender* render) :
         _render(render),
         _colorAndScale(std::make_shared<StaticNeuronColorAndScaleSE>(&render->getApplication()))
     {
@@ -172,7 +172,7 @@ namespace neoneuron
         _instanceData = _model->getInstanceData(0);
     }
 
-    ActivityRepresentation::~ActivityRepresentation()
+    ParticleNeuronRepresentation::~ParticleNeuronRepresentation()
     {
         for (const auto& gid : _gpuNeurons | std::views::keys) {
             _colorAndScale->unregisterElement(gid);
@@ -183,22 +183,22 @@ namespace neoneuron
         }
     }
 
-    NeoneuronRender* ActivityRepresentation::getRender()
+    NeoneuronRender* ParticleNeuronRepresentation::getRender()
     {
         return _render;
     }
 
-    const NeoneuronRender* ActivityRepresentation::getRender() const
+    const NeoneuronRender* ParticleNeuronRepresentation::getRender() const
     {
         return _render;
     }
 
-    rush::AABB<3, float> ActivityRepresentation::getSceneBoundingBox() const
+    rush::AABB<3, float> ParticleNeuronRepresentation::getSceneBoundingBox() const
     {
         return _sceneBoundingBox;
     }
 
-    void ActivityRepresentation::refreshNeuronProperty(GID neuronId, const std::string& propertyName)
+    void ParticleNeuronRepresentation::refreshNeuronProperty(GID neuronId, const std::string& propertyName)
     {
         if (propertyName == mindset::PROPERTY_TRANSFORM) {
             if (auto it = _gpuNeurons.find(neuronId); it != _gpuNeurons.end()) {
@@ -220,7 +220,7 @@ namespace neoneuron
         }
     }
 
-    void ActivityRepresentation::refreshData(const RepositoryView& view)
+    void ParticleNeuronRepresentation::refreshData(const RepositoryView& view)
     {
         auto& newGIDs = view.getNeuronsGIDs();
         std::unordered_set set(newGIDs.begin(), newGIDs.end());
@@ -263,13 +263,13 @@ namespace neoneuron
         _neuronsInData = set;
     }
 
-    void ActivityRepresentation::clearData()
+    void ParticleNeuronRepresentation::clearData()
     {
         _gpuNeurons.clear();
         _neuronsInData.clear();
     }
 
-    void ActivityRepresentation::addViewport(const Viewport* viewport)
+    void ParticleNeuronRepresentation::addViewport(const Viewport* viewport)
     {
         if (_viewports.contains(viewport)) {
             return;
@@ -284,7 +284,7 @@ namespace neoneuron
         _viewports.emplace(viewport, std::move(material));
     }
 
-    void ActivityRepresentation::removeViewport(const Viewport* viewport)
+    void ParticleNeuronRepresentation::removeViewport(const Viewport* viewport)
     {
         auto it = _viewports.find(viewport);
         if (it == _viewports.end()) {
@@ -298,12 +298,12 @@ namespace neoneuron
         _viewports.erase(it);
     }
 
-    bool ActivityRepresentation::hasViewport(const Viewport* viewport)
+    bool ParticleNeuronRepresentation::hasViewport(const Viewport* viewport)
     {
         return _viewports.contains(viewport);
     }
 
-    void ActivityRepresentation::setViewports(const std::unordered_set<const Viewport*>& viewport)
+    void ParticleNeuronRepresentation::setViewports(const std::unordered_set<const Viewport*>& viewport)
     {
         // First, remove
         for (auto it = _viewports.begin(); it != _viewports.end();) {
@@ -323,7 +323,7 @@ namespace neoneuron
         }
     }
 
-    size_t ActivityRepresentation::getTotalAllocatedMemory() const
+    size_t ParticleNeuronRepresentation::getTotalAllocatedMemory() const
     {
         size_t size = 0;
         for (auto& binding : _uboDescriptor->getBindings()) {
@@ -335,7 +335,7 @@ namespace neoneuron
         return size;
     }
 
-    size_t ActivityRepresentation::getAllocatedInstanceMemory() const
+    size_t ParticleNeuronRepresentation::getAllocatedInstanceMemory() const
     {
         size_t size = 0;
         for (auto& data : _model->getInstanceDatas()) {
@@ -344,7 +344,7 @@ namespace neoneuron
         return size;
     }
 
-    size_t ActivityRepresentation::getUsedInstanceMemory() const
+    size_t ParticleNeuronRepresentation::getUsedInstanceMemory() const
     {
         size_t size = 0;
         for (auto& data : _model->getInstanceDatas()) {
@@ -353,12 +353,12 @@ namespace neoneuron
         return size;
     }
 
-    float ActivityRepresentation::getUsedInstanceMemoryPercentage() const
+    float ParticleNeuronRepresentation::getUsedInstanceMemoryPercentage() const
     {
         return static_cast<float>(getUsedInstanceMemory()) / static_cast<float>(getAllocatedInstanceMemory());
     }
 
-    void ActivityRepresentation::setColorAndScale(std::shared_ptr<NeuronColorAndScaleSE> colorAndScale)
+    void ParticleNeuronRepresentation::setColorAndScale(std::shared_ptr<NeuronColorAndScaleSE> colorAndScale)
     {
         for (const auto& gid : _gpuNeurons | std::views::keys) {
             _colorAndScale->unregisterElement(gid);

@@ -17,16 +17,15 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include "ActivityRepresentationNode.h"
+#include "MorphologyRepresentationNode.h"
 
-#include <neoneuron/render/activity/ActivityRepresentation.h>
+#include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
 #include <neoneuron/structure/RepositoryView.h>
-#include <neoneuron/ui/components/nodes/EventSequenceNode.h>
 
 namespace neoneuron
 {
 
-    void ActivityRepresentationNode::drawProgressBar(ActivityRepresentation* ptr)
+    void MorphologyRepresentationNode::drawProgressBar(ComplexNeuronRepresentation* ptr)
     {
         auto used = static_cast<float>(ptr->getUsedInstanceMemory()) / 1024.0f / 1024.0f;
         auto allocated = static_cast<float>(ptr->getAllocatedInstanceMemory()) / 1024.0f / 1024.0f;
@@ -35,19 +34,18 @@ namespace neoneuron
         ImGui::Text("Bytes: %d", ptr->getUsedInstanceMemory());
     }
 
-    ActivityRepresentationNode::ActivityRepresentationNode(NeoneuronApplication* application) :
-        Node("Activity Representation"),
+    MorphologyRepresentationNode::MorphologyRepresentationNode(NeoneuronApplication* application) :
+        Node("Neuron morphology representation"),
         _application(application)
     {
         defineInput<RepositoryView>("Data", true);
         defineInput<Viewport*>("Viewport", true);
         defineInput<std::shared_ptr<NeuronColorAndScaleSE>>("Color and scale", true);
-
-        _representation = _application->getRender().addRepresentation<ActivityRepresentation>();
+        _representation = _application->getRender().addRepresentation<ComplexNeuronRepresentation>();
         defineOutput<std::weak_ptr<AbstractNeuronRepresentation>>("Representation", _representation);
     }
 
-    ActivityRepresentationNode::~ActivityRepresentationNode()
+    MorphologyRepresentationNode::~MorphologyRepresentationNode()
     {
         sendOutput("Representation", std::any());
         if (auto ptr = _representation.lock()) {
@@ -55,7 +53,7 @@ namespace neoneuron
         }
     }
 
-    void ActivityRepresentationNode::renderBody()
+    void MorphologyRepresentationNode::renderBody()
     {
         auto ptr = _representation.lock();
         if (!ptr) {
@@ -63,9 +61,14 @@ namespace neoneuron
         }
 
         drawProgressBar(ptr.get());
+
+        bool wireframe = ptr->isWireframeMode();
+        if (ImGui::Checkbox("Wireframe", &wireframe)) {
+            ptr->setWireframeMode(wireframe);
+        }
     }
 
-    void ActivityRepresentationNode::onInputChange(const std::string& name, const std::any& value)
+    void MorphologyRepresentationNode::onInputChange(const std::string& name, const std::any& value)
     {
         auto ptr = _representation.lock();
         if (!ptr) {
@@ -105,10 +108,10 @@ namespace neoneuron
         }
     }
 
-    NodeFactory ActivityRepresentationNode::createFactory()
+    NodeFactory MorphologyRepresentationNode::createFactory()
     {
-        return NodeFactory("Activity Representation", [](ImBlueprint::Editor& editor, auto* app) {
-            return editor.addNode<ActivityRepresentationNode>(app);
+        return NodeFactory("Neuron morphology representation", [](ImBlueprint::Editor& editor, auto* app) {
+            return editor.addNode<MorphologyRepresentationNode>(app);
         });
     }
 } // namespace neoneuron

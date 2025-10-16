@@ -88,7 +88,7 @@ namespace neoneuron
             if (auto pathProp = dataset->getDataset().getProperties().getPropertyUID(mindset::PROPERTY_PATH)) {
                 if (auto pathString = morph->getProperty<std::string>(*pathProp)) {
                     std::filesystem::path path = *pathString;
-                    outputName = path.filename();
+                    outputName = path.filename().string();
                 }
             }
             if (outputName.empty()) {

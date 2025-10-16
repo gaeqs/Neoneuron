@@ -17,15 +17,16 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include "RepresentationNode.h"
+#include "NeuronParticleRepresentationNode.h"
 
-#include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
+#include <neoneuron/render/particle/ParticleNeuronRepresentation.h>
 #include <neoneuron/structure/RepositoryView.h>
+#include <neoneuron/ui/components/nodes/EventSequenceNode.h>
 
 namespace neoneuron
 {
 
-    void RepresentationNode::drawProgressBar(ComplexNeuronRepresentation* ptr)
+    void NeuronParticleRepresentationNode::drawProgressBar(ParticleNeuronRepresentation* ptr)
     {
         auto used = static_cast<float>(ptr->getUsedInstanceMemory()) / 1024.0f / 1024.0f;
         auto allocated = static_cast<float>(ptr->getAllocatedInstanceMemory()) / 1024.0f / 1024.0f;
@@ -34,18 +35,19 @@ namespace neoneuron
         ImGui::Text("Bytes: %d", ptr->getUsedInstanceMemory());
     }
 
-    RepresentationNode::RepresentationNode(NeoneuronApplication* application) :
-        Node("Representation"),
+    NeuronParticleRepresentationNode::NeuronParticleRepresentationNode(NeoneuronApplication* application) :
+        Node("Neurons as particles representation"),
         _application(application)
     {
         defineInput<RepositoryView>("Data", true);
         defineInput<Viewport*>("Viewport", true);
         defineInput<std::shared_ptr<NeuronColorAndScaleSE>>("Color and scale", true);
-        _representation = _application->getRender().addRepresentation<ComplexNeuronRepresentation>();
+
+        _representation = _application->getRender().addRepresentation<ParticleNeuronRepresentation>();
         defineOutput<std::weak_ptr<AbstractNeuronRepresentation>>("Representation", _representation);
     }
 
-    RepresentationNode::~RepresentationNode()
+    NeuronParticleRepresentationNode::~NeuronParticleRepresentationNode()
     {
         sendOutput("Representation", std::any());
         if (auto ptr = _representation.lock()) {
@@ -53,7 +55,7 @@ namespace neoneuron
         }
     }
 
-    void RepresentationNode::renderBody()
+    void NeuronParticleRepresentationNode::renderBody()
     {
         auto ptr = _representation.lock();
         if (!ptr) {
@@ -61,14 +63,9 @@ namespace neoneuron
         }
 
         drawProgressBar(ptr.get());
-
-        bool wireframe = ptr->isWireframeMode();
-        if (ImGui::Checkbox("Wireframe", &wireframe)) {
-            ptr->setWireframeMode(wireframe);
-        }
     }
 
-    void RepresentationNode::onInputChange(const std::string& name, const std::any& value)
+    void NeuronParticleRepresentationNode::onInputChange(const std::string& name, const std::any& value)
     {
         auto ptr = _representation.lock();
         if (!ptr) {
@@ -108,10 +105,10 @@ namespace neoneuron
         }
     }
 
-    NodeFactory RepresentationNode::createFactory()
+    NodeFactory NeuronParticleRepresentationNode::createFactory()
     {
-        return NodeFactory("Representation", [](ImBlueprint::Editor& editor, auto* app) {
-            return editor.addNode<RepresentationNode>(app);
+        return NodeFactory("Neurons as particles representation", [](ImBlueprint::Editor& editor, auto* app) {
+            return editor.addNode<NeuronParticleRepresentationNode>(app);
         });
     }
 } // namespace neoneuron

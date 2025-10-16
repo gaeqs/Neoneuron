@@ -21,16 +21,17 @@
 // Created by gaeqs on 8/10/25.
 //
 
-#include "ActivityGPUNeuron.h"
+#include "ParticleGPUNeuron.h"
 
 #include <neon/logging/Logger.h>
 
 namespace neoneuron
 {
 
-    ActivityGPUNeuron::ActivityGPUNeuron(ActivityGPUNeuron&& other) noexcept :
+    ParticleGPUNeuron::ParticleGPUNeuron(ParticleGPUNeuron&& other) noexcept :
         _gid(other._gid),
         _position(other._position),
+        _colorAndScaleIndex(other._colorAndScaleIndex),
         _instanceData(other._instanceData),
         _instance(other._instance),
         _valid(other._valid)
@@ -38,7 +39,7 @@ namespace neoneuron
         other._valid = false;
     }
 
-    ActivityGPUNeuron::ActivityGPUNeuron(neon::InstanceData* instanceData, GID gid, rush::Vec3f position) :
+    ParticleGPUNeuron::ParticleGPUNeuron(neon::InstanceData* instanceData, GID gid, rush::Vec3f position) :
         _gid(gid),
         _position(position),
         _colorAndScaleIndex(0),
@@ -56,36 +57,36 @@ namespace neoneuron
         refreshGPUData();
     }
 
-    ActivityGPUNeuron::~ActivityGPUNeuron()
+    ParticleGPUNeuron::~ParticleGPUNeuron()
     {
         if (_valid) {
             _instanceData->freeInstance(_instance);
         }
     }
 
-    GID ActivityGPUNeuron::getGID() const
+    GID ParticleGPUNeuron::getGID() const
     {
         return _gid;
     }
 
-    rush::Vec3f ActivityGPUNeuron::getPosition() const
+    rush::Vec3f ParticleGPUNeuron::getPosition() const
     {
         return _position;
     }
 
-    void ActivityGPUNeuron::setColorAndScaleIndex(uint32_t colorAndScaleIndex)
+    void ParticleGPUNeuron::setColorAndScaleIndex(uint32_t colorAndScaleIndex)
     {
         _colorAndScaleIndex = colorAndScaleIndex;
         refreshGPUData();
     }
 
-    void ActivityGPUNeuron::setPosition(rush::Vec3f position)
+    void ParticleGPUNeuron::setPosition(rush::Vec3f position)
     {
         _position = position;
         refreshGPUData();
     }
 
-    void ActivityGPUNeuron::refreshGPUData() const
+    void ParticleGPUNeuron::refreshGPUData() const
     {
         if (!_valid) {
             return;

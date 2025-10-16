@@ -42,7 +42,7 @@ namespace neoneuron
         rush::Vec4f postPosition; // x, y, z, w = valid
     };
 
-    class ActivityGPUNeuron
+    class ParticleGPUNeuron
     {
         GID _gid;
         rush::Vec3f _position;
@@ -52,13 +52,13 @@ namespace neoneuron
         bool _valid;
 
       public:
-        ActivityGPUNeuron(ActivityGPUNeuron&& other) noexcept;
+        ParticleGPUNeuron(ParticleGPUNeuron&& other) noexcept;
 
-        ActivityGPUNeuron(const ActivityGPUNeuron& other) = delete;
+        ParticleGPUNeuron(const ParticleGPUNeuron& other) = delete;
 
-        ActivityGPUNeuron(neon::InstanceData* instanceData, GID gid, rush::Vec3f position);
+        ParticleGPUNeuron(neon::InstanceData* instanceData, GID gid, rush::Vec3f position);
 
-        ~ActivityGPUNeuron();
+        ~ParticleGPUNeuron();
 
         [[nodiscard]] GID getGID() const;
 
