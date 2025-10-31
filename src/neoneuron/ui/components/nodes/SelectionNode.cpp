@@ -17,9 +17,10 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include "SelectionNode.h"
-
 #include <neoneuron/structure/RepositoryView.h>
+#include <neoneuron/ui/components/nodes/SelectionNode.h>
+#include <neoneuron/ui/style/MaterialSymbols.h>
+#include <neoneuron/ui/style/NodeStyles.h>
 
 namespace neoneuron
 {
@@ -36,7 +37,7 @@ namespace neoneuron
     }
 
     SelectionNode::SelectionNode(NeoneuronApplication* application) :
-        Node("Selection"),
+        NeoneuronNode("Selection", ICON_MS_DATA_OBJECT, NODE_STYLE_DATA),
         _repository(&application->getRepository()),
         _selector(&application->getSelector()),
         _version(application->getSelector().getVersion())

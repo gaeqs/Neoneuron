@@ -17,16 +17,17 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include "SynapseRepresentationNode.h"
-
 #include <neoneuron/render/synapse/SynapseRepresentation.h>
 #include <neoneuron/structure/RepositoryView.h>
+#include <neoneuron/ui/components/nodes/SynapseRepresentationNode.h>
+#include <neoneuron/ui/style/MaterialSymbols.h>
+#include <neoneuron/ui/style/NodeStyles.h>
 
 namespace neoneuron
 {
 
     SynapseRepresentationNode::SynapseRepresentationNode(NeoneuronApplication* application) :
-        Node("Synapse Representation"),
+        NeoneuronNode("Synapse Representation", ICON_MS_FORMAT_PAINT, NODE_STYLE_REPRESENTATION),
         _application(application)
     {
         defineInput<RepositoryView>("Data", true);

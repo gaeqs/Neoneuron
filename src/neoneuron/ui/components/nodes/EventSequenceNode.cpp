@@ -19,6 +19,8 @@
 
 #include "EventSequenceNode.h"
 
+#include "neoneuron/ui/style/MaterialSymbols.h"
+
 #include <mindset/EventSequence.h>
 
 namespace neoneuron
@@ -45,9 +47,11 @@ namespace neoneuron
     }
 
     EventSequenceNode::EventSequenceNode(NeoneuronApplication* application) :
-        Node("EventSequence"),
+        NeoneuronNode("EventSequence", ICON_MS_STAR_SHINE),
         _application(application),
-        _selectedEventSequence(0)
+        _selectedEventSequence(0),
+        _eventSequenceVersion(0),
+        _activityVersion(0)
     {
         defineOutput<EventSequenceId>("Sequence");
     }

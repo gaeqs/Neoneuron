@@ -20,15 +20,14 @@
 #ifndef DATASETNODE_H
 #define DATASETNODE_H
 
-#include "NodeFactory.h"
-
-#include <imblueprint/imblueprint.h>
 #include <neoneuron/application/NeoneuronApplication.h>
+#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
+#include <neoneuron/ui/components/nodes/NodeFactory.h>
 
 namespace neoneuron
 {
 
-    class DatasetNode : public ImBlueprint::Node
+    class DatasetNode : public NeoneuronNode
     {
         NeoneuronApplication* _application;
         int _selectedDataset;

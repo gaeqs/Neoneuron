@@ -17,9 +17,9 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include "TimelineNode.h"
-
-#include "neoneuron/render/component/camera/CameraController.h"
+#include <neoneuron/render/component/camera/CameraController.h>
+#include <neoneuron/ui/components/nodes/TimelineNode.h>
+#include <neoneuron/ui/style/MaterialSymbols.h>
 
 CMRC_DECLARE(resources);
 
@@ -27,7 +27,7 @@ namespace neoneuron
 {
 
     TimelineNode::TimelineNode(NeoneuronApplication* application) :
-        Node("Timeline"),
+        NeoneuronNode("Timeline", ICON_MS_TIMELINE),
         _application(application),
         _timeline(application->getRender().addTimeline())
     {

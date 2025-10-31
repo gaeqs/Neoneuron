@@ -20,15 +20,14 @@
 #ifndef NEONEURON_VIEWPORTNODE_H
 #define NEONEURON_VIEWPORTNODE_H
 
-#include <imblueprint/imblueprint.h>
-
-#include "NodeFactory.h"
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
+#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
+#include <neoneuron/ui/components/nodes/NodeFactory.h>
 
 namespace neoneuron
 {
-    class ViewportNode : public ImBlueprint::Node
+    class ViewportNode : public NeoneuronNode
     {
         NeoneuronApplication* _application;
         Viewport* _viewport;

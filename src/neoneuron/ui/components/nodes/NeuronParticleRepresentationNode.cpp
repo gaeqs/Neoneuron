@@ -22,6 +22,8 @@
 #include <neoneuron/render/particle/ParticleNeuronRepresentation.h>
 #include <neoneuron/structure/RepositoryView.h>
 #include <neoneuron/ui/components/nodes/EventSequenceNode.h>
+#include <neoneuron/ui/style/MaterialSymbols.h>
+#include <neoneuron/ui/style/NodeStyles.h>
 
 namespace neoneuron
 {
@@ -36,7 +38,7 @@ namespace neoneuron
     }
 
     NeuronParticleRepresentationNode::NeuronParticleRepresentationNode(NeoneuronApplication* application) :
-        Node("Neurons as particles representation"),
+        NeoneuronNode("Neurons as particles representation", ICON_MS_FORMAT_PAINT, NODE_STYLE_REPRESENTATION),
         _application(application)
     {
         defineInput<RepositoryView>("Data", true);

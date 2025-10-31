@@ -20,10 +20,9 @@
 #ifndef EVENTSEQUENCENODE_H
 #define EVENTSEQUENCENODE_H
 
-#include "NodeFactory.h"
-
-#include <imblueprint/imblueprint.h>
 #include <neoneuron/application/NeoneuronApplication.h>
+#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
+#include <neoneuron/ui/components/nodes/NodeFactory.h>
 
 namespace neoneuron
 {
@@ -39,7 +38,7 @@ namespace neoneuron
         bool operator!=(const EventSequenceId& rhs) const;
     };
 
-    class EventSequenceNode : public ImBlueprint::Node
+    class EventSequenceNode : public NeoneuronNode
     {
         NeoneuronApplication* _application;
         int _selectedEventSequence;

@@ -20,16 +20,15 @@
 #ifndef NEONEURON_ACTIVITYREPRESENTATIONNODE_H
 #define NEONEURON_ACTIVITYREPRESENTATIONNODE_H
 
-#include <imblueprint/imblueprint.h>
-
-#include "NodeFactory.h"
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/particle/ParticleNeuronRepresentation.h>
+#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
+#include <neoneuron/ui/components/nodes/NodeFactory.h>
 
 namespace neoneuron
 {
 
-    class NeuronParticleRepresentationNode : public ImBlueprint::Node
+    class NeuronParticleRepresentationNode : public NeoneuronNode
     {
         NeoneuronApplication* _application;
         std::weak_ptr<ParticleNeuronRepresentation> _representation;

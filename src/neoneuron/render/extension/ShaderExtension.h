@@ -53,6 +53,8 @@ namespace neoneuron
 
         [[nodiscard]] virtual std::optional<std::shared_ptr<neon::ShaderUniformBuffer>> getUBO() const = 0;
 
+        [[nodiscard]] virtual std::string getExtensionName() const = 0;
+
         uint32_t registerElement(Identification id)
         {
             auto it = _idToIndex.find(id);

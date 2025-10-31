@@ -19,6 +19,8 @@
 
 #include "MorphologyRepresentationNode.h"
 
+#include <neoneuron/ui/style/MaterialSymbols.h>
+#include <neoneuron/ui/style/NodeStyles.h>
 #include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
 #include <neoneuron/structure/RepositoryView.h>
 
@@ -35,7 +37,7 @@ namespace neoneuron
     }
 
     MorphologyRepresentationNode::MorphologyRepresentationNode(NeoneuronApplication* application) :
-        Node("Neuron morphology representation"),
+        NeoneuronNode("Neuron morphology representation", ICON_MS_FORMAT_PAINT, NODE_STYLE_REPRESENTATION),
         _application(application)
     {
         defineInput<RepositoryView>("Data", true);

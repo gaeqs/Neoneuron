@@ -23,10 +23,13 @@ option(NEONEURON_APPIMAGE "Configure Neoneuron for AppImage creation" ON)
 
 set(NEONEURON_GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
 
-set(CMAKE_BUILD_WITH_INSTALL_RPATH  TRUE)
-set(CMAKE_INSTALL_RPATH            "$ORIGIN/../lib")
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
 
 set(CMAKE_CXX_STANDARD 20)
 set(SPIRV_WERROR OFF)
@@ -56,14 +59,14 @@ FetchContent_MakeAvailable(rush)
 FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG shaders
+        GIT_TAG master
 )
 
 FetchContent_MakeAvailable(neon)
 
 FetchContent_Declare(
         mindset
-        GIT_REPOSITORY https://gitlab.gmrv.es/g.rial/mindset.git
+        GIT_REPOSITORY https://github.com/gaeqs/Mindset.git
         GIT_TAG master
 )
 

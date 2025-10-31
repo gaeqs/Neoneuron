@@ -104,6 +104,11 @@ namespace neoneuron
         return _ubo;
     }
 
+    std::string ActivityNeuronColorAndScaleSE::getExtensionName() const
+    {
+        return "Activity neuron color and scale";
+    }
+
     void ActivityNeuronColorAndScaleSE::onTimeChanged(std::chrono::nanoseconds lastTime,
                                                       std::chrono::nanoseconds newTime, TimeChangeType type)
     {

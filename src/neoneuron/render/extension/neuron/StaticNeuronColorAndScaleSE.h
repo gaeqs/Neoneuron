@@ -60,6 +60,8 @@ namespace neoneuron
         [[nodiscard]] std::optional<std::shared_ptr<neon::ShaderUniformDescriptor>> getUBODescriptor() const override;
 
         [[nodiscard]] std::optional<std::shared_ptr<neon::ShaderUniformBuffer>> getUBO() const override;
+
+        std::string getExtensionName() const override;
     };
 } // namespace neoneuron
 

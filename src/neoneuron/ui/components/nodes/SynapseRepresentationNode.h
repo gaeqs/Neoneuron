@@ -20,16 +20,15 @@
 #ifndef NEONEURON_SYNAPSEREPRESENTATIONNODE_H
 #define NEONEURON_SYNAPSEREPRESENTATIONNODE_H
 
-#include <imblueprint/imblueprint.h>
-
-#include "NodeFactory.h"
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/synapse/SynapseRepresentation.h>
+#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
+#include <neoneuron/ui/components/nodes/NodeFactory.h>
 
 namespace neoneuron
 {
 
-    class SynapseRepresentationNode : public ImBlueprint::Node
+    class SynapseRepresentationNode : public NeoneuronNode
     {
         NeoneuronApplication* _application;
         std::weak_ptr<SynapseRepresentation> _representation;

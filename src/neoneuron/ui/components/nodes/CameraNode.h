@@ -21,14 +21,14 @@
 #define CAMERANODE_H
 
 #include <neon/geometry/Camera.h>
-#include <imblueprint/imblueprint.h>
+#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
 #include <neoneuron/render/component/camera/CameraController.h>
 
 #include "NodeFactory.h"
 
 namespace neoneuron
 {
-    class CameraNode : public ImBlueprint::Node
+    class CameraNode : public NeoneuronNode
     {
         std::unique_ptr<neon::Camera> _camera;
         neon::IdentifiableWrapper<neon::GameObject> _holder;

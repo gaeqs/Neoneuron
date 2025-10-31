@@ -17,33 +17,22 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef ACTIVITYCOLORANDSCALENODE_H
-#define ACTIVITYCOLORANDSCALENODE_H
+//
+// Created by gaeqs on 30/10/25.
+//
 
-#include <neoneuron/ui/components/nodes/NodeFactory.h>
-#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
-#include <neoneuron/application/NeoneuronApplication.h>
-#include <neoneuron/render/extension/neuron/ActivityNeuronColorAndScaleSE.h>
+#ifndef NEONEURON_NODESTYLES_H
+#define NEONEURON_NODESTYLES_H
+
+#include <neoneuron/util/ColorUtils.h>
 
 namespace neoneuron
 {
-
-    class ActivityColorAndScaleNode : public NeoneuronNode
-    {
-        NeoneuronApplication* _application;
-        std::shared_ptr<ActivityNeuronColorAndScaleSE> _activityColorAndScale;
-        Timeline* _timeline;
-
-      public:
-        explicit ActivityColorAndScaleNode(NeoneuronApplication* application);
-
-        ~ActivityColorAndScaleNode() override;
-
-        void onInputChange(const std::string& name, const std::any& value) override;
-
-        static NodeFactory createFactory();
-    };
+    inline ImBlueprint::NodeTitleStyle NODE_STYLE_DEFAULT = standardTitleStyle(300);
+    inline ImBlueprint::NodeTitleStyle NODE_STYLE_REPRESENTATION = standardTitleStyle(0);
+    inline ImBlueprint::NodeTitleStyle NODE_STYLE_VIEWPORT = standardTitleStyle(246);
+    inline ImBlueprint::NodeTitleStyle NODE_STYLE_DATA = standardTitleStyle(120);
 
 } // namespace neoneuron
 
-#endif // ACTIVITYCOLORANDSCALENODE_H
+#endif // NEONEURON_NODESTYLES_H

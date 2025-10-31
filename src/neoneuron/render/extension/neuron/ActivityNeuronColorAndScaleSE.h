@@ -79,6 +79,8 @@ namespace neoneuron
 
         [[nodiscard]] std::optional<std::shared_ptr<neon::ShaderUniformBuffer>> getUBO() const override;
 
+        std::string getExtensionName() const override;
+
         void onTimeChanged(std::chrono::nanoseconds lastTime, std::chrono::nanoseconds newTime,
                            TimeChangeType type) override;
 

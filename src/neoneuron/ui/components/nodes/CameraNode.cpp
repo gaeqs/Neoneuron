@@ -19,8 +19,9 @@
 
 #include "CameraNode.h"
 
-#include "neoneuron/render/component/camera/InstantCameraInterpolator.h"
-#include "neoneuron/render/component/camera/OrbitalCameraController.h"
+#include <neoneuron/ui/style/MaterialSymbols.h>
+#include <neoneuron/render/component/camera/InstantCameraInterpolator.h>
+#include <neoneuron/render/component/camera/OrbitalCameraController.h>
 
 namespace
 {
@@ -33,7 +34,7 @@ namespace neoneuron
 {
 
     CameraNode::CameraNode(NeoneuronApplication* application) :
-        Node("Camera"),
+        NeoneuronNode("Camera", ICON_MS_VIDEOCAM),
         _camera(createDefaultCamera()),
         _holder(application->getRender().getRoom()->newGameObject()),
         _controller(createDefaultCameraController(_holder, _camera.get()))

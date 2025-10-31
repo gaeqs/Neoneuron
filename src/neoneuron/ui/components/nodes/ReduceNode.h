@@ -20,18 +20,16 @@
 #ifndef NEONEURON_FILTERNODE_H
 #define NEONEURON_FILTERNODE_H
 
-#include "NodeFactory.h"
-
-#include <imblueprint/imblueprint.h>
-
+#include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/structure/Repository.h>
 #include <neoneuron/structure/Selector.h>
-#include <neoneuron/application/NeoneuronApplication.h>
+#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
+#include <neoneuron/ui/components/nodes/NodeFactory.h>
 
 namespace neoneuron
 {
 
-    class ReduceNode : public ImBlueprint::Node
+    class ReduceNode : public NeoneuronNode
     {
         NeoneuronApplication* _application;
         Repository* _repository;

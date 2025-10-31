@@ -17,36 +17,21 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef SELECTIONNODE_H
-#define SELECTIONNODE_H
+//
+// Created by gaeqs on 30/10/25.
+//
 
-#include <neoneuron/application/NeoneuronApplication.h>
-#include <neoneuron/structure/Repository.h>
-#include <neoneuron/structure/Selector.h>
-#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
-#include <neoneuron/ui/components/nodes/NodeFactory.h>
+#ifndef NEONEURON_COLORUTILS_H
+#define NEONEURON_COLORUTILS_H
+#include "imgui.h"
+
+#include <imblueprint/Node.h>
 
 namespace neoneuron
 {
 
-    class SelectionNode : public NeoneuronNode
-    {
-        Repository* _repository;
-        Selector* _selector;
-        uint64_t _version;
+    ImBlueprint::NodeTitleStyle standardTitleStyle(uint16_t hue);
 
-        void sendData();
+}
 
-      public:
-        explicit SelectionNode(NeoneuronApplication* application);
-
-        ~SelectionNode() override;
-
-        void renderBody() override;
-
-        static NodeFactory createFactory();
-    };
-
-} // namespace neoneuron
-
-#endif // SELECTIONNODE_H
+#endif // NEONEURON_COLORUTILS_H

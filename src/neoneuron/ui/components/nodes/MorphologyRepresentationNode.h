@@ -20,16 +20,15 @@
 #ifndef REPRESENTATIONNODE_H
 #define REPRESENTATIONNODE_H
 
-#include <imblueprint/imblueprint.h>
-
-#include "NodeFactory.h"
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
+#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
+#include <neoneuron/ui/components/nodes/NodeFactory.h>
 
 namespace neoneuron
 {
 
-    class MorphologyRepresentationNode : public ImBlueprint::Node
+    class MorphologyRepresentationNode : public NeoneuronNode
     {
         NeoneuronApplication* _application;
         std::weak_ptr<ComplexNeuronRepresentation> _representation;

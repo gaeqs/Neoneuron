@@ -84,7 +84,7 @@ layout(std430, set = 2, binding = 2) buffer Data {
 };
 
 layout(std430, set = 2, binding = 5) buffer Selection {
-    bool selected[];
+    uint selected[];
 };
 
 layout(std430, set = 2, binding = 8) buffer SavingVertices {
@@ -188,7 +188,7 @@ void generateSection(uint sectionIndex, uint nextToParentIndex) {
     if (gl_LocalInvocationID.x < totalVertices) {
         // Fetch initial data.
         bool first = gl_LocalInvocationID.x < parentVPC;
-        bool isSelected = selected[sectionIndex];
+        bool isSelected = bool(selected[sectionIndex]);
         uint parentChildren = (parent.metadata >> 8u) & 7u;
         uint sectionChildren = (section.metadata >> 8u) & 7u;
         bool hasStartJoint = parentChildren >= minChildrenForJoint;
@@ -292,7 +292,7 @@ void generateEnd (uint sectionIndex) {
 
     // Fetch initial data.
     bool first = gl_LocalInvocationID.x < sectionVPC;
-    bool isSelected = selected[sectionIndex];
+    bool isSelected = bool(selected[sectionIndex]);
     uint parentChildren = (parent.metadata >> 8u) & 7u;
     uint sectionChildren = (section.metadata >> 8u) & 7u;
     bool hasStartJoint = parentChildren >= minChildrenForJoint;

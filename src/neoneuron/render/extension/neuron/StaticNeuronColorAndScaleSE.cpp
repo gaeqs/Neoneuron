@@ -74,4 +74,9 @@ namespace neoneuron
     {
         return _ubo;
     }
+
+    std::string StaticNeuronColorAndScaleSE::getExtensionName() const
+    {
+        return "Static neuron color and scale";
+    }
 } // namespace neoneuron

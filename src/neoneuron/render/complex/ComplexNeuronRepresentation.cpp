@@ -163,7 +163,8 @@ namespace neoneuron
                 neon::DescriptorBinding::extra(*extensionUbo);
         }
 
-        return std::make_shared<neon::Material>(app, "neoneuron:segment", materialCreateInfo);
+        return std::make_shared<neon::Material>(
+            app, std::format("neoneuron:segment ({})", _colorAndScale->getExtensionName()), materialCreateInfo);
     }
 
     std::shared_ptr<neon::Material> ComplexNeuronRepresentation::loadJointMaterial(const Viewport* viewport) const
@@ -180,7 +181,8 @@ namespace neoneuron
                 neon::DescriptorBinding::extra(*extensionUbo);
         }
 
-        return std::make_shared<neon::Material>(app, "neoneuron:joint", materialCreateInfo);
+        return std::make_shared<neon::Material>(
+            app, std::format("neoneuron:joint ({})", _colorAndScale->getExtensionName()), materialCreateInfo);
     }
 
     std::shared_ptr<neon::Material> ComplexNeuronRepresentation::loadSomaMaterial(const Viewport* viewport) const
@@ -197,7 +199,8 @@ namespace neoneuron
                 neon::DescriptorBinding::extra(*extensionUbo);
         }
 
-        return std::make_shared<neon::Material>(app, "neoneuron:soma", materialCreateInfo);
+        return std::make_shared<neon::Material>(
+            app, std::format("neoneuron:soma ({})", _colorAndScale->getExtensionName()), materialCreateInfo);
     }
 
     void ComplexNeuronRepresentation::loadNeuronModel()

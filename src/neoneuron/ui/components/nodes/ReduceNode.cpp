@@ -20,6 +20,7 @@
 #include "ReduceNode.h"
 
 #include <neoneuron/structure/RepositoryView.h>
+#include <neoneuron/ui/style/MaterialSymbols.h>
 
 namespace
 {
@@ -77,7 +78,7 @@ namespace neoneuron
     }
 
     ReduceNode::ReduceNode(NeoneuronApplication* application) :
-        Node("Reduce"),
+        NeoneuronNode("Reduce", ICON_MS_CONVERSION_PATH),
         _application(application),
         _repository(&application->getRepository()),
         _selector(&application->getSelector()),

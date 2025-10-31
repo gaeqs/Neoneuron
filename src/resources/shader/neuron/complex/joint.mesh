@@ -94,8 +94,9 @@ layout(std430, set = 2, binding = 3) buffer Joints {
 };
 
 layout(std430, set = 2, binding = 5) buffer Selection {
-    bool selected[];
+    uint selected[];
 };
+
 
 layout(std430, set = 2, binding = 8) buffer SavingVertices {
     vec4 savingVertices[];
@@ -281,7 +282,7 @@ void joint1(Joint joint) {
 
     vec3 parentStart = grandParent.endAndRadius.xyz;
 
-    bool isSelected = selected[joint.parent] || selected[joint.connection[0]];
+    bool isSelected = bool(selected[joint.parent]) || bool(selected[joint.connection[0]]);
 
     generateTube(
     startCenter,
@@ -376,14 +377,14 @@ void joint2(Joint joint) {
     vec3 startDirection = normalize(startDirectionUnorm);
     vec3 startCenter = parent.endAndRadius.xyz - startDirectionUnorm * endClip;
 
-    bool isSelected = selected[joint.parent];
+    bool isSelected = bool(selected[joint.parent]);
 
     vec4 color;
     float scale;
     fetchColorAndScale(neuron.colorAndScaleIndex, isSelected, color, scale);
 
     for (int i = 0; i < joint.amount; ++i) {
-        isSelected = isSelected || selected[joint.connection[i]];
+        isSelected = isSelected || bool(selected[joint.connection[i]]);
     }
 
     if (gl_LocalInvocationID.x < parentVPC) {

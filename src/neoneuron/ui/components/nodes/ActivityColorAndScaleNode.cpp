@@ -19,14 +19,14 @@
 
 #include "ActivityColorAndScaleNode.h"
 
+#include <neoneuron/ui/style/MaterialSymbols.h>
 #include <neoneuron/ui/components/nodes/EventSequenceNode.h>
-#include <neoneuron/structure/RepositoryView.h>
 
 namespace neoneuron
 {
 
     ActivityColorAndScaleNode::ActivityColorAndScaleNode(NeoneuronApplication* application) :
-        Node("Activity to color and scale"),
+        NeoneuronNode("Activity to color and scale", ICON_MS_LOOKS),
         _application(application),
         _activityColorAndScale(
             std::make_shared<ActivityNeuronColorAndScaleSE>(&application->getRender().getApplication())),

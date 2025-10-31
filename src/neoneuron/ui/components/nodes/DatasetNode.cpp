@@ -21,6 +21,8 @@
 
 #include <mindset/Dataset.h>
 #include <neoneuron/structure/RepositoryView.h>
+#include <neoneuron/ui/style/NodeStyles.h>
+#include <neoneuron/ui/style/MaterialSymbols.h>
 
 namespace neoneuron
 {
@@ -33,7 +35,7 @@ namespace neoneuron
     }
 
     DatasetNode::DatasetNode(NeoneuronApplication* application) :
-        Node("Dataset"),
+        NeoneuronNode("Dataset", ICON_MS_DATA_OBJECT, NODE_STYLE_DATA),
         _application(application),
         _selectedDataset(0)
     {

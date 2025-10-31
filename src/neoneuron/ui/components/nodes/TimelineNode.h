@@ -20,15 +20,14 @@
 #ifndef NEONEURON_TIMELINENODE_H
 #define NEONEURON_TIMELINENODE_H
 
-#include <imblueprint/imblueprint.h>
-
-#include "NodeFactory.h"
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/render/complex/ComplexNeuronRepresentation.h>
+#include <neoneuron/ui/components/nodes/NeoneuronNode.h>
+#include <neoneuron/ui/components/nodes/NodeFactory.h>
 
 namespace neoneuron
 {
-    class TimelineNode : public ImBlueprint::Node
+    class TimelineNode : public NeoneuronNode
     {
         NeoneuronApplication* _application;
         Timeline* _timeline;

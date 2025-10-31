@@ -109,8 +109,9 @@ layout(std430, set = 2, binding = 4) buffer Somas {
 };
 
 layout(std430, set = 2, binding = 5) buffer Selection {
-    bool selected[];
+    uint selected[];
 };
+
 
 layout(std430, set = 2, binding = 6) buffer SomaGPUData {
     uint packedConnection[];
@@ -354,7 +355,7 @@ void generateSomaPart () {
     Soma soma = somas[td.somaIndex];
     Section section = sections[soma.sectionIndex];
     Neuron neuron = neurons[section.neuronIndex];
-    bool isSelected = selected[soma.sectionIndex];
+    bool isSelected = bool(selected[soma.sectionIndex]);
 
     vec4 color;
     float scale;
@@ -434,7 +435,7 @@ void generateConnection () {
     Section somaSection = sections[soma.sectionIndex];
     Section connectionSection = sections[soma.connection[currentConnection]];
     Neuron neuron = neurons[somaSection.neuronIndex];
-    bool isSelected = selected[soma.connection[currentConnection]];
+    bool isSelected = bool(selected[soma.connection[currentConnection]]);
 
     vec4 color;
     float scale;

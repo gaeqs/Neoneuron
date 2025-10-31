@@ -17,9 +17,10 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include "ViewportNode.h"
-
-#include "neoneuron/render/component/camera/CameraController.h"
+#include <neoneuron/render/component/camera/CameraController.h>
+#include <neoneuron/ui/components/nodes/ViewportNode.h>
+#include <neoneuron/ui/style/MaterialSymbols.h>
+#include <neoneuron/ui/style/NodeStyles.h>
 
 CMRC_DECLARE(resources);
 
@@ -37,7 +38,7 @@ namespace neoneuron
 {
 
     ViewportNode::ViewportNode(NeoneuronApplication* application) :
-        Node("Viewport"),
+        NeoneuronNode("Viewport", ICON_MS_PREVIEW, NODE_STYLE_VIEWPORT),
         _application(application),
         _viewport(application->getRender().addViewport())
     {
