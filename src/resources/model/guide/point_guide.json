@@ -36,7 +36,7 @@
               }
             },
             "instance": {
-              "stride": 8,
+              "stride": 20,
               "attributes": [
                 {
                   "size_in_floats": 1,
