@@ -17,42 +17,29 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef NEONEURONTOPBAR_H
-#define NEONEURONTOPBAR_H
+//
+// Created by gaeqs on 14/11/25.
+//
 
-#include "../../../cmake-build-release/_deps/neon-src/src/neon/util/component/DockSpaceComponent.h"
+#ifndef NEONEURON_NEONEURONDOCKSPACECOMPONENT_H
+#define NEONEURON_NEONEURONDOCKSPACECOMPONENT_H
 
-#include <neon/Neon.h>
+#include "NeoneuronUI.h"
+
+#include <neon/util/component/DockSpaceComponent.h>
 
 namespace neoneuron
 {
-    class NeoneuronRender;
 
-    class NeoneuronTopBar : public neon::Component
+    class NeoneuronDockSpaceComponent : public neon::DockSpaceComponent
     {
         NeoneuronRender* _render;
-        neon::IdentifiableWrapper<neon::DockSpaceComponent> _dockSpace;
-        neon::DockSidebar* _sidebar;
 
-        void saveFile(const std::string& data) const;
-
-        void toolsMenu() const;
-
-        void viewMenu() const;
-
-        void actionsMenu() const;
-
-        void demo() const;
+        void renderDockSpaceWindow(ImGuiViewport* vp, ImVec2 pos, ImVec2 size) override;
 
       public:
-        NeoneuronTopBar(NeoneuronRender* render, neon::IdentifiableWrapper<neon::DockSpaceComponent> dockSpace);
-
-        ~NeoneuronTopBar() override;
-
-        void onStart() override;
-
-        void onPreDraw() override;
+        explicit NeoneuronDockSpaceComponent(NeoneuronRender* render);
     };
 } // namespace neoneuron
 
-#endif // NEONEURONTOPBAR_H
+#endif // NEONEURON_NEONEURONDOCKSPACECOMPONENT_H

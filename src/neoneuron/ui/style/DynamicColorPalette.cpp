@@ -17,42 +17,27 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef NEONEURONTOPBAR_H
-#define NEONEURONTOPBAR_H
+//
+// Created by gaeqs on 14/11/25.
+//
 
-#include "../../../cmake-build-release/_deps/neon-src/src/neon/util/component/DockSpaceComponent.h"
+#include "DynamicColorPalette.h"
 
-#include <neon/Neon.h>
+#include "neoneuron/util/ColorUtils.h"
 
 namespace neoneuron
 {
-    class NeoneuronRender;
-
-    class NeoneuronTopBar : public neon::Component
+    DynamicColorPalette::DynamicColorPalette() :
+        DynamicColorPalette(0)
     {
-        NeoneuronRender* _render;
-        neon::IdentifiableWrapper<neon::DockSpaceComponent> _dockSpace;
-        neon::DockSidebar* _sidebar;
+    }
 
-        void saveFile(const std::string& data) const;
-
-        void toolsMenu() const;
-
-        void viewMenu() const;
-
-        void actionsMenu() const;
-
-        void demo() const;
-
-      public:
-        NeoneuronTopBar(NeoneuronRender* render, neon::IdentifiableWrapper<neon::DockSpaceComponent> dockSpace);
-
-        ~NeoneuronTopBar() override;
-
-        void onStart() override;
-
-        void onPreDraw() override;
-    };
+    DynamicColorPalette::DynamicColorPalette(float hue) :
+        primary(hslToRgb({hue, 0.48f, 0.5f, 1.0f})),
+        secondary(hslToRgb({hue, 0.16f, 0.5f, 1.0f})),
+        tertiary(hslToRgb({hue + 0.166f, 0.48f, 0.5f, 1.0f})),
+        surface(hslToRgb({hue, 0.02f, 0.10f, 1.0f})),
+        surfaceTint(hslToRgb({hue, 0.5f, 0.22f, 1.0f}))
+    {
+    }
 } // namespace neoneuron
-
-#endif // NEONEURONTOPBAR_H

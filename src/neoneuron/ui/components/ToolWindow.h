@@ -24,22 +24,18 @@
 #ifndef NEONEURON_TOOLWINDOW_H
 #define NEONEURON_TOOLWINDOW_H
 
+
 #include <string>
+#include <neoneuron/ui/NeoneuronWindow.h>
 #include <neon/structure/Component.h>
 #include <neoneuron/application/NeoneuronApplication.h>
 
 namespace neoneuron
 {
-    class ToolWindow : public neon::Component
+    class ToolWindow : public NeoneuronWindow
     {
         NeoneuronApplication* _application;
         std::string _configNode;
-        std::string _windowName;
-
-      protected:
-        void setWindowName(std::string windowName);
-
-        virtual void drawWindowContents() = 0;
 
       public:
         ToolWindow(NeoneuronApplication* application, std::string configNode, std::string windowName);

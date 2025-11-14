@@ -47,4 +47,19 @@ namespace neoneuron
             ImBlueprint::NodeTitleStyleEntry(color, analogousColor, color, analogousColor)};
     }
 
+    ImVec4 hslToHsv(ImVec4 hsl)
+    {
+        float v = hsl.z + hsl.y * std::min(hsl.z, 1.0f - hsl.z);
+        float s = std::abs(v) < FLT_EPSILON ? 0.0f : 2.0f * (1.0f - hsl.z / v);
+        return ImVec4(hsl.x, s, v, hsl.w);
+    }
+
+    ImVec4 hslToRgb(ImVec4 hsl)
+    {
+        ImVec4 hsv = hslToHsv(hsl);
+        float r, g, b;
+        ImGui::ColorConvertHSVtoRGB(hsv.x, hsv.y, hsv.z, r, g, b);
+        return ImVec4(r, g, b, hsl.w);
+    }
+
 } // namespace neoneuron

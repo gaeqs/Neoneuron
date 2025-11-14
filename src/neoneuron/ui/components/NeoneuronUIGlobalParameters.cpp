@@ -29,7 +29,7 @@ namespace neoneuron
     {
     }
 
-    void NeoneuronUIGlobalParameters::drawWindowContents()
+    void NeoneuronUIGlobalParameters::drawWindow()
     {
         auto& d = getNeoneuronApplication()->getRender().getRenderData();
 

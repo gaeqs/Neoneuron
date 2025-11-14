@@ -109,8 +109,8 @@ namespace neoneuron
     }
 
     Viewport::Viewport(NeoneuronRender* render, int priority, const std::string& name) :
+        NeoneuronWindow(name.empty() ? getUniqueName() : name),
         _render(render),
-        _name(name.empty() ? getUniqueName() : name),
         _internalCamera(CameraNode::createDefaultCamera()),
         _externalCameraController(nullptr),
         _hovered(false)
@@ -318,6 +318,12 @@ namespace neoneuron
 
     void Viewport::onPreDraw()
     {
+        ImGui::SetNextWindowSizeConstraints(ImVec2(200, 200), ImVec2(100000, 100000));
+        NeoneuronWindow::onPreDraw();
+    }
+
+    void Viewport::drawWindow()
+    {
         auto& camera = getCamera();
 
         if (_windowSize.x > 0 && _windowSize.y > 0) {
@@ -330,16 +336,12 @@ namespace neoneuron
             camera.getPlanes(), camera.getFrustum().getNear(), camera.getFrustum().getFar(),
         };
 
-        _uniformBuffer->uploadData(0, &matrices, sizeof(Matrices));
+        renderSidebar();
+        _windowSize = ImGui::GetContentRegionAvail();
+        _windowOrigin = ImGui::GetCursorScreenPos();
+        ImGui::Image(_outputColorTexture->getImGuiDescriptor(), _windowSize);
+        _hovered = ImGui::IsItemHovered();
 
-        ImGui::SetNextWindowSizeConstraints(ImVec2(200, 200), ImVec2(100000, 100000));
-        if (ImGui::Begin(_name.c_str())) {
-            renderSidebar();
-            _windowSize = ImGui::GetContentRegionAvail();
-            _windowOrigin = ImGui::GetCursorScreenPos();
-            ImGui::Image(_outputColorTexture->getImGuiDescriptor(), _windowSize);
-            _hovered = ImGui::IsItemHovered();
-        }
-        ImGui::End();
+        _uniformBuffer->uploadData(0, &matrices, sizeof(Matrices));
     }
 } // namespace neoneuron

@@ -27,7 +27,7 @@ namespace neoneuron
     class NeoneuronUIGlobalParameters : public ToolWindow
     {
       protected:
-        void drawWindowContents() override;
+        void drawWindow() override;
 
       public:
         explicit NeoneuronUIGlobalParameters(NeoneuronApplication* application);

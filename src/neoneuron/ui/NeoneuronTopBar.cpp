@@ -19,6 +19,8 @@
 
 #include "NeoneuronTopBar.h"
 
+#include "../../../cmake-build-release/_deps/neon-src/lib/imgui/imgui_internal.h"
+
 #ifdef WIN32
     #define GLFW_EXPOSE_NATIVE_WIN32
 #endif
@@ -145,9 +147,19 @@ namespace neoneuron
         }
     }
 
-    NeoneuronTopBar::NeoneuronTopBar(NeoneuronRender* render) :
-        _render(render)
+    NeoneuronTopBar::NeoneuronTopBar(NeoneuronRender* render,
+                                     neon::IdentifiableWrapper<neon::DockSpaceComponent> dockSpace) :
+        _render(render),
+        _dockSpace(dockSpace)
     {
+        _sidebar = _dockSpace->addSidebar(neon::DockSidebarPosition::TOP, imGuiUId("TopBar"), 32.0f);
+    }
+
+    NeoneuronTopBar::~NeoneuronTopBar()
+    {
+        if (_dockSpace) {
+            _dockSpace->removeSidebar(_sidebar);
+        }
     }
 
     void NeoneuronTopBar::onStart()
@@ -156,55 +168,68 @@ namespace neoneuron
 
     void NeoneuronTopBar::onPreDraw()
     {
+        constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking |
+                                           ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                                           ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+                                           ImGuiWindowFlags_MenuBar;
+
         bool openSettings = false;
         ImGui::PushFont(nullptr, 20.0f);
-        if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu(ICON_MS_FILES "File")) {
-                ImGui::PushFont(nullptr, 18.0f);
-                if (ImGui::MenuItem(ICON_MS_FILE_OPEN "Open file", "Ctrl+O")) {
-                    NeoneuronUiOpenFile::openDialog(_render->getNeoneuronApplication());
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+        if (ImGui::Begin(imGuiUId("TopBar").c_str(), nullptr, flags)) {
+            if (ImGui::BeginMenuBar()) {
+                if (ImGui::BeginMenu(ICON_MS_FILES "File")) {
+                    ImGui::PushFont(nullptr, 18.0f);
+                    if (ImGui::MenuItem(ICON_MS_FILE_OPEN "Open file", "Ctrl+O")) {
+                        NeoneuronUiOpenFile::openDialog(_render->getNeoneuronApplication());
+                    }
+                    if (ImGui::MenuItem(ICON_MS_CLOSE "Close scene")) {
+                        _render->getNeoneuronApplication()->getRepository().clear();
+                    }
+                    if (ImGui::MenuItem(ICON_MS_SAVE "Save scene")) {
+                        saveFile(saveScene(_render).dump(4));
+                    }
+                    if (ImGui::MenuItem(ICON_MS_SETTINGS "Settings", "Ctrl+S")) {
+                        openSettings = true;
+                    }
+                    ImGui::PopFont();
+                    ImGui::EndMenu();
                 }
-                if (ImGui::MenuItem(ICON_MS_CLOSE "Close scene")) {
-                    _render->getNeoneuronApplication()->getRepository().clear();
+                if (ImGui::BeginMenu(ICON_MS_VISIBILITY "View")) {
+                    ImGui::PushFont(nullptr, 18.0f);
+                    viewMenu();
+                    ImGui::PopFont();
+                    ImGui::EndMenu();
                 }
-                if (ImGui::MenuItem(ICON_MS_SAVE "Save scene")) {
-                    saveFile(saveScene(_render).dump(4));
+                if (ImGui::BeginMenu(ICON_MS_BUILD "Tools")) {
+                    ImGui::PushFont(nullptr, 18.0f);
+                    toolsMenu();
+                    ImGui::PopFont();
+                    ImGui::EndMenu();
                 }
-                if (ImGui::MenuItem(ICON_MS_SETTINGS "Settings", "Ctrl+S")) {
-                    openSettings = true;
+                if (ImGui::BeginMenu(ICON_MS_PLAY_ARROW "Actions")) {
+                    ImGui::PushFont(nullptr, 18.0f);
+                    actionsMenu();
+                    ImGui::PopFont();
+                    ImGui::EndMenu();
                 }
-                ImGui::PopFont();
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu(ICON_MS_VISIBILITY "View")) {
-                ImGui::PushFont(nullptr, 18.0f);
-                viewMenu();
-                ImGui::PopFont();
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu(ICON_MS_BUILD "Tools")) {
-                ImGui::PushFont(nullptr, 18.0f);
-                toolsMenu();
-                ImGui::PopFont();
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu(ICON_MS_PLAY_ARROW "Actions")) {
-                ImGui::PushFont(nullptr, 18.0f);
-                actionsMenu();
-                ImGui::PopFont();
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu(ICON_MS_HELP "Help")) {
-                ImGui::PushFont(nullptr, 18.0f);
-                if (ImGui::MenuItem(ICON_MS_INFO "About")) {
-                    _render->getRoom()->newGameObject()->newComponent<NeoneuronUIAbout>(
-                        _render->getNeoneuronApplication());
+                if (ImGui::BeginMenu(ICON_MS_HELP "Help")) {
+                    ImGui::PushFont(nullptr, 18.0f);
+                    if (ImGui::MenuItem(ICON_MS_INFO "About")) {
+                        _render->getRoom()->newGameObject()->newComponent<NeoneuronUIAbout>(
+                            _render->getNeoneuronApplication());
+                    }
+                    ImGui::PopFont();
+                    ImGui::EndMenu();
                 }
-                ImGui::PopFont();
-                ImGui::EndMenu();
+                ImGui::EndMenuBar();
             }
-            ImGui::EndMainMenuBar();
         }
+        ImGui::End();
+        ImGui::PopStyleVar(1);
+        ImGui::PopStyleColor(2);
         ImGui::PopFont();
 
         if (openSettings) {

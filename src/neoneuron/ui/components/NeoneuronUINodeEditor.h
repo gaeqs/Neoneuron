@@ -20,14 +20,15 @@
 #ifndef NEONEURONUINODEEDITOR_H
 #define NEONEURONUINODEEDITOR_H
 
-#include <imblueprint/imblueprint.h>
 #include <neon/Neon.h>
+#include <imblueprint/imblueprint.h>
+#include <neoneuron/ui/NeoneuronWindow.h>
 #include <neoneuron/application/NeoneuronApplication.h>
 #include <neoneuron/ui/components/nodes/NodeFactory.h>
 
 namespace neoneuron
 {
-    class NeoneuronUINodeEditor : public neon::Component
+    class NeoneuronUINodeEditor : public NeoneuronWindow
     {
         NeoneuronApplication* _application;
         ImBlueprint::Editor _editor;
@@ -44,7 +45,7 @@ namespace neoneuron
 
         void onUpdate(float deltaTime) override;
 
-        void onPreDraw() override;
+        void drawWindow() override;
 
         void addFactory(NodeFactory factory);
     };

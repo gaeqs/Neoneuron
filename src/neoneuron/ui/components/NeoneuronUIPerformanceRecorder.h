@@ -36,7 +36,7 @@ namespace neoneuron
 
     protected:
 
-        void drawWindowContents() override;
+        void drawWindow() override;
 
     public:
 

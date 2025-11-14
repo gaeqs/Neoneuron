@@ -50,7 +50,7 @@ namespace neoneuron
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 1, 0, 1));
         }
         if (ImGui::Button(taggedName.c_str(), ImVec2(-1.0f, 25.0f))) {
-            bool control = ImGui::IsKeyDown(ImGuiKey_ModCtrl);
+            bool control = ImGui::IsKeyDown(ImGuiMod_Ctrl);
             auto& selector = getNeoneuronApplication()->getSelector();
             if (!control) {
                 selector.selectNeuron(SelectionMode::OVERRIDE_ALL, gid);
@@ -252,7 +252,7 @@ namespace neoneuron
         }
     }
 
-    void NeoneuronUINeuronList::drawWindowContents()
+    void NeoneuronUINeuronList::drawWindow()
     {
         neuronList();
         neuronInformation();

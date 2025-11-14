@@ -17,42 +17,30 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef NEONEURONTOPBAR_H
-#define NEONEURONTOPBAR_H
+//
+// Created by gaeqs on 14/11/25.
+//
 
-#include "../../../cmake-build-release/_deps/neon-src/src/neon/util/component/DockSpaceComponent.h"
+#ifndef NEONEURON_DYNAMICCOLORPALETTE_H
+#define NEONEURON_DYNAMICCOLORPALETTE_H
 
-#include <neon/Neon.h>
+#include "imgui.h"
 
 namespace neoneuron
 {
-    class NeoneuronRender;
 
-    class NeoneuronTopBar : public neon::Component
+    struct DynamicColorPalette
     {
-        NeoneuronRender* _render;
-        neon::IdentifiableWrapper<neon::DockSpaceComponent> _dockSpace;
-        neon::DockSidebar* _sidebar;
+        ImColor primary;
+        ImColor secondary;
+        ImColor tertiary;
+        ImColor surface;
+        ImColor surfaceTint;
 
-        void saveFile(const std::string& data) const;
+        DynamicColorPalette();
 
-        void toolsMenu() const;
-
-        void viewMenu() const;
-
-        void actionsMenu() const;
-
-        void demo() const;
-
-      public:
-        NeoneuronTopBar(NeoneuronRender* render, neon::IdentifiableWrapper<neon::DockSpaceComponent> dockSpace);
-
-        ~NeoneuronTopBar() override;
-
-        void onStart() override;
-
-        void onPreDraw() override;
+        explicit DynamicColorPalette(float hue);
     };
 } // namespace neoneuron
 
-#endif // NEONEURONTOPBAR_H
+#endif // NEONEURON_DYNAMICCOLORPALETTE_H

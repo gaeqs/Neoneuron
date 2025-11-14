@@ -21,6 +21,7 @@
 #define NEONEURON_VIEWPORT_H
 
 #include "component/camera/CameraData.h"
+#include "neoneuron/ui/NeoneuronWindow.h"
 #include "neoneuron/ui/components/NeuronTexturePicker.h"
 
 #include <memory>
@@ -33,11 +34,9 @@ namespace neoneuron
 
     class NeoneuronRender;
 
-    class Viewport : public neon::Component
+    class Viewport : public NeoneuronWindow
     {
         NeoneuronRender* _render;
-
-        std::string _name;
 
         std::unique_ptr<neon::Camera> _internalCamera;
         neon::IdentifiableWrapper<CameraController> _internalCameraController;
@@ -115,6 +114,8 @@ namespace neoneuron
         void onStart() override;
 
         void onPreDraw() override;
+
+        void drawWindow() override;
     };
 } // namespace neoneuron
 

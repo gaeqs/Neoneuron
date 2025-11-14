@@ -20,6 +20,8 @@
 #ifndef NEONEURONUI_H
 #define NEONEURONUI_H
 
+#include <neoneuron/ui/style/DynamicColorPalette.h>
+
 #include <hey/Listener.h>
 #include <neon/Neon.h>
 
@@ -33,7 +35,9 @@ namespace neoneuron
         neon::IdentifiableWrapper<neon::GameObject> _gameObject;
         hey::Listener<std::string> _debugKeyListener;
 
-        void initStyle(NeoneuronRender* render);
+        DynamicColorPalette _colorPalette;
+
+        void initStyle();
 
         void initDebugToggle();
 
@@ -45,6 +49,10 @@ namespace neoneuron
         explicit NeoneuronUI(NeoneuronRender* render);
 
         ~NeoneuronUI();
+
+        const DynamicColorPalette& getColorPalette() const;
+
+        void setColorPalette(const DynamicColorPalette& palette);
 
         NeoneuronUI& operator=(NeoneuronUI&& other) noexcept;
     };

@@ -43,7 +43,7 @@ namespace neoneuron::settings
         if (styleIdx != current) {
             switch (styleIdx) {
                 case 0:
-                    StyleColorsDark();
+                    StyleColorsDark(app->getRender().getUI().getColorPalette());
                     break;
                 case 1:
                     StyleColorsLight();

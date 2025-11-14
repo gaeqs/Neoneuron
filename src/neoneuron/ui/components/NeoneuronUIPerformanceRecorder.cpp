@@ -27,7 +27,7 @@
 
 namespace neoneuron
 {
-    void NeoneuronUIPerformanceRecorder::drawWindowContents()
+    void NeoneuronUIPerformanceRecorder::drawWindow()
     {
         if (ImGui::Checkbox("Enabled", &_enabled)) {
             _output.flush();

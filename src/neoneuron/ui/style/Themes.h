@@ -24,7 +24,7 @@
 
 namespace neoneuron
 {
-    inline void StyleColorsDark()
+    inline void StyleColorsDark(const DynamicColorPalette& palette)
     {
         ImGuiStyle* style = &ImGui::GetStyle();
         style->WindowPadding = {8, 8};
@@ -41,7 +41,7 @@ namespace neoneuron
         style->PopupBorderSize = 1.0f;
         style->FrameBorderSize = 0.0f;
         style->TabBorderSize = 0.0f;
-        style->TabBarBorderSize = 1.0f;
+        style->TabBarBorderSize = 0.0f;
         style->TabBarOverlineSize = 0.0f;
 
         style->WindowRounding = 7.0f;
@@ -51,6 +51,8 @@ namespace neoneuron
         style->ScrollbarRounding = 2.0f;
         style->GrabRounding = 4.0f;
         style->TabRounding = 4.0f;
+
+        style->DockingSeparatorSize = 6.0f;
 
         style->SeparatorTextBorderSize = 1.0f;
         style->WindowMenuButtonPosition = ImGuiDir_Right;
@@ -66,9 +68,9 @@ namespace neoneuron
         colors[ImGuiCol_FrameBg] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
         colors[ImGuiCol_FrameBgHovered] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
         colors[ImGuiCol_FrameBgActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
-        colors[ImGuiCol_TitleBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-        colors[ImGuiCol_TitleBgActive] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
-        colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+        colors[ImGuiCol_TitleBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+        colors[ImGuiCol_TitleBgActive] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+        colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
         colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
         colors[ImGuiCol_ScrollbarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
         colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
@@ -91,7 +93,7 @@ namespace neoneuron
         colors[ImGuiCol_ResizeGripActive] = ImVec4(0.29f, 0.70f, 0.91f, 1.00f);
         colors[ImGuiCol_Tab] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
         colors[ImGuiCol_TabHovered] = ImVec4(0.29f, 0.62f, 0.91f, 1.00f);
-        colors[ImGuiCol_TabActive] = ImVec4(0.18f, 0.47f, 0.91f, 1.00f);
+        colors[ImGuiCol_TabActive] = palette.primary;
         colors[ImGuiCol_TabUnfocused] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
         colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.18f, 0.47f, 0.91f, 1.00f);
         colors[ImGuiCol_DockingPreview] = ImVec4(0.29f, 0.62f, 0.91f, 0.70f);
@@ -111,6 +113,7 @@ namespace neoneuron
         colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
         colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
         colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+        colors[ImGuiCol_Border] = ImVec4(0.13f, 0.0f, 0.0f, 0.0f);
     }
 
     inline void StyleColorsLight()
@@ -130,7 +133,7 @@ namespace neoneuron
         style->PopupBorderSize = 1.0f;
         style->FrameBorderSize = 0.0f;
         style->TabBorderSize = 0.0f;
-        style->TabBarBorderSize = 1.0f;
+        style->TabBarBorderSize = 0.0f;
         style->TabBarOverlineSize = 0.0f;
 
         style->WindowRounding = 7.0f;
@@ -147,4 +150,4 @@ namespace neoneuron
     }
 } // namespace neoneuron
 
-#endif //LIGHTTHEME_H
+#endif // LIGHTTHEME_H

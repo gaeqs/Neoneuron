@@ -32,6 +32,30 @@ namespace neoneuron
 
     ImBlueprint::NodeTitleStyle standardTitleStyle(uint16_t hue);
 
-}
+    /**
+     * Transforms a color in the HSL color space into a color in the HSV space.
+     * The vector format is the following:
+     * - x: hue
+     * - y: saturation
+     * - z: light / value
+     * - w: alpha
+     * @param hsl the color in the HSL color space.
+     * @return the color in the HSV color space.
+     */
+    ImVec4 hslToHsv(ImVec4 hsl);
+
+    /**
+     * Transforms a color in the HSL space into a color in the RGB space.
+     * The vector format is the following:
+     * - x: hue / R
+     * - y: saturation / G
+     * - z: light / B
+     * - w: alpha
+     * @param hsl the color in the HSL color space.
+     * @return the color in the RGB color space.
+     */
+    ImVec4 hslToRgb(ImVec4 hsl);
+
+} // namespace neoneuron
 
 #endif // NEONEURON_COLORUTILS_H

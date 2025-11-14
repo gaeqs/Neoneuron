@@ -59,7 +59,7 @@ FetchContent_MakeAvailable(rush)
 FetchContent_Declare(
         neon
         GIT_REPOSITORY https://github.com/gaeqs/Neon.git
-        GIT_TAG master
+        GIT_TAG default_resources
 )
 
 FetchContent_MakeAvailable(neon)

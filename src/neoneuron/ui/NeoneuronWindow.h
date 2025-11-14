@@ -17,42 +17,35 @@
 // along with this library; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef NEONEURONTOPBAR_H
-#define NEONEURONTOPBAR_H
+//
+// Created by gaeqs on 13/11/25.
+//
 
-#include "../../../cmake-build-release/_deps/neon-src/src/neon/util/component/DockSpaceComponent.h"
+#ifndef NEONEURON_NEONEURONWINDOW_H
+#define NEONEURON_NEONEURONWINDOW_H
 
-#include <neon/Neon.h>
+#include <neon/structure/Component.h>
 
 namespace neoneuron
 {
-    class NeoneuronRender;
-
-    class NeoneuronTopBar : public neon::Component
+    class NeoneuronWindow : public neon::Component
     {
-        NeoneuronRender* _render;
-        neon::IdentifiableWrapper<neon::DockSpaceComponent> _dockSpace;
-        neon::DockSidebar* _sidebar;
+        std::string _windowName;
 
-        void saveFile(const std::string& data) const;
+      protected:
+        void setWindowName(const std::string& windowName);
 
-        void toolsMenu() const;
+        void initWindow(bool* open = nullptr);
 
-        void viewMenu() const;
-
-        void actionsMenu() const;
-
-        void demo() const;
+        virtual void drawWindow() = 0;
 
       public:
-        NeoneuronTopBar(NeoneuronRender* render, neon::IdentifiableWrapper<neon::DockSpaceComponent> dockSpace);
+        explicit NeoneuronWindow(std::string windowName);
 
-        ~NeoneuronTopBar() override;
-
-        void onStart() override;
+        ~NeoneuronWindow() override = default;
 
         void onPreDraw() override;
     };
 } // namespace neoneuron
 
-#endif // NEONEURONTOPBAR_H
+#endif // NEONEURON_NEONEURONWINDOW_H

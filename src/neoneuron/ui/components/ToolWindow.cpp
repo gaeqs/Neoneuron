@@ -26,15 +26,10 @@
 namespace neoneuron
 {
 
-    void ToolWindow::setWindowName(std::string windowName)
-    {
-        _windowName = std::move(windowName);
-    }
-
     ToolWindow::ToolWindow(NeoneuronApplication* application, std::string configNode, std::string windowName) :
+        NeoneuronWindow(std::move(windowName)),
         _application(application),
-        _configNode(std::move(configNode)),
-        _windowName(std::move(windowName))
+        _configNode(std::move(configNode))
     {
     }
 
@@ -50,10 +45,7 @@ namespace neoneuron
         bool keepOpen = true;
 
         if (opened) {
-            if (ImGui::Begin(_windowName.c_str(), &keepOpen)) {
-                drawWindowContents();
-            }
-            ImGui::End();
+            initWindow(&keepOpen);
         }
 
         if (opened && !keepOpen) {

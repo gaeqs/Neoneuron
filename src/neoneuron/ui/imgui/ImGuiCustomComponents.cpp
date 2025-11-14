@@ -62,7 +62,7 @@ namespace neoneuron
     bool collapsingHeaderWithCloseButton(const char* label, bool& closed)
     {
         ImGui::PushID(label);
-        bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_AllowItemOverlap);
+        bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_AllowOverlap);
         ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(" X ").x -
                         ImGui::GetStyle().FramePadding.x * 2);
         if (ImGui::Button(" X ", ImVec2(0.0f, 0.0f))) {
