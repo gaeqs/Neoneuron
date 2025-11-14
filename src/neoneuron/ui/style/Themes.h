@@ -28,7 +28,7 @@ namespace neoneuron
     {
         ImGuiStyle* style = &ImGui::GetStyle();
         style->WindowPadding = {8, 8};
-        style->FramePadding = {4, 3};
+        style->FramePadding = {8, 6};
         style->ItemSpacing = {8, 4};
         style->ItemInnerSpacing = {4, 4};
         style->TouchExtraPadding = {0, 0};
@@ -77,26 +77,26 @@ namespace neoneuron
         colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
         colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
         colors[ImGuiCol_CheckMark] = ImVec4(0.45f, 0.76f, 0.29f, 1.00f);
-        colors[ImGuiCol_SliderGrab] = ImVec4(0.29f, 0.62f, 0.91f, 1.00f);
-        colors[ImGuiCol_SliderGrabActive] = ImVec4(0.29f, 0.66f, 0.91f, 1.00f);
-        colors[ImGuiCol_Button] = ImVec4(0.18f, 0.47f, 0.91f, 1.00f);
-        colors[ImGuiCol_ButtonHovered] = ImVec4(0.29f, 0.62f, 0.91f, 1.00f);
-        colors[ImGuiCol_ButtonActive] = ImVec4(0.22f, 0.52f, 0.91f, 1.00f);
-        colors[ImGuiCol_Header] = ImVec4(0.18f, 0.47f, 0.91f, 1.00f);
-        colors[ImGuiCol_HeaderHovered] = ImVec4(0.29f, 0.62f, 0.91f, 1.00f);
-        colors[ImGuiCol_HeaderActive] = ImVec4(0.29f, 0.66f, 0.91f, 1.00f);
-        colors[ImGuiCol_Separator] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
-        colors[ImGuiCol_SeparatorHovered] = ImVec4(0.29f, 0.62f, 0.91f, 1.00f);
-        colors[ImGuiCol_SeparatorActive] = ImVec4(0.29f, 0.66f, 0.91f, 1.00f);
-        colors[ImGuiCol_ResizeGrip] = ImVec4(0.29f, 0.62f, 0.91f, 1.00f);
-        colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.29f, 0.66f, 0.91f, 1.00f);
-        colors[ImGuiCol_ResizeGripActive] = ImVec4(0.29f, 0.70f, 0.91f, 1.00f);
+        colors[ImGuiCol_SliderGrab] = palette.primary.normal.Value;
+        colors[ImGuiCol_SliderGrabActive] = palette.primary.dark.Value;
+        colors[ImGuiCol_Button] = palette.primary.normal.Value;
+        colors[ImGuiCol_ButtonHovered] = palette.primary.light.Value;
+        colors[ImGuiCol_ButtonActive] = palette.primary.dark.Value;
+        colors[ImGuiCol_Header] = palette.primary.normal.Value;
+        colors[ImGuiCol_HeaderHovered] = palette.primary.light.Value;
+        colors[ImGuiCol_HeaderActive] = palette.primary.dark.Value;
+        colors[ImGuiCol_Separator] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+        colors[ImGuiCol_SeparatorHovered] = palette.primary.light.Value;
+        colors[ImGuiCol_SeparatorActive] = palette.primary.dark.Value;
+        colors[ImGuiCol_ResizeGrip] = palette.primary.normal.Value;
+        colors[ImGuiCol_ResizeGripHovered] = palette.primary.light.Value;
+        colors[ImGuiCol_ResizeGripActive] = palette.primary.dark.Value;
         colors[ImGuiCol_Tab] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-        colors[ImGuiCol_TabHovered] = ImVec4(0.29f, 0.62f, 0.91f, 1.00f);
-        colors[ImGuiCol_TabActive] = palette.primary;
-        colors[ImGuiCol_TabUnfocused] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-        colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.18f, 0.47f, 0.91f, 1.00f);
-        colors[ImGuiCol_DockingPreview] = ImVec4(0.29f, 0.62f, 0.91f, 0.70f);
+        colors[ImGuiCol_TabHovered] = palette.primary.light.Value;
+        colors[ImGuiCol_TabActive] = palette.primary.normal.Value;
+        colors[ImGuiCol_TabUnfocused] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+        colors[ImGuiCol_TabUnfocusedActive] = palette.primary.normal.Value;
+        colors[ImGuiCol_DockingPreview] = palette.primary.normal.Value;
         colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
         colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
         colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.29f, 0.66f, 0.91f, 1.00f);
@@ -114,6 +114,7 @@ namespace neoneuron
         colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
         colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
         colors[ImGuiCol_Border] = ImVec4(0.13f, 0.0f, 0.0f, 0.0f);
+        colors[ImGuiCol_TextLink] = palette.primary.light.Value;
     }
 
     inline void StyleColorsLight()

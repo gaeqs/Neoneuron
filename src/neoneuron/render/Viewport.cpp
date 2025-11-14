@@ -291,13 +291,13 @@ namespace neoneuron
     {
         bool first = true;
         rush::AABB<3, float> aabb;
-        for (auto viewport : _render->getRepresentations()) {
-            if (viewport->hasViewport(this)) {
+        for (auto rep : _render->getRepresentations()) {
+            if (rep->hasViewport(this)) {
                 if (first) {
-                    aabb = viewport->getSceneBoundingBox();
+                    aabb = rep->getSceneBoundingBox();
                     first = false;
                 } else {
-                    auto repAABB = viewport->getSceneBoundingBox();
+                    auto repAABB = rep->getSceneBoundingBox();
                     auto min = rush::min(aabb.center - aabb.radius, repAABB.center - repAABB.radius);
                     auto max = rush::max(aabb.center + aabb.radius, repAABB.center + repAABB.radius);
                     aabb = rush::AABB<3, float>::fromEdges(min, max);

@@ -27,15 +27,29 @@
 
 namespace neoneuron
 {
+    ColorRole::ColorRole() :
+        ColorRole(0.0f, 0.48f)
+    {
+    }
+
+    ColorRole::ColorRole(float hue, float saturation) :
+        normal(hslToRgb({hue, saturation, 0.5f, 1.0f})),
+        light(hslToRgb({hue, saturation, 0.6f, 1.0f})),
+        lighter(hslToRgb({hue, saturation, 0.7f, 1.0f})),
+        dark(hslToRgb({hue, saturation, 0.4f, 1.0f})),
+        darker(hslToRgb({hue, saturation, 0.3f, 1.0f}))
+    {
+    }
+
     DynamicColorPalette::DynamicColorPalette() :
-        DynamicColorPalette(0)
+        DynamicColorPalette(0.0f)
     {
     }
 
     DynamicColorPalette::DynamicColorPalette(float hue) :
-        primary(hslToRgb({hue, 0.48f, 0.5f, 1.0f})),
-        secondary(hslToRgb({hue, 0.16f, 0.5f, 1.0f})),
-        tertiary(hslToRgb({hue + 0.166f, 0.48f, 0.5f, 1.0f})),
+        primary(hue, 0.48f),
+        secondary(hue, 0.16f),
+        tertiary(hue + 0.166f, 0.48f),
         surface(hslToRgb({hue, 0.02f, 0.10f, 1.0f})),
         surfaceTint(hslToRgb({hue, 0.5f, 0.22f, 1.0f}))
     {

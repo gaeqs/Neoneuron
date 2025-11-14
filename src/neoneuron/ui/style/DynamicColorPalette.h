@@ -29,11 +29,24 @@
 namespace neoneuron
 {
 
+    struct ColorRole
+    {
+        ImColor normal;
+        ImColor light;
+        ImColor lighter;
+        ImColor dark;
+        ImColor darker;
+
+        ColorRole();
+
+        ColorRole(float hue, float saturation);
+    };
+
     struct DynamicColorPalette
     {
-        ImColor primary;
-        ImColor secondary;
-        ImColor tertiary;
+        ColorRole primary;
+        ColorRole secondary;
+        ColorRole tertiary;
         ImColor surface;
         ImColor surfaceTint;
 

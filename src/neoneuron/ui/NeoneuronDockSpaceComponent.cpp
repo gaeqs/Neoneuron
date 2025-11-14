@@ -69,7 +69,7 @@ namespace neoneuron
                     // Fills the gap left by the rounding of the own window.
                     rect.Max.y += ImGui::GetStyle().WindowRounding;
 
-                    draw->AddRectFilled(rect.GetTL(), rect.GetBR(), color, 4.0f,
+                    draw->AddRectFilled(rect.GetTL(), rect.GetBR(), color, ImGui::GetStyle().WindowRounding,
                                         ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersTopRight);
                 }
             }

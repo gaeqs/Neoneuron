@@ -86,7 +86,8 @@ namespace neoneuron
     }
 
     NeoneuronUI::NeoneuronUI(NeoneuronRender* render) :
-        _render(render)
+        _render(render),
+        _colorPalette((rand() % 1000) / 1000.0f)
     {
         auto* app = render->getNeoneuronApplication();
         ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
