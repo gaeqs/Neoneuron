@@ -20,8 +20,7 @@
 #ifndef NEONEURONTOPBAR_H
 #define NEONEURONTOPBAR_H
 
-#include "../../../cmake-build-release/_deps/neon-src/src/neon/util/component/DockSpaceComponent.h"
-
+#include <neon/util/component/DockSpaceComponent.h>
 #include <neon/Neon.h>
 
 namespace neoneuron

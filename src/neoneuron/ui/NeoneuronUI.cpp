@@ -51,7 +51,7 @@ namespace
 
 namespace neoneuron
 {
-    void NeoneuronUI::initStyle()
+    void NeoneuronUI::initStyle() const
     {
         auto& s = _render->getNeoneuronApplication()->getFiles().getSettings();
         switch (s.value(NeoneuronFiles::SETTINGS_THEME, 0)) {
@@ -59,7 +59,7 @@ namespace neoneuron
                 StyleColorsDark(_colorPalette);
                 break;
             case 1:
-                StyleColorsLight();
+                StyleColorsLight(_lightColorPalette);
                 break;
             default:
                 break;
@@ -99,7 +99,8 @@ namespace neoneuron
 
     NeoneuronUI::NeoneuronUI(NeoneuronRender* render) :
         _render(render),
-        _colorPalette(randFloat())
+        _colorPalette(0.6f, false),
+        _lightColorPalette(0.6f, true)
     {
         auto* app = render->getNeoneuronApplication();
         ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
@@ -143,19 +144,34 @@ namespace neoneuron
 
     const DynamicColorPalette& NeoneuronUI::getColorPalette() const
     {
-        return _colorPalette;
+        auto& s = _render->getNeoneuronApplication()->getFiles().getSettings();
+        switch (s.value(NeoneuronFiles::SETTINGS_THEME, 0)) {
+            case 1:
+                return _lightColorPalette;
+            case 0:
+            default:
+                return _colorPalette;
+        }
     }
 
     void NeoneuronUI::setColorPalette(const DynamicColorPalette& palette)
     {
         _colorPalette = palette;
+        _lightColorPalette = _colorPalette;
+        _lightColorPalette.alternateTheme();
+        initStyle();
+    }
+
+    void NeoneuronUI::setColorPalette(float hue)
+    {
+        _colorPalette = DynamicColorPalette(hue, false);
+        _lightColorPalette = DynamicColorPalette(hue, true);
         initStyle();
     }
 
     void NeoneuronUI::randomizeColorPalette()
     {
-        _colorPalette = DynamicColorPalette(randFloat());
-        initStyle();
+        setColorPalette(randFloat());
     }
 
     NeoneuronUI& NeoneuronUI::operator=(NeoneuronUI&& other) noexcept
@@ -164,6 +180,7 @@ namespace neoneuron
         _gameObject = other._gameObject;
         _debugKeyListener = std::move(other._debugKeyListener);
         _colorPalette = other._colorPalette;
+        _lightColorPalette = other._lightColorPalette;
         other._gameObject = nullptr;
         return *this;
     }

@@ -33,16 +33,18 @@ namespace neoneuron
 
     struct ColorRole
     {
-        neon::Color<> normal;
-        neon::Color<> light;
-        neon::Color<> lighter;
-        neon::Color<> dark;
-        neon::Color<> darker;
-        neon::Color<> darkest;
+        neon::Color<neon::HSLAColorSpace> normal;
+        neon::Color<neon::HSLAColorSpace> light;
+        neon::Color<neon::HSLAColorSpace> lighter;
+        neon::Color<neon::HSLAColorSpace> dark;
+        neon::Color<neon::HSLAColorSpace> darker;
+        neon::Color<neon::HSLAColorSpace> darkest;
 
         ColorRole();
 
         ColorRole(neon::Color<neon::HSLAColorSpace> base);
+
+        void alternateTheme();
     };
 
     struct DynamicColorPalette
@@ -52,12 +54,14 @@ namespace neoneuron
         ColorRole tertiary;
         ColorRole surfaceContainer;
         ColorRole primaryAlt;
-        neon::Color<> surface;
-        neon::Color<> surfaceTint;
+        neon::Color<neon::HSLAColorSpace> surface;
+        neon::Color<neon::HSLAColorSpace> surfaceTint;
 
         DynamicColorPalette();
 
-        explicit DynamicColorPalette(float hue);
+        explicit DynamicColorPalette(float hue, bool lightTheme);
+
+        void alternateTheme();
     };
 } // namespace neoneuron
 

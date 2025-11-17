@@ -32,7 +32,7 @@
 
 namespace neoneuron
 {
-    void NeoneuronDockSpaceComponent::renderTitleBackground(const ImGuiWindow* window)
+    void NeoneuronDockSpaceComponent::renderTitleBackground(const ImGuiWindow* window) const
     {
         auto drawList = window->DrawList;
         ImRect rect;
@@ -127,7 +127,7 @@ namespace neoneuron
             if (tabBar->SelectedTabId == tab.ID) {
                 color = _render->getUI().getColorPalette().surfaceContainer.normal.toImGuiUInt();
             } else {
-                color = _render->getUI().getColorPalette().surfaceContainer.darker.toImGuiUInt();
+                color = _render->getUI().getColorPalette().surfaceContainer.dark.toImGuiUInt();
             }
 
             drawList->AddRectFilled(pos, max, color, ImGui::GetStyle().WindowRounding, ImDrawFlags_RoundCornersTop);

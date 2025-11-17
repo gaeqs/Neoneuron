@@ -36,8 +36,9 @@ namespace neoneuron
         hey::Listener<std::string> _debugKeyListener;
 
         DynamicColorPalette _colorPalette;
+        DynamicColorPalette _lightColorPalette;
 
-        void initStyle();
+        void initStyle() const;
 
         void initDebugToggle();
 
@@ -51,6 +52,8 @@ namespace neoneuron
         const DynamicColorPalette& getColorPalette() const;
 
         void setColorPalette(const DynamicColorPalette& palette);
+
+        void setColorPalette(float hue);
 
         void randomizeColorPalette();
 

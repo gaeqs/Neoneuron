@@ -41,20 +41,20 @@ namespace neoneuron::settings
         ImGui::Combo("Theme", &styleIdx, "Dark Theme\0Light Theme\0");
 
         if (styleIdx != current) {
+            current = styleIdx;
+            files.getSettings()[NeoneuronFiles::SETTINGS_THEME] = styleIdx;
+            files.signalSettingsChange(NeoneuronFiles::SETTINGS_THEME);
+
             switch (styleIdx) {
                 case 0:
                     StyleColorsDark(app->getRender().getUI().getColorPalette());
                     break;
                 case 1:
-                    StyleColorsLight();
+                    StyleColorsLight(app->getRender().getUI().getColorPalette());
                     break;
                 default:
                     break;
             }
-
-            current = styleIdx;
-            files.getSettings()[NeoneuronFiles::SETTINGS_THEME] = styleIdx;
-            files.signalSettingsChange(NeoneuronFiles::SETTINGS_THEME);
         }
     }
 

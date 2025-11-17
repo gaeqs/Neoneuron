@@ -78,19 +78,10 @@ namespace neoneuron
         ImGui::SliderInt("Level of detail", &aux, 0, 7);
         d.lod = static_cast<uint32_t>(aux);
 
-        if (ImGui::Button("Randomize theme")) {
-            getNeoneuronApplication()->getRender().getUI().randomizeColorPalette();
+        float hue = getNeoneuronApplication()->getRender().getUI().getColorPalette().primary.normal[0];
+        if (ImGui::SliderFloat("Theme hue", &hue, 0.0f, 1.0f)) {
+            getNeoneuronApplication()->getRender().getUI().setColorPalette(hue);
         }
-        /*auto* scene = _render->getNeuronScene().get();
-        if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
-            bool wireframe = complexScene->isWireframeMode();
-            ImGui::Checkbox("Wireframe", &wireframe);
-            complexScene->setWireframeMode(wireframe);
-
-            if (ImGui::Button("Reload shaders")) {
-                complexScene->reloadShader();
-            }
-        }*/
 
         ImGui::PopItemWidth();
     }

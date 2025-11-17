@@ -38,7 +38,7 @@ namespace neoneuron
     {
         NeoneuronRender* _render;
 
-        void renderTitleBackground (const ImGuiWindow* window);
+        void renderTitleBackground (const ImGuiWindow* window) const;
 
         void renderTabs(ImDrawList* drawList, ImGuiTabBar* tabBar) const;
 
