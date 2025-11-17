@@ -320,6 +320,9 @@ namespace neoneuron
     {
         ImGui::SetNextWindowSizeConstraints(ImVec2(200, 200), ImVec2(100000, 100000));
         NeoneuronWindow::onPreDraw();
+
+        auto color = _render->getUI().getColorPalette().surfaceContainer.darkest;
+        _inputFrameBuffer->setClearColor(0, color.transformTo<neon::RGBAColorSpace>().getData());
     }
 
     void Viewport::drawWindow()
