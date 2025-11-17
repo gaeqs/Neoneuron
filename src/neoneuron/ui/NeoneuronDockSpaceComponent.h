@@ -28,6 +28,8 @@
 
 #include <neon/util/component/DockSpaceComponent.h>
 
+struct ImGuiWindow;
+
 namespace neoneuron
 {
 
@@ -35,10 +37,14 @@ namespace neoneuron
     {
         NeoneuronRender* _render;
 
+        void renderTitleBackground (const ImGuiWindow* window);
+
         void renderDockSpaceWindow(ImGuiViewport* vp, ImVec2 pos, ImVec2 size) override;
 
       public:
         explicit NeoneuronDockSpaceComponent(NeoneuronRender* render);
+
+        void onLatePreDraw() override;
     };
 } // namespace neoneuron
 

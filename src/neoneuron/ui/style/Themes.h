@@ -60,7 +60,7 @@ namespace neoneuron
         ImVec4* colors = style->Colors;
         colors[ImGuiCol_Text] = ImVec4(0.93f, 0.93f, 0.94f, 1.00f);
         colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-        colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+        colors[ImGuiCol_WindowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
         colors[ImGuiCol_ChildBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
         colors[ImGuiCol_PopupBg] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
         colors[ImGuiCol_Border] = ImVec4(0.25f, 0.25f, 0.28f, 1.00f);
@@ -77,26 +77,26 @@ namespace neoneuron
         colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
         colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
         colors[ImGuiCol_CheckMark] = ImVec4(0.45f, 0.76f, 0.29f, 1.00f);
-        colors[ImGuiCol_SliderGrab] = palette.primary.normal.Value;
-        colors[ImGuiCol_SliderGrabActive] = palette.primary.dark.Value;
-        colors[ImGuiCol_Button] = palette.primary.normal.Value;
-        colors[ImGuiCol_ButtonHovered] = palette.primary.light.Value;
-        colors[ImGuiCol_ButtonActive] = palette.primary.dark.Value;
-        colors[ImGuiCol_Header] = palette.primary.normal.Value;
-        colors[ImGuiCol_HeaderHovered] = palette.primary.light.Value;
-        colors[ImGuiCol_HeaderActive] = palette.primary.dark.Value;
+        colors[ImGuiCol_SliderGrab] = palette.primary.normal.toImGuiVector();
+        colors[ImGuiCol_SliderGrabActive] = palette.primary.dark.toImGuiVector();
+        colors[ImGuiCol_Button] = palette.primary.normal.toImGuiVector();
+        colors[ImGuiCol_ButtonHovered] = palette.primary.light.toImGuiVector();
+        colors[ImGuiCol_ButtonActive] = palette.primary.dark.toImGuiVector();
+        colors[ImGuiCol_Header] = palette.primary.normal.toImGuiVector();
+        colors[ImGuiCol_HeaderHovered] = palette.primary.light.toImGuiVector();
+        colors[ImGuiCol_HeaderActive] = palette.primary.dark.toImGuiVector();
         colors[ImGuiCol_Separator] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-        colors[ImGuiCol_SeparatorHovered] = palette.primary.light.Value;
-        colors[ImGuiCol_SeparatorActive] = palette.primary.dark.Value;
-        colors[ImGuiCol_ResizeGrip] = palette.primary.normal.Value;
-        colors[ImGuiCol_ResizeGripHovered] = palette.primary.light.Value;
-        colors[ImGuiCol_ResizeGripActive] = palette.primary.dark.Value;
+        colors[ImGuiCol_SeparatorHovered] = palette.primary.light.toImGuiVector();
+        colors[ImGuiCol_SeparatorActive] = palette.primary.dark.toImGuiVector();
+        colors[ImGuiCol_ResizeGrip] = palette.primary.normal.toImGuiVector();
+        colors[ImGuiCol_ResizeGripHovered] = palette.primary.light.toImGuiVector();
+        colors[ImGuiCol_ResizeGripActive] = palette.primary.dark.toImGuiVector();
         colors[ImGuiCol_Tab] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-        colors[ImGuiCol_TabHovered] = palette.primary.light.Value;
-        colors[ImGuiCol_TabActive] = palette.primary.normal.Value;
+        colors[ImGuiCol_TabHovered] = palette.primary.light.toImGuiVector();
+        colors[ImGuiCol_TabActive] = palette.primary.normal.toImGuiVector();
         colors[ImGuiCol_TabUnfocused] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-        colors[ImGuiCol_TabUnfocusedActive] = palette.primary.normal.Value;
-        colors[ImGuiCol_DockingPreview] = palette.primary.normal.Value;
+        colors[ImGuiCol_TabUnfocusedActive] = palette.primary.normal.toImGuiVector();
+        colors[ImGuiCol_DockingPreview] = palette.primary.normal.toImGuiVector();
         colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
         colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
         colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.29f, 0.66f, 0.91f, 1.00f);
@@ -114,7 +114,7 @@ namespace neoneuron
         colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
         colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
         colors[ImGuiCol_Border] = ImVec4(0.13f, 0.0f, 0.0f, 0.0f);
-        colors[ImGuiCol_TextLink] = palette.primary.light.Value;
+        colors[ImGuiCol_TextLink] = palette.primary.light.toImGuiVector();
     }
 
     inline void StyleColorsLight()

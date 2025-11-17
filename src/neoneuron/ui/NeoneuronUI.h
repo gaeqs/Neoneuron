@@ -41,8 +41,6 @@ namespace neoneuron
 
         void initDebugToggle();
 
-        void initLogToggle();
-
       public:
         NeoneuronUI() = default;
 
@@ -53,6 +51,8 @@ namespace neoneuron
         const DynamicColorPalette& getColorPalette() const;
 
         void setColorPalette(const DynamicColorPalette& palette);
+
+        void randomizeColorPalette();
 
         NeoneuronUI& operator=(NeoneuronUI&& other) noexcept;
     };

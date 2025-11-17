@@ -24,6 +24,8 @@
 #ifndef NEONEURON_DYNAMICCOLORPALETTE_H
 #define NEONEURON_DYNAMICCOLORPALETTE_H
 
+#include <neon/color/Color.h>
+
 #include "imgui.h"
 
 namespace neoneuron
@@ -31,15 +33,16 @@ namespace neoneuron
 
     struct ColorRole
     {
-        ImColor normal;
-        ImColor light;
-        ImColor lighter;
-        ImColor dark;
-        ImColor darker;
+        neon::Color<> normal;
+        neon::Color<> light;
+        neon::Color<> lighter;
+        neon::Color<> dark;
+        neon::Color<> darker;
+        neon::Color<> darkest;
 
         ColorRole();
 
-        ColorRole(float hue, float saturation);
+        ColorRole(neon::Color<neon::HSLAColorSpace> base);
     };
 
     struct DynamicColorPalette
@@ -47,8 +50,10 @@ namespace neoneuron
         ColorRole primary;
         ColorRole secondary;
         ColorRole tertiary;
-        ImColor surface;
-        ImColor surfaceTint;
+        ColorRole surfaceContainer;
+        ColorRole primaryAlt;
+        neon::Color<> surface;
+        neon::Color<> surfaceTint;
 
         DynamicColorPalette();
 

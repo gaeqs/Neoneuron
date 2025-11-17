@@ -28,16 +28,17 @@
 namespace neoneuron
 {
     ColorRole::ColorRole() :
-        ColorRole(0.0f, 0.48f)
+        ColorRole(neon::Color<neon::HSLAColorSpace>(0.0f, 0.48f, 0.5f, 1.0f))
     {
     }
 
-    ColorRole::ColorRole(float hue, float saturation) :
-        normal(hslToRgb({hue, saturation, 0.5f, 1.0f})),
-        light(hslToRgb({hue, saturation, 0.6f, 1.0f})),
-        lighter(hslToRgb({hue, saturation, 0.7f, 1.0f})),
-        dark(hslToRgb({hue, saturation, 0.4f, 1.0f})),
-        darker(hslToRgb({hue, saturation, 0.3f, 1.0f}))
+    ColorRole::ColorRole(neon::Color<neon::HSLAColorSpace> base) :
+        normal(base),
+        light(base.lighter(0.1f)),
+        lighter(base.lighter(0.2f)),
+        dark(base.darker(0.1f)),
+        darker(base.darker(0.2f)),
+        darkest(base.darker(0.3f))
     {
     }
 
@@ -47,11 +48,13 @@ namespace neoneuron
     }
 
     DynamicColorPalette::DynamicColorPalette(float hue) :
-        primary(hue, 0.48f),
-        secondary(hue, 0.16f),
-        tertiary(hue + 0.166f, 0.48f),
-        surface(hslToRgb({hue, 0.02f, 0.10f, 1.0f})),
-        surfaceTint(hslToRgb({hue, 0.5f, 0.22f, 1.0f}))
+        primary({hue, 0.48f, 0.5f, 1.0f}),
+        secondary({hue, 0.16f, 0.5f, 1.0f}),
+        tertiary({hue + 0.166f, 0.48f, 0.5f, 1.0f}),
+        primaryAlt({hue + 0.05f, 0.48f, 0.5f, 1.0f}),
+        surfaceContainer({hue, 0.10f, 0.11f, 1.0f}),
+        surface(neon::Color<neon::HSLAColorSpace>(hue, 0.02f, 0.00f, 1.0f)),
+        surfaceTint(neon::Color<neon::HSLAColorSpace>(hue, 0.5f, 0.15f, 1.0f))
     {
     }
 } // namespace neoneuron

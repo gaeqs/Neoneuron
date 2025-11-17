@@ -25,6 +25,7 @@
 #include "components/NeoneuronUIPerformanceRecorder.h"
 #include "style/MaterialSymbols.h"
 
+#include <random>
 #include <neon/util/component/DebugOverlayComponent.h>
 #include <neon/util/component/DockSpaceComponent.h>
 #include <neoneuron/application/NeoneuronApplication.h>
@@ -36,6 +37,17 @@
 #include <neoneuron/ui/components/NeoneuronUINeuronList.h>
 #include <neoneuron/ui/components/NeoneuronUIGlobalParameters.h>
 #include <vulkan/util/component/VulkanInfoCompontent.h>
+
+namespace
+{
+    float randFloat()
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution dist(0.0f, 1.0f);
+        return dist(gen);
+    }
+} // namespace
 
 namespace neoneuron
 {
@@ -87,7 +99,7 @@ namespace neoneuron
 
     NeoneuronUI::NeoneuronUI(NeoneuronRender* render) :
         _render(render),
-        _colorPalette((rand() % 1000) / 1000.0f)
+        _colorPalette(randFloat())
     {
         auto* app = render->getNeoneuronApplication();
         ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
@@ -137,6 +149,12 @@ namespace neoneuron
     void NeoneuronUI::setColorPalette(const DynamicColorPalette& palette)
     {
         _colorPalette = palette;
+        initStyle();
+    }
+
+    void NeoneuronUI::randomizeColorPalette()
+    {
+        _colorPalette = DynamicColorPalette(randFloat());
         initStyle();
     }
 

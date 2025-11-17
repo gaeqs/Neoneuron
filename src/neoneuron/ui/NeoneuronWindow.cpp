@@ -34,30 +34,10 @@ namespace neoneuron
 
     void NeoneuronWindow::initWindow(bool* open)
     {
-        float rounding = ImGui::GetStyle().WindowRounding;
-        ImVec2 padding = ImGui::GetStyle().WindowPadding;
-        ImU32 bgColor = ImGui::GetColorU32(ImGuiCol_WindowBg);
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::GetStyleColorVec4(ImGuiCol_Border));
         if (ImGui::Begin(_windowName.c_str(), open)) {
-
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, bgColor);
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding.x, padding.y));
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, rounding);
-            if (ImGui::BeginChild("##child", ImVec2(0, 0), ImGuiChildFlags_FrameStyle)) {
-                ImGui::PopStyleVar(2);
-                ImGui::PopStyleColor();
-                drawWindow();
-            } else {
-                ImGui::PopStyleColor();
-                ImGui::PopStyleVar(2);
-            }
-            ImGui::EndChild();
+            drawWindow();
         }
         ImGui::End();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleVar();
     }
 
     NeoneuronWindow::NeoneuronWindow(std::string windowName) :

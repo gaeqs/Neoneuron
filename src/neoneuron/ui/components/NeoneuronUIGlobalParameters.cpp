@@ -78,6 +78,9 @@ namespace neoneuron
         ImGui::SliderInt("Level of detail", &aux, 0, 7);
         d.lod = static_cast<uint32_t>(aux);
 
+        if (ImGui::Button("Randomize theme")) {
+            getNeoneuronApplication()->getRender().getUI().randomizeColorPalette();
+        }
         /*auto* scene = _render->getNeuronScene().get();
         if (auto* complexScene = dynamic_cast<ComplexNeuronRepresentation*>(scene)) {
             bool wireframe = complexScene->isWireframeMode();
