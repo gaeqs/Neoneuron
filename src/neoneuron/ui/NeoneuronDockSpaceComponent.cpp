@@ -36,6 +36,7 @@ namespace neoneuron
     {
         auto drawList = window->DrawList;
         ImRect rect;
+        ImGuiTabBar* tabBar = nullptr;
 
         if (window->Flags & ImGuiWindowFlags_NoTitleBar) {
             return;
@@ -43,6 +44,7 @@ namespace neoneuron
 
         if (window->DockIsActive) {
             auto* node = window->DockNode;
+            tabBar = node->TabBar;
 
             while (node->ParentNode != nullptr) {
                 node = node->ParentNode;
@@ -94,27 +96,42 @@ namespace neoneuron
                 gradientRect.Max.y == rect.Max.y ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersTop;
 
             drawList->PathRect(gradientRect.Min, gradientRect.Max, ImGui::GetStyle().WindowRounding, flags);
-
             ImNodes::PathFillConvex(drawList, gradient, gradientRect.Min, gradientRect.Max);
         }
-        if (rect.Max.y > rect.Min.y + 30.0f) {
-            auto gradientRect = rect;
-            gradientRect.Min.y += 30.0f;
-            gradientRect.Max.y = std::min(gradientRect.Min.y + 50.0f, rect.Max.y);
-
-            ImU32 lighterColor = _render->getUI().getColorPalette().primary.darkest.toImGuiUInt();
-            ImU32 lightColor = _render->getUI().getColorPalette().primaryAlt.darkest.toImGuiUInt();
-
-            ImNodeRectColor gradient(lighterColor, lightColor, color, color);
-
-            drawList->PathRect(gradientRect.Min, gradientRect.Max, ImGui::GetStyle().WindowRounding,
-                               ImDrawFlags_RoundCornersBottom);
-
-            ImNodes::PathFillConvex(drawList, gradient, gradientRect.Min, gradientRect.Max);
+        if (tabBar != nullptr) {
+            renderTabs(drawList, tabBar);
         }
 
         drawList->PopClipRect();
         splitter.Merge(drawList);
+    }
+
+    void NeoneuronDockSpaceComponent::renderTabs(ImDrawList* drawList, ImGuiTabBar* tabBar) const
+    {
+        bool first = true;
+        for (auto tab : tabBar->Tabs) {
+            ImVec2 pos = tabBar->BarRect.Min;
+            pos.x += tab.Offset;
+
+            ImVec2 size = ImVec2(tab.Width, tabBar->BarRect.GetSize().y);
+
+            if (first) {
+                pos.x -= tabBar->FramePadding.x;
+                size.x += tabBar->FramePadding.x;
+                first = false;
+            }
+
+            ImVec2 max = pos + size;
+
+            ImU32 color;
+            if (tabBar->SelectedTabId == tab.ID) {
+                color = _render->getUI().getColorPalette().surfaceContainer.normal.toImGuiUInt();
+            } else {
+                color = _render->getUI().getColorPalette().surfaceContainer.darker.toImGuiUInt();
+            }
+
+            drawList->AddRectFilled(pos, max, color, ImGui::GetStyle().WindowRounding, ImDrawFlags_RoundCornersTop);
+        }
     }
 
     void NeoneuronDockSpaceComponent::renderDockSpaceWindow(ImGuiViewport* vp, ImVec2 pos, ImVec2 size)

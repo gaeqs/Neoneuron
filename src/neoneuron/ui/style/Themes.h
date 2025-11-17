@@ -91,11 +91,13 @@ namespace neoneuron
         colors[ImGuiCol_ResizeGrip] = palette.primary.normal.toImGuiVector();
         colors[ImGuiCol_ResizeGripHovered] = palette.primary.light.toImGuiVector();
         colors[ImGuiCol_ResizeGripActive] = palette.primary.dark.toImGuiVector();
-        colors[ImGuiCol_Tab] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-        colors[ImGuiCol_TabHovered] = palette.primary.light.toImGuiVector();
-        colors[ImGuiCol_TabActive] = palette.primary.normal.toImGuiVector();
+        colors[ImGuiCol_Tab] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+        colors[ImGuiCol_TabHovered] =ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+        colors[ImGuiCol_TabActive] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
         colors[ImGuiCol_TabUnfocused] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-        colors[ImGuiCol_TabUnfocusedActive] = palette.primary.normal.toImGuiVector();
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+        colors[ImGuiCol_TabDimmed] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+        colors[ImGuiCol_TabDimmedSelected] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
         colors[ImGuiCol_DockingPreview] = palette.primary.normal.toImGuiVector();
         colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
         colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);

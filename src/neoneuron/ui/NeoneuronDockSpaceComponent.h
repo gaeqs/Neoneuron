@@ -28,6 +28,7 @@
 
 #include <neon/util/component/DockSpaceComponent.h>
 
+struct ImGuiTabBar;
 struct ImGuiWindow;
 
 namespace neoneuron
@@ -38,6 +39,8 @@ namespace neoneuron
         NeoneuronRender* _render;
 
         void renderTitleBackground (const ImGuiWindow* window);
+
+        void renderTabs(ImDrawList* drawList, ImGuiTabBar* tabBar) const;
 
         void renderDockSpaceWindow(ImGuiViewport* vp, ImVec2 pos, ImVec2 size) override;
 
