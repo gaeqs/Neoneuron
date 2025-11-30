@@ -1,3 +1,10 @@
+# Neoneuron
+## Ph.D. Thesis. A novel methodology for real-time generation of neuronal morphology using Mesh Shaders and compact procedural representations.
+
+Read the full article [here](https://www.grialc.com/portfolio/projects/neoneuron/).
+
+![Img](https://www.grialc.com/images/projects/Neoneuron/neoneuron.png)
+
 **Neoneuron** represents the practical validation of my Ph.D. Thesis:
 a novel **generic methodology** for high-performance geometry generation.
 
